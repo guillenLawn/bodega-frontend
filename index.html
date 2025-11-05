@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bodega Guadalupe - Abarrotes Premium</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar Elegante -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h1>Bodega Guadalupe</h1>
+            </div>
+            
+            <div class="nav-actions">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Buscar productos..." class="search-input" id="searchInput">
+                    <div class="search-suggestions" id="searchSuggestions">
+                        <!-- Las sugerencias se cargarán aquí dinámicamente -->
+                    </div>
+                </div>
+                <div class="cart-icon-nav" id="cartToggle">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="cart-count-nav" id="cartCount">0</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Banner -->
+    <section class="hero">
+        <div class="hero-content">
+            <h2 class="hero-title">Productos de Calidad para tu Hogar</h2>
+            <p class="hero-subtitle">Los mejores abarrotes, siempre frescos y al mejor precio</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <!-- Filtros Laterales -->
+        <aside class="filters-sidebar">
+            <div class="filter-section">
+                <h3>Categorías</h3>
+                <div class="filter-options">
+                    <label class="filter-option active">
+                        <input type="radio" name="category" checked>
+                        <span>Todos los productos</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="category">
+                        <span>Abarrotes</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="category">
+                        <span>Lácteos y Carnes</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="category">
+                        <span>Bebidas</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="category">
+                        <span>Limpieza</span>
+                    </label>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Catálogo de Productos -->
+        <section class="catalog-main">
+            <!-- Sección: Abarrotes -->
+            <div class="category-section">
+                <div class="category-header">
+                    <h2 class="category-title">Abarrotes Esenciales</h2>
+                    <p class="category-description">Productos básicos de la más alta calidad</p>
+                </div>
+                <div class="products-grid" id="abarrotesGrid">
+                    <!-- Los productos se cargarán aquí -->
+                </div>
+            </div>
+
+            <!-- Sección: Lácteos y Carnes -->
+            <div class="category-section">
+                <div class="category-header">
+                    <h2 class="category-title">Lácteos y Carnes Frescas</h2>
+                    <p class="category-description">Frescura y calidad garantizada</p>
+                </div>
+                <div class="products-grid" id="lacteosGrid">
+                    <!-- Los productos se cargarán aquí -->
+                </div>
+            </div>
+
+            <!-- Sección: Bebidas -->
+            <div class="category-section">
+                <div class="category-header">
+                    <h2 class="category-title">Bebidas y Refrescos</h2>
+                    <p class="category-description">Para todos los momentos</p>
+                </div>
+                <div class="products-grid" id="bebidasGrid">
+                    <!-- Los productos se cargarán aquí -->
+                </div>
+            </div>
+
+            <!-- Sección: Limpieza -->
+            <div class="category-section">
+                <div class="category-header">
+                    <h2 class="category-title">Limpieza y Hogar</h2>
+                    <p class="category-description">Cuidado y limpieza para tu familia</p>
+                </div>
+                <div class="products-grid" id="limpiezaGrid">
+                    <!-- Los productos se cargarán aquí -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Elegante -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Bodega Guadalupe</h4>
+                <p>Tu bodega de confianza con los mejores productos desde 2024</p>
+            </div>
+            <div class="footer-section">
+                <h4>Contacto</h4>
+                <p>📞 (01) 234-5678</p>
+                <p>📧 hola@bodegaguadalupe.com</p>
+            </div>
+            <div class="footer-section">
+                <h4>Horario</h4>
+                <p>Lun-Sab: 7:00 AM - 10:00 PM</p>
+                <p>Dom: 7:00 AM - 9:00 PM</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Bodega Guadalupe. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Panel del Carrito Moderno -->
+    <div class="cart-overlay" id="cartOverlay"></div>
+    <div class="cart-panel-modern" id="cartPanel">
+        <div class="cart-header-modern">
+            <h3>Tu Pedido</h3>
+            <button class="cart-close" id="closeCart">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-items-modern" id="cartItems">
+            <div class="empty-cart-modern" id="emptyCart">
+                <i class="fas fa-shopping-bag"></i>
+                <p>Tu carrito está vacío</p>
+                <small>Agrega algunos productos</small>
+            </div>
+        </div>
+        <div class="cart-summary-modern">
+            <div class="total-section-modern">
+                <span>Total:</span>
+                <span class="total-amount-modern" id="totalAmount">S/ 0.00</span>
+            </div>
+            <button class="btn-pedir-modern" id="btnPedir">
+                <i class="fas fa-credit-card"></i>
+                Realizar Pedido
+            </button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
