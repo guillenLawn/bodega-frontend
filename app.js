@@ -840,7 +840,7 @@ async function realizarPedido() {
         
         // Mostrar alerta de confirmación elegante
         setTimeout(() => {
-            alert(`🎉 ¡Pedido realizado con éxito!\n\n📦 Productos:\n${productosResumen}\n\n💰 Total: S/ ${total.toFixed(2)}\n\n✅ Stock actualizado en la base de datos`);
+            alert(` ¡Pedido realizado con éxito!\n\n Productos:\n${productosResumen}\n\n Total: S/ ${total.toFixed(2)}\n`);
             
             // Limpiar carrito
             cart = [];
