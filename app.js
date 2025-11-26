@@ -1,14 +1,19 @@
 const API_URL = 'https://bodega-backend-4md3.onrender.com/api/inventory';
+const AUTH_API = 'https://bodega-backend-4md3.onrender.com/api/auth';
+
 // Estado global de la aplicación
 let cart = [];
 let products = [];
 let currentFilter = 'all';
 let currentSuggestions = [];
 let selectedSuggestionIndex = -1;
+let currentUser = null;
+let authToken = localStorage.getItem('bodega_token');
 
-// ✅ Inicializar la aplicación
+// ✅ Inicializar la aplicación CON AUTENTICACIÓN
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
+    initializeAuth();
 });
 
 function initializeApp() {
@@ -16,6 +21,278 @@ function initializeApp() {
     setupEventListeners();
     loadCartFromStorage();
     updateCartUI();
+}
+
+// ✅ Inicializar sistema de autenticación
+function initializeAuth() {
+    setupAuthEventListeners();
+    checkExistingAuth();
+}
+
+// ✅ Configurar event listeners para autenticación
+function setupAuthEventListeners() {
+    // Botones de login/registro
+    document.getElementById('loginBtn').addEventListener('click', showLoginModal);
+    document.getElementById('showRegister').addEventListener('click', showRegisterModal);
+    document.getElementById('showLogin').addEventListener('click', showLoginModal);
+    
+    // Cerrar modales
+    document.getElementById('closeLoginModal').addEventListener('click', hideAuthModals);
+    document.getElementById('closeRegisterModal').addEventListener('click', hideAuthModals);
+    document.getElementById('authOverlay').addEventListener('click', hideAuthModals);
+    
+    // Formularios
+    document.getElementById('loginForm').addEventListener('submit', handleLogin);
+    document.getElementById('registerForm').addEventListener('submit', handleRegister);
+    
+    // Menú de usuario
+    document.getElementById('userBtn').addEventListener('click', toggleUserDropdown);
+    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+    
+    // Cerrar dropdown al hacer clic fuera
+    document.addEventListener('click', function(e) {
+        const userMenu = document.getElementById('userMenu');
+        const userBtn = document.getElementById('userBtn');
+        
+        if (userMenu && userBtn && !userMenu.contains(e.target) && !userBtn.contains(e.target)) {
+            hideUserDropdown();
+        }
+    });
+}
+
+// ✅ Verificar autenticación existente
+async function checkExistingAuth() {
+    if (authToken) {
+        try {
+            const response = await fetch(`${AUTH_API}/verify`, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                currentUser = data.user;
+                updateAuthUI();
+            } else {
+                // Token inválido, limpiar
+                localStorage.removeItem('bodega_token');
+                authToken = null;
+            }
+        } catch (error) {
+            console.error('Error verificando autenticación:', error);
+            localStorage.removeItem('bodega_token');
+            authToken = null;
+        }
+    }
+}
+
+// ✅ Mostrar modal de login
+function showLoginModal(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    hideUserDropdown();
+    
+    document.getElementById('authOverlay').classList.add('active');
+    document.getElementById('loginModal').classList.add('active');
+    
+    // Limpiar formularios
+    document.getElementById('loginForm').reset();
+}
+
+// ✅ Mostrar modal de registro
+function showRegisterModal(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    
+    document.getElementById('authOverlay').classList.add('active');
+    document.getElementById('registerModal').classList.add('active');
+    document.getElementById('loginModal').classList.remove('active');
+    
+    // Limpiar formularios
+    document.getElementById('registerForm').reset();
+}
+
+// ✅ Ocultar modales de autenticación
+function hideAuthModals() {
+    document.getElementById('authOverlay').classList.remove('active');
+    document.getElementById('loginModal').classList.remove('active');
+    document.getElementById('registerModal').classList.remove('active');
+}
+
+// ✅ Manejar login
+async function handleLogin(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    
+    // Validación básica
+    if (!email || !password) {
+        showNotification('❌ Por favor completa todos los campos', 'error');
+        return;
+    }
+    
+    try {
+        // Mostrar estado de carga
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ingresando...';
+        
+        const response = await fetch(`${AUTH_API}/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Login exitoso
+            authToken = data.token;
+            currentUser = data.user;
+            
+            // Guardar token en localStorage
+            localStorage.setItem('bodega_token', authToken);
+            
+            // Actualizar UI
+            updateAuthUI();
+            hideAuthModals();
+            
+            showNotification(`✅ Bienvenido, ${currentUser.nombre}!`);
+            
+            // Si hay productos en el carrito, podrías guardarlos para el usuario
+            if (cart.length > 0) {
+                showNotification('🛒 Tus productos del carrito están listos para pedir');
+            }
+            
+        } else {
+            // Error en login
+            showNotification(`❌ ${data.error}`, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error en login:', error);
+        showNotification('❌ Error de conexión', 'error');
+    } finally {
+        // Restaurar botón
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Ingresar';
+    }
+}
+
+// ✅ Manejar registro
+async function handleRegister(e) {
+    e.preventDefault();
+    
+    const nombre = document.getElementById('registerNombre').value;
+    const email = document.getElementById('registerEmail').value;
+    const password = document.getElementById('registerPassword').value;
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    
+    // Validación básica
+    if (!nombre || !email || !password) {
+        showNotification('❌ Por favor completa todos los campos', 'error');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showNotification('❌ La contraseña debe tener al menos 6 caracteres', 'error');
+        return;
+    }
+    
+    try {
+        // Mostrar estado de carga
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando cuenta...';
+        
+        const response = await fetch(`${AUTH_API}/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ nombre, email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Registro exitoso
+            authToken = data.token;
+            currentUser = data.user;
+            
+            // Guardar token en localStorage
+            localStorage.setItem('bodega_token', authToken);
+            
+            // Actualizar UI
+            updateAuthUI();
+            hideAuthModals();
+            
+            showNotification(`✅ Cuenta creada exitosamente! Bienvenido, ${currentUser.nombre}`);
+            
+        } else {
+            // Error en registro
+            showNotification(`❌ ${data.error}`, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error en registro:', error);
+        showNotification('❌ Error de conexión', 'error');
+    } finally {
+        // Restaurar botón
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> Crear Cuenta';
+    }
+}
+
+// ✅ Manejar logout
+function handleLogout() {
+    // Limpiar datos de autenticación
+    authToken = null;
+    currentUser = null;
+    localStorage.removeItem('bodega_token');
+    
+    // Actualizar UI
+    updateAuthUI();
+    hideUserDropdown();
+    
+    showNotification('👋 Sesión cerrada correctamente');
+}
+
+// ✅ Actualizar UI según estado de autenticación
+function updateAuthUI() {
+    const loginBtn = document.getElementById('loginBtn');
+    const userMenu = document.getElementById('userMenu');
+    const userName = document.getElementById('userName');
+    const dropdownUserName = document.getElementById('dropdownUserName');
+    const dropdownUserEmail = document.getElementById('dropdownUserEmail');
+    
+    if (currentUser) {
+        // Usuario autenticado
+        loginBtn.style.display = 'none';
+        userMenu.style.display = 'flex';
+        
+        // Actualizar información del usuario
+        userName.textContent = currentUser.nombre.split(' ')[0]; // Solo primer nombre
+        dropdownUserName.textContent = currentUser.nombre;
+        dropdownUserEmail.textContent = currentUser.email;
+    } else {
+        // Usuario no autenticado
+        loginBtn.style.display = 'flex';
+        userMenu.style.display = 'none';
+    }
+}
+
+// ✅ Toggle dropdown de usuario
+function toggleUserDropdown() {
+    const dropdown = document.getElementById('userDropdown');
+    dropdown.classList.toggle('active');
+}
+
+// ✅ Ocultar dropdown de usuario
+function hideUserDropdown() {
+    const dropdown = document.getElementById('userDropdown');
+    dropdown.classList.remove('active');
 }
 
 // ✅ NUEVO: Configurar event listeners para autocompletado
@@ -793,8 +1070,15 @@ function closeCart() {
     document.querySelector('.main-container').classList.remove('blurred');
 }
 
-// ✅ Realizar pedido - MEJORADO
+// ✅ MODIFICAR función realizarPedido para requerir autenticación
 async function realizarPedido() {
+    // VERIFICAR AUTENTICACIÓN ANTES DE PROCEDER
+    if (!currentUser) {
+        showNotification('🔐 Por favor inicia sesión para realizar tu pedido', 'info');
+        showLoginModal({ preventDefault: () => {} });
+        return;
+    }
+    
     if (cart.length === 0) return;
 
     try {
@@ -815,7 +1099,10 @@ async function realizarPedido() {
             
             const response = await fetch(`${API_URL}/${item.id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}` // Añadir token para autenticación
+                },
                 body: JSON.stringify({
                     name: product.name,
                     category: product.category,
@@ -840,7 +1127,7 @@ async function realizarPedido() {
         
         // Mostrar alerta de confirmación elegante
         setTimeout(() => {
-            alert(` ¡Pedido realizado con éxito!\n\n Productos:\n${productosResumen}\n\n Total: S/ ${total.toFixed(2)}\n`);
+            alert(`¡Pedido realizado con éxito!\n\nCliente: ${currentUser.nombre}\nEmail: ${currentUser.email}\n\nProductos:\n${productosResumen}\n\nTotal: S/ ${total.toFixed(2)}\n\n¡Gracias por tu compra!`);
             
             // Limpiar carrito
             cart = [];
@@ -865,7 +1152,7 @@ async function realizarPedido() {
         btnPedir.disabled = false;
         btnPedir.innerHTML = '<i class="fas fa-credit-card"></i> Realizar Pedido';
         
-        alert('❌ Error al procesar el pedido. Intenta nuevamente.');
+        showNotification('❌ Error al procesar el pedido. Intenta nuevamente.', 'error');
     }
 }
 
