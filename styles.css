@@ -1,11 +1,9 @@
 :root {
-   
     --primary: #2563eb;
     --primary-dark: #1d4ed8;
     --primary-light: #3b82f6;
     --accent: #60a5fa;
     --accent-dark: #4b7fd6;
-    
     
     --text-dark: #1A1A1A;
     --text-light: #666666;
@@ -34,7 +32,6 @@
     --radius-xl: 16px;
 }
 
-
 * {
     margin: 0;
     padding: 0;
@@ -62,7 +59,341 @@ h2 { font-size: 2rem; }
 h3 { font-size: 1.5rem; }
 h4 { font-size: 1.25rem; }
 
+/* ===== 🆕 MENÚ LATERAL DE USUARIO ===== */
+.user-sidebar {
+    position: fixed;
+    left: 0;
+    top: 80px;
+    width: 250px;
+    height: calc(100vh - 80px);
+    background: var(--bg-white);
+    border-right: 1px solid var(--border-light);
+    box-shadow: var(--shadow-sm);
+    z-index: 999;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+}
 
+.user-sidebar.active {
+    transform: translateX(0);
+}
+
+.user-menu {
+    padding: var(--space-md) 0;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    color: var(--text-dark);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+    gap: 0.75rem;
+}
+
+.menu-item:hover {
+    background: var(--bg-light);
+    color: var(--primary);
+}
+
+.menu-item.active {
+    background: var(--primary-light);
+    color: white;
+    border-left-color: var(--primary);
+}
+
+.menu-item i {
+    width: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.menu-item span {
+    font-weight: 500;
+}
+
+/* ===== 🆕 VISTAS MÚLTIPLES ===== */
+.main-content {
+    position: relative;
+    min-height: 60vh;
+}
+
+.view-content {
+    display: none;
+    animation: fadeInUp 0.5s ease;
+}
+
+.view-content.active {
+    display: block;
+}
+
+/* Ocultar filtros en vistas que no son catálogo */
+.view-content:not(#viewCatalogo) .filters-sidebar {
+    display: none;
+}
+
+/* Ajustar grid cuando no hay filtros */
+.view-content:not(#viewCatalogo) .main-container {
+    grid-template-columns: 1fr;
+}
+
+/* ===== 🆕 VISTA HISTORIAL DE COMPRAS ===== */
+.historial-header {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+    padding: var(--space-lg);
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+    color: white;
+    border-radius: var(--radius-lg);
+}
+
+.historial-title {
+    color: white;
+    margin-bottom: var(--space-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.historial-subtitle {
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+
+.historial-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Estados del historial */
+.historial-loading,
+.historial-not-logged,
+.historial-empty {
+    text-align: center;
+    padding: var(--space-xl);
+}
+
+.historial-loading i {
+    font-size: 2rem;
+    margin-bottom: var(--space-md);
+    color: var(--primary);
+}
+
+.empty-state {
+    padding: var(--space-xl);
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--text-lighter);
+    margin-bottom: var(--space-md);
+}
+
+.empty-state h3 {
+    margin-bottom: var(--space-sm);
+    color: var(--text-dark);
+}
+
+.empty-state p {
+    color: var(--text-light);
+    margin-bottom: var(--space-lg);
+}
+
+.btn-login-historial,
+.btn-back-catalog {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-login-historial:hover,
+.btn-back-catalog:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+/* ===== 🆕 LISTA DE PEDIDOS ===== */
+.pedidos-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.pedido-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.pedido-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.pedido-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.pedido-info h4 {
+    margin-bottom: 0.25rem;
+    color: var(--text-dark);
+}
+
+.pedido-fecha {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.pedido-estado {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.estado-completado {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+.estado-pendiente {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+.estado-cancelado {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+.pedido-total {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-align: right;
+}
+
+.pedido-items {
+    margin-top: var(--space-md);
+}
+
+.pedido-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.pedido-item:last-child {
+    border-bottom: none;
+}
+
+.item-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    flex: 1;
+}
+
+.item-cantidad {
+    background: var(--primary);
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.item-nombre {
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.item-precio {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.item-subtotal {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+/* ===== 🆕 VISTA PERFIL ===== */
+.profile-header {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+    padding: var(--space-lg);
+}
+
+.profile-title {
+    margin-bottom: var(--space-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.profile-subtitle {
+    color: var(--text-light);
+    font-size: 1.1rem;
+}
+
+.profile-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.coming-soon {
+    text-align: center;
+    padding: var(--space-xl);
+    background: var(--bg-light);
+    border-radius: var(--radius-lg);
+}
+
+.coming-soon i {
+    font-size: 4rem;
+    color: var(--text-lighter);
+    margin-bottom: var(--space-md);
+}
+
+.coming-soon h3 {
+    margin-bottom: var(--space-sm);
+    color: var(--text-dark);
+}
+
+.coming-soon p {
+    color: var(--text-light);
+    margin-bottom: var(--space-lg);
+}
+
+/* ===== NAVBAR EXISTENTE ===== */
 .navbar {
     position: fixed;
     top: 0;
@@ -97,7 +428,7 @@ h4 { font-size: 1.25rem; }
     gap: var(--space-md);
 }
 
-/* ===== BOTONES DE AUTENTICACIÓN - NUEVO ===== */
+/* ===== BOTONES DE AUTENTICACIÓN ===== */
 .auth-buttons {
     display: flex;
     align-items: center;
@@ -124,7 +455,7 @@ h4 { font-size: 1.25rem; }
 }
 
 /* Menú de usuario */
-.user-menu {
+.user-menu-nav {
     position: relative;
 }
 
@@ -235,7 +566,7 @@ h4 { font-size: 1.25rem; }
     z-index: 2;
 }
 
-/* ===== AUTOCOMPLETADO - NUEVO ===== */
+/* ===== AUTOCOMPLETADO ===== */
 .search-suggestions {
     position: absolute;
     top: 100%;
@@ -834,7 +1165,7 @@ h4 { font-size: 1.25rem; }
     color: rgba(255,255,255,0.5);
 }
 
-/* ===== MODALES DE AUTENTICACIÓN - NUEVO ===== */
+/* ===== MODALES DE AUTENTICACIÓN ===== */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -1034,6 +1365,11 @@ h4 { font-size: 1.25rem; }
     .search-input {
         width: 200px;
     }
+    
+    /* 🆕 Responsive para menú lateral */
+    .user-sidebar {
+        width: 200px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -1087,6 +1423,27 @@ h4 { font-size: 1.25rem; }
         font-size: 0.875rem;
         padding: 0.4rem 0.8rem;
     }
+    
+    /* 🆕 Responsive para menú lateral */
+    .user-sidebar {
+        width: 100%;
+        transform: translateX(-100%);
+    }
+    
+    .user-sidebar.active {
+        transform: translateX(0);
+    }
+    
+    /* 🆕 Responsive para historial */
+    .pedido-header {
+        flex-direction: column;
+        gap: var(--space-sm);
+        align-items: start;
+    }
+    
+    .pedido-total {
+        text-align: left;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1117,6 +1474,17 @@ h4 { font-size: 1.25rem; }
         width: 95%;
         max-width: none;
     }
+    
+    /* 🆕 Responsive para pedidos */
+    .pedido-item {
+        flex-direction: column;
+        align-items: start;
+        gap: var(--space-sm);
+    }
+    
+    .item-info {
+        width: 100%;
+    }
 }
 
 /* ===== ANIMACIONES Y MICROINTERACCIONES ===== */
@@ -1131,6 +1499,11 @@ h4 { font-size: 1.25rem; }
     }
 }
 
+@keyframes spin {
+    0% { transform: translateY(-50%) rotate(0deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
+}
+
 .product-card-modern {
     animation: fadeInUp 0.5s ease forwards;
 }
@@ -1139,6 +1512,10 @@ h4 { font-size: 1.25rem; }
 .product-card-modern:nth-child(2) { animation-delay: 0.2s; }
 .product-card-modern:nth-child(3) { animation-delay: 0.3s; }
 .product-card-modern:nth-child(4) { animation-delay: 0.4s; }
+
+.pedido-card {
+    animation: fadeInUp 0.5s ease forwards;
+}
 
 /* Scroll suave */
 html {
