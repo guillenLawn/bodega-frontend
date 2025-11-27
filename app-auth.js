@@ -48,14 +48,35 @@ async function checkExistingAuth() {
             if (response.ok) {
                 const data = await response.json();
                 currentUser = data.user;
+                
+                // 🔧 CARGAR ROL DESDE LOCALSTORAGE SI EXISTE
+                const savedUser = localStorage.getItem('bodega_user');
+                if (savedUser) {
+                    try {
+                        const userData = JSON.parse(savedUser);
+                        if (userData.role && userData.email === currentUser.email) {
+                            currentUser.role = userData.role;
+                        }
+                    } catch (error) {
+                        console.error('Error parsing saved user:', error);
+                    }
+                }
+                
                 updateAuthUI();
                 
-                // 🔧 VERIFICAR SI ES ADMIN Y ACTIVAR MODO ADMIN
-                if (currentUser.role === 'admin') {
+                // 🔧 VERIFICAR SI ES ADMIN Y ACTIVAR MODO ADMIN SOLO SI ES ADMIN REAL
+                if (currentUser.role === 'admin' && isValidAdmin(currentUser)) {
                     enableAdminMode();
-                    // 🔧 MOSTRAR PANEL ADMIN AUTOMÁTICAMENTE
-                    if (typeof showAdminView === 'function') {
-                        showAdminView();
+                    console.log('🔧 Usuario admin verificado correctamente');
+                } else {
+                    // 🔧 ASEGURARSE DE QUE NO ESTÉ EN MODO ADMIN SI NO ES ADMIN
+                    disableAdminMode();
+                    if (currentView === 'admin') {
+                        // Si no es admin pero está en vista admin, redirigir al catálogo
+                        if (typeof switchView === 'function') {
+                            switchView('catalogo');
+                        }
+                        showNotification('🔐 No tienes permisos de administrador', 'error');
                     }
                 }
                 
@@ -63,15 +84,33 @@ async function checkExistingAuth() {
                     loadHistorialPedidos();
                 }
             } else {
-                localStorage.removeItem('bodega_token');
-                authToken = null;
+                clearAuthData();
             }
         } catch (error) {
             console.error('Error verificando autenticación:', error);
-            localStorage.removeItem('bodega_token');
-            authToken = null;
+            clearAuthData();
         }
+    } else {
+        // 🔧 NO HAY TOKEN - ASEGURARSE DE QUE NO ESTÉ EN MODO ADMIN
+        disableAdminMode();
+        localStorage.removeItem('bodega_user');
     }
+}
+
+// 🔧 FUNCIÓN PARA VALIDAR SI ES UN ADMIN REAL
+function isValidAdmin(user) {
+    // Solo usuarios específicos pueden ser admins
+    const validAdmins = ['admin@bodega.com'];
+    return validAdmins.includes(user.email) && user.role === 'admin';
+}
+
+// 🔧 LIMPIAR DATOS DE AUTENTICACIÓN
+function clearAuthData() {
+    localStorage.removeItem('bodega_token');
+    localStorage.removeItem('bodega_user');
+    authToken = null;
+    currentUser = null;
+    disableAdminMode();
 }
 
 // ===== MANEJO DE MODALES =====
@@ -131,22 +170,31 @@ async function handleLogin(e) {
             currentUser = data.user;
             localStorage.setItem('bodega_token', authToken);
             
-            // 🔧 DETECTAR SI ES ADMIN POR EMAIL (para casos donde el backend no envía role)
+            // 🔧 DETECTAR SI ES ADMIN SOLO PARA USUARIOS AUTORIZADOS
             if (!currentUser.role) {
-                if (email === 'admin@bodega.com' || email.includes('admin')) {
+                if (email === 'admin@bodega.com') {
                     currentUser.role = 'admin';
-                    // Actualizar en localStorage
-                    localStorage.setItem('bodega_user', JSON.stringify(currentUser));
+                } else {
+                    currentUser.role = 'user';
                 }
             }
+            
+            // 🔧 VALIDAR QUE EL ROL SEA CORRECTO
+            if (currentUser.role === 'admin' && !isValidAdmin(currentUser)) {
+                currentUser.role = 'user';
+                console.warn('⚠️ Intento de acceso admin no autorizado:', email);
+            }
+            
+            // ACTUALIZAR EN LOCALSTORAGE
+            localStorage.setItem('bodega_user', JSON.stringify(currentUser));
             
             updateAuthUI();
             hideAuthModals();
             
-            // 🔧 ACTIVAR MODO ADMIN Y MOSTRAR PANEL SI ES ADMIN
-            if (currentUser.role === 'admin') {
+            // 🔧 ACTIVAR MODO ADMIN Y MOSTRAR PANEL SOLO SI ES ADMIN VÁLIDO
+            if (currentUser.role === 'admin' && isValidAdmin(currentUser)) {
                 enableAdminMode();
-                // 🔧 MOSTRAR PANEL ADMIN AUTOMÁTICAMENTE
+                // Mostrar panel admin automáticamente
                 if (typeof showAdminView === 'function') {
                     setTimeout(() => {
                         showAdminView();
@@ -154,6 +202,8 @@ async function handleLogin(e) {
                 }
                 showNotification(`👑 ¡Bienvenido Administrador ${currentUser.nombre}!`, 'success');
             } else {
+                // 🔧 ASEGURARSE DE QUE USUARIOS NORMALES NO ESTÉN EN MODO ADMIN
+                disableAdminMode();
                 showNotification(`✅ Bienvenido, ${currentUser.nombre}!`);
             }
             
@@ -216,12 +266,13 @@ async function handleRegister(e) {
             currentUser = data.user;
             localStorage.setItem('bodega_token', authToken);
             
-            // 🔧 ASIGNAR ROL DE ADMINISTRADOR SI CORRESPONDE
+            // 🔧 ASIGNAR ROL DE ADMINISTRADOR SOLO SI CORRESPONDE A CREDENCIALES ESPECÍFICAS
             let userRole = 'user';
             
-            // DETECTAR SI ES EL USUARIO ADMIN ESPECÍFICO
+            // 🔧 SOLO UN USUARIO ESPECÍFICO PUEDE SER ADMIN
             if (nombre === 'admin1' && email === 'admin@bodega.com' && password === 'contra_admin1') {
                 userRole = 'admin';
+                console.log('🔧 Creando cuenta de administrador autorizada');
             }
             
             // AGREGAR EL ROL AL USUARIO
@@ -233,10 +284,10 @@ async function handleRegister(e) {
             updateAuthUI();
             hideAuthModals();
             
-            // 🔧 NOTIFICACIÓN ESPECIAL Y ACTIVAR MODO ADMIN SI ES ADMIN
-            if (userRole === 'admin') {
+            // 🔧 NOTIFICACIÓN ESPECIAL Y ACTIVAR MODO ADMIN SOLO SI ES ADMIN VÁLIDO
+            if (userRole === 'admin' && isValidAdmin(currentUser)) {
                 enableAdminMode();
-                // 🔧 MOSTRAR PANEL ADMIN AUTOMÁTICAMENTE
+                // Mostrar panel admin automáticamente
                 if (typeof showAdminView === 'function') {
                     setTimeout(() => {
                         showAdminView();
@@ -244,6 +295,8 @@ async function handleRegister(e) {
                 }
                 showNotification(`👑 ¡Cuenta de Administrador creada exitosamente! Bienvenido, ${currentUser.nombre}`, 'success');
             } else {
+                // 🔧 ASEGURARSE DE QUE USUARIOS NORMALES NO ESTÉN EN MODO ADMIN
+                disableAdminMode();
                 showNotification(`✅ Cuenta creada exitosamente! Bienvenido, ${currentUser.nombre}`);
             }
             
@@ -262,9 +315,11 @@ async function handleRegister(e) {
 
 // ===== MANEJAR LOGOUT =====
 function handleLogout() {
+    // Limpiar todos los datos
     authToken = null;
     currentUser = null;
     localStorage.removeItem('bodega_token');
+    localStorage.removeItem('bodega_user');
     
     updateAuthUI();
     hideUserDropdown();
@@ -286,24 +341,37 @@ function updateAuthUI() {
     const userName = document.getElementById('userName');
     const dropdownUserName = document.getElementById('dropdownUserName');
     const dropdownUserEmail = document.getElementById('dropdownUserEmail');
+    const adminMenuItem = document.getElementById('adminMenuItem');
     
     if (currentUser) {
         loginBtn.style.display = 'none';
         userMenu.style.display = 'flex';
         
-        // 🔧 MOSTRAR INDICADOR DE ADMIN EN EL HEADER
-        if (currentUser.role === 'admin') {
+        // 🔧 MOSTRAR INDICADOR DE ADMIN EN EL HEADER SOLO SI ES ADMIN VÁLIDO
+        if (currentUser.role === 'admin' && isValidAdmin(currentUser)) {
             userName.textContent = '👑 Admin';
             dropdownUserName.innerHTML = `${currentUser.nombre} <span class="admin-badge">👑 Administrador</span>`;
+            // Mostrar opción admin en el menú
+            if (adminMenuItem) {
+                adminMenuItem.style.display = 'block';
+            }
         } else {
             userName.textContent = 'Cuenta';
             dropdownUserName.textContent = currentUser.nombre;
+            // Ocultar opción admin en el menú para usuarios normales
+            if (adminMenuItem) {
+                adminMenuItem.style.display = 'none';
+            }
         }
         
         dropdownUserEmail.textContent = currentUser.email;
     } else {
         loginBtn.style.display = 'flex';
         userMenu.style.display = 'none';
+        // Ocultar opción admin si no hay usuario
+        if (adminMenuItem) {
+            adminMenuItem.style.display = 'none';
+        }
     }
 }
 
@@ -320,6 +388,12 @@ function hideUserDropdown() {
 
 // 🔧 FUNCIÓN PARA ACTIVAR MODO ADMINISTRADOR
 function enableAdminMode() {
+    // Solo activar si el usuario actual es un admin válido
+    if (!currentUser || currentUser.role !== 'admin' || !isValidAdmin(currentUser)) {
+        console.warn('⚠️ Intento de activar modo admin sin permisos');
+        return;
+    }
+    
     document.body.classList.add('admin-mode');
     document.body.setAttribute('data-user-role', 'admin');
     
@@ -332,13 +406,7 @@ function enableAdminMode() {
     if (cartToggle) cartToggle.style.display = 'none';
     if (filtersSidebar) filtersSidebar.style.display = 'none';
     
-    // 🔧 MOSTRAR OPCIÓN ADMIN EN EL MENÚ
-    const adminMenuItem = document.getElementById('adminMenuItem');
-    if (adminMenuItem) {
-        adminMenuItem.style.display = 'block';
-    }
-    
-    console.log('🔧 Modo administrador activado');
+    console.log('🔧 Modo administrador activado correctamente');
 }
 
 // 🔧 FUNCIÓN PARA DESACTIVAR MODO ADMINISTRADOR
@@ -355,22 +423,26 @@ function disableAdminMode() {
     if (cartToggle) cartToggle.style.display = 'flex';
     if (filtersSidebar) filtersSidebar.style.display = 'block';
     
-    // 🔧 OCULTAR OPCIÓN ADMIN EN EL MENÚ
-    const adminMenuItem = document.getElementById('adminMenuItem');
-    if (adminMenuItem) {
-        adminMenuItem.style.display = 'none';
-    }
-    
-    // 🔧 VOLVER A LA VISTA NORMAL DEL CATÁLOGO
+    // 🔧 VOLVER A LA VISTA NORMAL DEL CATÁLOGO SI ESTÁ EN ADMIN
     if (typeof switchView === 'function' && currentView === 'admin') {
         switchView('catalogo');
+        showNotification('🔐 Modo administrador desactivado', 'info');
     }
     
     console.log('🔧 Modo administrador desactivado');
 }
 
-// 🔧 FUNCIÓN TEMPORAL PARA MOSTRAR VISTA ADMIN (si no existe en app-core.js)
+// 🔧 FUNCIÓN PARA MOSTRAR VISTA ADMIN CON VERIFICACIÓN DE PERMISOS
 function showAdminView() {
+    // 🔧 VERIFICAR PERMISOS ANTES DE MOSTRAR EL PANEL
+    if (!currentUser || currentUser.role !== 'admin' || !isValidAdmin(currentUser)) {
+        showNotification('🔐 No tienes permisos de administrador', 'error');
+        if (typeof switchView === 'function') {
+            switchView('catalogo');
+        }
+        return;
+    }
+    
     // Ocultar todas las vistas
     const allViews = document.querySelectorAll('.view-content');
     allViews.forEach(view => view.classList.remove('active'));
@@ -391,8 +463,14 @@ function showAdminView() {
     }
 }
 
-// 🔧 FUNCIÓN TEMPORAL PARA CAMBIAR VISTA (si no existe en app-core.js)
+// 🔧 FUNCIÓN PARA CAMBIAR VISTA
 function switchView(viewName) {
+    // 🔧 BLOQUEAR ACCESO AL PANEL ADMIN SIN PERMISOS
+    if (viewName === 'admin' && (!currentUser || currentUser.role !== 'admin' || !isValidAdmin(currentUser))) {
+        showNotification('🔐 No tienes permisos de administrador', 'error');
+        return;
+    }
+    
     // Ocultar todas las vistas
     const allViews = document.querySelectorAll('.view-content');
     allViews.forEach(view => view.classList.remove('active'));
