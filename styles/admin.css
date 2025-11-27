@@ -307,3 +307,164 @@
     font-weight: 600;
     text-transform: uppercase;
 }
+
+/* ===== 🆕 NUEVOS ESTILOS PARA ELEMENTOS AGREGADOS ===== */
+
+/* Lista de pedidos en administración */
+.pedidos-admin-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.pedido-card-admin {
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.pedido-card-admin:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.pedido-header-admin {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: var(--space-sm);
+    padding-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.pedido-info-admin h4 {
+    margin-bottom: 0.25rem;
+    color: var(--text-dark);
+    font-size: 1.1rem;
+}
+
+.pedido-fecha-admin {
+    color: var(--text-light);
+    font-size: 0.8rem;
+}
+
+.pedido-total-admin {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+/* Selector de estado para pedidos */
+.selector-estado {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    background: var(--bg-white);
+    cursor: pointer;
+}
+
+.selector-estado:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+/* Formulario de productos */
+#productForm .form-group {
+    margin-bottom: var(--space-md);
+}
+
+#productForm textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Estados de carga para admin */
+.admin-loading {
+    text-align: center;
+    padding: var(--space-xl);
+    color: var(--text-light);
+}
+
+.admin-loading i {
+    font-size: 2rem;
+    margin-bottom: var(--space-md);
+    color: var(--primary);
+}
+
+/* Mensajes de estado vacío para admin */
+.admin-empty-state {
+    padding: var(--space-xl);
+    text-align: center;
+    color: var(--text-light);
+}
+
+.admin-empty-state i {
+    font-size: 3rem;
+    margin-bottom: var(--space-md);
+    opacity: 0.5;
+}
+
+/* Botones de acción específicos para admin */
+.btn-admin-action {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.btn-edit {
+    background: #3B82F6;
+    color: white;
+    border: none;
+}
+
+.btn-edit:hover {
+    background: #2563EB;
+}
+
+.btn-delete {
+    background: #DC2626;
+    color: white;
+    border: none;
+}
+
+.btn-delete:hover {
+    background: #B91C1C;
+}
+
+.btn-update {
+    background: #10B981;
+    color: white;
+    border: none;
+}
+
+.btn-update:hover {
+    background: #059669;
+}
+
+/* Badge para usuarios admin */
+.badge-admin {
+    background: var(--primary);
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge-user {
+    background: var(--text-light);
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
