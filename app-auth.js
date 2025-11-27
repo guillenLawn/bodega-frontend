@@ -50,6 +50,11 @@ async function checkExistingAuth() {
                 currentUser = data.user;
                 updateAuthUI();
                 
+                // 🔧 VERIFICAR SI ES ADMIN Y ACTIVAR MODO ADMIN
+                if (currentUser.role === 'admin') {
+                    enableAdminMode();
+                }
+                
                 if (currentView === 'historial') {
                     loadHistorialPedidos();
                 }
@@ -125,7 +130,13 @@ async function handleLogin(e) {
             updateAuthUI();
             hideAuthModals();
             
-            showNotification(`✅ Bienvenido, ${currentUser.nombre}!`);
+            // 🔧 ACTIVAR MODO ADMIN SI EL USUARIO ES ADMIN
+            if (currentUser.role === 'admin') {
+                enableAdminMode();
+                showNotification(`👑 ¡Bienvenido Administrador ${currentUser.nombre}!`, 'success');
+            } else {
+                showNotification(`✅ Bienvenido, ${currentUser.nombre}!`);
+            }
             
             if (currentView === 'historial') {
                 loadHistorialPedidos();
@@ -186,10 +197,30 @@ async function handleRegister(e) {
             currentUser = data.user;
             localStorage.setItem('bodega_token', authToken);
             
+            // 🔧 ASIGNAR ROL DE ADMINISTRADOR SI CORRESPONDE
+            let userRole = 'user';
+            
+            // DETECTAR SI ES EL USUARIO ADMIN ESPECÍFICO
+            if (nombre === 'admin1' && email === 'admin@bodega.com' && password === 'contra_admin1') {
+                userRole = 'admin';
+            }
+            
+            // AGREGAR EL ROL AL USUARIO
+            currentUser.role = userRole;
+            
+            // ACTUALIZAR EN LOCALSTORAGE
+            localStorage.setItem('bodega_user', JSON.stringify(currentUser));
+            
             updateAuthUI();
             hideAuthModals();
             
-            showNotification(`✅ Cuenta creada exitosamente! Bienvenido, ${currentUser.nombre}`);
+            // 🔧 NOTIFICACIÓN ESPECIAL SI ES ADMIN
+            if (userRole === 'admin') {
+                enableAdminMode();
+                showNotification(`👑 ¡Cuenta de Administrador creada exitosamente! Bienvenido, ${currentUser.nombre}`, 'success');
+            } else {
+                showNotification(`✅ Cuenta creada exitosamente! Bienvenido, ${currentUser.nombre}`);
+            }
             
         } else {
             showNotification(`❌ ${data.error}`, 'error');
@@ -213,6 +244,9 @@ function handleLogout() {
     updateAuthUI();
     hideUserDropdown();
     
+    // 🔧 DESACTIVAR MODO ADMIN AL CERRAR SESIÓN
+    disableAdminMode();
+    
     if (currentView === 'historial') {
         loadHistorialPedidos();
     }
@@ -232,8 +266,15 @@ function updateAuthUI() {
         loginBtn.style.display = 'none';
         userMenu.style.display = 'flex';
         
-        userName.textContent = 'Cuenta';
-        dropdownUserName.textContent = currentUser.nombre;
+        // 🔧 MOSTRAR INDICADOR DE ADMIN EN EL HEADER
+        if (currentUser.role === 'admin') {
+            userName.textContent = '👑 Admin';
+            dropdownUserName.innerHTML = `${currentUser.nombre} <span class="admin-badge">👑 Administrador</span>`;
+        } else {
+            userName.textContent = 'Cuenta';
+            dropdownUserName.textContent = currentUser.nombre;
+        }
+        
         dropdownUserEmail.textContent = currentUser.email;
     } else {
         loginBtn.style.display = 'flex';
@@ -250,4 +291,24 @@ function toggleUserDropdown() {
 function hideUserDropdown() {
     const dropdown = document.getElementById('userDropdown');
     dropdown.classList.remove('active');
+}
+
+// 🔧 FUNCIÓN PARA ACTIVAR MODO ADMINISTRADOR
+function enableAdminMode() {
+    document.body.classList.add('admin-mode');
+    document.body.setAttribute('data-user-role', 'admin');
+    
+    // Aquí se cargará el panel de administrador cuando lo implementemos
+    console.log('🔧 Modo administrador activado');
+}
+
+// 🔧 FUNCIÓN PARA DESACTIVAR MODO ADMINISTRADOR
+function disableAdminMode() {
+    document.body.classList.remove('admin-mode');
+    document.body.removeAttribute('data-user-role');
+    
+    // Volver a la vista normal del catálogo
+    if (currentView === 'admin') {
+        showCatalogoView();
+    }
 }
