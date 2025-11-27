@@ -59,7 +59,7 @@ h2 { font-size: 2rem; }
 h3 { font-size: 1.5rem; }
 h4 { font-size: 1.25rem; }
 
-/* ===== 🆕 MENÚ LATERAL DE USUARIO ===== */
+/* ===== 🆕 MENÚ LATERAL DE USUARIO - MODIFICADO PARA SER VISIBLE ===== */
 .user-sidebar {
     position: fixed;
     left: 0;
@@ -70,11 +70,13 @@ h4 { font-size: 1.25rem; }
     border-right: 1px solid var(--border-light);
     box-shadow: var(--shadow-sm);
     z-index: 999;
-    transform: translateX(-100%);
+    /* 🎯 CAMBIO: Visible por defecto en lugar de oculto */
+    transform: translateX(0);
     transition: transform 0.3s ease;
     overflow-y: auto;
 }
 
+/* 🎯 CAMBIO: Estado activo ahora es para móviles */
 .user-sidebar.active {
     transform: translateX(0);
 }
@@ -119,6 +121,9 @@ h4 { font-size: 1.25rem; }
 .main-content {
     position: relative;
     min-height: 60vh;
+    /* 🎯 CAMBIO: Ajustar margen para el menú lateral */
+    margin-left: 250px;
+    transition: margin-left 0.3s ease;
 }
 
 .view-content {
@@ -722,7 +727,7 @@ h4 { font-size: 1.25rem; }
     font-weight: 300;
 }
 
-/* ===== LAYOUT PRINCIPAL ===== */
+/* ===== LAYOUT PRINCIPAL - MODIFICADO PARA MENÚ LATERAL ===== */
 .main-container {
     max-width: 1200px;
     margin: var(--space-xl) auto;
@@ -731,6 +736,10 @@ h4 { font-size: 1.25rem; }
     grid-template-columns: 280px 1fr;
     gap: var(--space-xl);
     align-items: start;
+    /* 🎯 CAMBIO: Ajustar para el menú lateral */
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    transition: all 0.3s ease;
 }
 
 .filters-sidebar {
@@ -1130,11 +1139,15 @@ h4 { font-size: 1.25rem; }
     transform: none;
 }
 
-/* ===== FOOTER ELEGANTE ===== */
+/* ===== FOOTER ELEGANTE - MODIFICADO PARA MENÚ LATERAL ===== */
 .footer {
     background: var(--text-dark);
     color: white;
     padding: var(--space-xl) 0 0;
+    /* 🎯 CAMBIO: Ajustar para el menú lateral */
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    transition: all 0.3s ease;
 }
 
 .footer-content {
@@ -1351,6 +1364,9 @@ h4 { font-size: 1.25rem; }
     .main-container {
         grid-template-columns: 1fr;
         gap: var(--space-lg);
+        /* 🎯 CAMBIO: En tablets, mantener menú lateral */
+        margin-left: 250px;
+        width: calc(100% - 250px);
     }
     
     .filters-sidebar {
@@ -1365,14 +1381,32 @@ h4 { font-size: 1.25rem; }
     .search-input {
         width: 200px;
     }
-    
-    /* 🆕 Responsive para menú lateral */
-    .user-sidebar {
-        width: 200px;
-    }
 }
 
 @media (max-width: 768px) {
+    /* 🎯 CAMBIO: En móviles, ocultar menú lateral por defecto */
+    .user-sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .user-sidebar.active {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .main-container {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .footer {
+        margin-left: 0;
+        width: 100%;
+    }
+
     .nav-container {
         flex-direction: column;
         gap: var(--space-sm);
@@ -1424,17 +1458,12 @@ h4 { font-size: 1.25rem; }
         padding: 0.4rem 0.8rem;
     }
     
-    /* 🆕 Responsive para menú lateral */
+    /* 🎯 CAMBIO: Responsive para menú lateral en móviles */
     .user-sidebar {
         width: 100%;
-        transform: translateX(-100%);
     }
     
-    .user-sidebar.active {
-        transform: translateX(0);
-    }
-    
-    /* 🆕 Responsive para historial */
+    /* Responsive para historial */
     .pedido-header {
         flex-direction: column;
         gap: var(--space-sm);
@@ -1475,7 +1504,7 @@ h4 { font-size: 1.25rem; }
         max-width: none;
     }
     
-    /* 🆕 Responsive para pedidos */
+    /* 🎯 CAMBIO: Responsive para pedidos */
     .pedido-item {
         flex-direction: column;
         align-items: start;
@@ -1526,6 +1555,68 @@ html {
 .loading {
     opacity: 0.6;
     pointer-events: none;
+}
+
+/* 🆕 NUEVO: Estilos para estados del pedido */
+.estado-completado {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+.estado-pendiente {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+.estado-cancelado {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+.estado-en_camino {
+    background: #DBEAFE;
+    color: #1E40AF;
+}
+
+/* 🆕 NUEVO: Estilos para error state */
+.error-state {
+    text-align: center;
+    padding: var(--space-xl);
+    color: var(--text-light);
+}
+
+.error-state i {
+    font-size: 4rem;
+    color: #e74c3c;
+    margin-bottom: var(--space-md);
+}
+
+.error-state h3 {
+    margin-bottom: var(--space-sm);
+    color: var(--text-dark);
+}
+
+/* 🆕 NUEVO: Estilos para información adicional del pedido */
+.pedido-direccion,
+.pedido-metodo-pago {
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--border-light);
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+.pedido-direccion strong,
+.pedido-metodo-pago strong {
+    color: var(--text-dark);
+}
+
+mark {
+    background: #fef3c7;
+    color: #d97706;
+    padding: 0.1rem 0.2rem;
+    border-radius: 2px;
+    font-weight: 600;
 }
 
 /* Mejoras de accesibilidad */
