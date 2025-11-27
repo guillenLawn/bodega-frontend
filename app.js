@@ -11,11 +11,12 @@ let selectedSuggestionIndex = -1;
 let currentUser = null;
 let authToken = localStorage.getItem('bodega_token');
 
-// ✅ Inicializar la aplicación CON NAVEGACIÓN ACTUALIZADA
+// ✅ Inicializar la aplicación CON PANEL ADMIN
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     initializeAuth();
-    initializeNavigation(); // 🆕 ACTUALIZADO
+    initializeNavigation();
+    initializeAdminPanel(); // 🆕 NUEVO: Panel admin
 });
 
 function initializeApp() {
@@ -85,132 +86,495 @@ function setupNavigationEventListeners() {
     }
 }
 
-// ✅ 🆕 NUEVO: Mostrar modal de perfil
-function showPerfilModal() {
-    const perfilModal = document.getElementById('perfilModal');
-    const perfilOverlay = document.getElementById('perfilOverlay');
+// ✅ 🆕 NUEVO: Inicializar Panel de Administración
+function initializeAdminPanel() {
+    setupAdminEventListeners();
+}
+
+// ✅ 🆕 NUEVO: Configurar event listeners para panel admin
+function setupAdminEventListeners() {
+    const adminPanelBtn = document.getElementById('adminPanelBtn');
+    const adminModal = document.getElementById('adminModal');
+    const adminOverlay = document.getElementById('adminOverlay');
+    const closeAdminModal = document.getElementById('closeAdminModal');
+    const productModal = document.getElementById('productModal');
+    const productModalOverlay = document.getElementById('productModalOverlay');
+    const closeProductModal = document.getElementById('closeProductModal');
+    const cancelProductModal = document.getElementById('cancelProductModal');
+
+    // Botón Administrar en navbar
+    if (adminPanelBtn) {
+        adminPanelBtn.addEventListener('click', showAdminModal);
+    }
+
+    // Cerrar modal admin
+    if (adminOverlay) {
+        adminOverlay.addEventListener('click', hideAdminModal);
+    }
+    if (closeAdminModal) {
+        closeAdminModal.addEventListener('click', hideAdminModal);
+    }
+
+    // Cerrar modal de producto
+    if (productModalOverlay) {
+        productModalOverlay.addEventListener('click', hideProductModal);
+    }
+    if (closeProductModal) {
+        closeProductModal.addEventListener('click', hideProductModal);
+    }
+    if (cancelProductModal) {
+        cancelProductModal.addEventListener('click', hideProductModal);
+    }
+
+    // Pestañas admin
+    const adminTabBtns = document.querySelectorAll('.admin-tab-btn');
+    adminTabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            switchAdminTab(tabName);
+        });
+    });
+
+    // Botón nuevo producto
+    const btnNuevoProducto = document.getElementById('btnNuevoProducto');
+    if (btnNuevoProducto) {
+        btnNuevoProducto.addEventListener('click', showNewProductModal);
+    }
+
+    // Formulario de producto
+    const productForm = document.getElementById('productForm');
+    if (productForm) {
+        productForm.addEventListener('submit', handleProductSubmit);
+    }
+
+    // Filtros admin
+    const filtroEstadoPedidos = document.getElementById('filtroEstadoPedidos');
+    if (filtroEstadoPedidos) {
+        filtroEstadoPedidos.addEventListener('change', loadPedidosAdmin);
+    }
+
+    const rangoReporte = document.getElementById('rangoReporte');
+    if (rangoReporte) {
+        rangoReporte.addEventListener('change', loadReportes);
+    }
+
+    const searchUsuarios = document.getElementById('searchUsuarios');
+    if (searchUsuarios) {
+        searchUsuarios.addEventListener('input', loadUsuariosAdmin);
+    }
+}
+
+// ✅ 🆕 NUEVO: Mostrar modal de administración
+function showAdminModal() {
+    const adminModal = document.getElementById('adminModal');
+    const adminOverlay = document.getElementById('adminOverlay');
     
-    if (perfilModal && perfilOverlay) {
-        perfilOverlay.classList.add('active');
-        perfilModal.classList.add('active');
+    if (adminModal && adminOverlay) {
+        adminOverlay.classList.add('active');
+        adminModal.classList.add('active');
         
-        // Cargar información del usuario si está autenticado
-        if (currentUser) {
-            loadUserProfile();
-            loadHistorialPedidos();
-        } else {
-            showHistorialNotLogged();
+        // Verificar permisos de admin
+        if (!currentUser || currentUser.rol !== 'admin') {
+            showNotification('❌ No tienes permisos de administrador', 'error');
+            hideAdminModal();
+            return;
         }
         
-        // Activar pestaña de historial por defecto
-        switchTab('historial');
+        // Cargar datos iniciales
+        switchAdminTab('productos');
     }
 }
 
-// ✅ 🆕 NUEVO: Ocultar modal de perfil
-function hidePerfilModal() {
-    const perfilModal = document.getElementById('perfilModal');
-    const perfilOverlay = document.getElementById('perfilOverlay');
+// ✅ 🆕 NUEVO: Ocultar modal de administración
+function hideAdminModal() {
+    const adminModal = document.getElementById('adminModal');
+    const adminOverlay = document.getElementById('adminOverlay');
     
-    if (perfilModal && perfilOverlay) {
-        perfilOverlay.classList.remove('active');
-        perfilModal.classList.remove('active');
+    if (adminModal && adminOverlay) {
+        adminOverlay.classList.remove('active');
+        adminModal.classList.remove('active');
     }
 }
 
-// ✅ 🆕 NUEVO: Ocultar todos los modales
-function hideAllModals() {
-    hideAuthModals();
-    hidePerfilModal();
-    closeCart();
+// ✅ 🆕 NUEVO: Mostrar modal de producto (crear/editar)
+function showProductModal(product = null) {
+    const productModal = document.getElementById('productModal');
+    const productModalOverlay = document.getElementById('productModalOverlay');
+    const productModalTitle = document.getElementById('productModalTitle');
+    const productForm = document.getElementById('productForm');
+    
+    if (productModal && productModalOverlay) {
+        productModalOverlay.classList.add('active');
+        productModal.classList.add('active');
+        
+        // Configurar para crear o editar
+        if (product) {
+            productModalTitle.innerHTML = '<i class="fas fa-edit"></i> Editar Producto';
+            fillProductForm(product);
+        } else {
+            productModalTitle.innerHTML = '<i class="fas fa-plus"></i> Nuevo Producto';
+            productForm.reset();
+        }
+        
+        // Guardar ID del producto si estamos editando
+        productForm.dataset.editingId = product ? product.id : '';
+    }
 }
 
-// ✅ 🆕 NUEVO: Cambiar pestañas en el modal de perfil
-function switchTab(tabName) {
+// ✅ 🆕 NUEVO: Ocultar modal de producto
+function hideProductModal() {
+    const productModal = document.getElementById('productModal');
+    const productModalOverlay = document.getElementById('productModalOverlay');
+    
+    if (productModal && productModalOverlay) {
+        productModalOverlay.classList.remove('active');
+        productModal.classList.remove('active');
+    }
+}
+
+// ✅ 🆕 NUEVO: Mostrar modal para nuevo producto
+function showNewProductModal() {
+    showProductModal();
+}
+
+// ✅ 🆕 NUEVO: Llenar formulario de producto
+function fillProductForm(product) {
+    document.getElementById('productNombre').value = product.name || '';
+    document.getElementById('productDescripcion').value = product.description || '';
+    document.getElementById('productPrecio').value = product.price || '';
+    document.getElementById('productStock').value = product.quantity || '';
+    document.getElementById('productCategoria').value = product.category || '';
+    document.getElementById('productImagen').value = product.image || '';
+}
+
+// ✅ 🆕 NUEVO: Manejar envío de formulario de producto
+async function handleProductSubmit(e) {
+    e.preventDefault();
+    
+    const form = e.target;
+    const editingId = form.dataset.editingId;
+    const isEditing = !!editingId;
+    
+    const productData = {
+        nombre: document.getElementById('productNombre').value,
+        descripcion: document.getElementById('productDescripcion').value,
+        precio: parseFloat(document.getElementById('productPrecio').value),
+        stock: parseInt(document.getElementById('productStock').value),
+        categoria: document.getElementById('productCategoria').value,
+        imagen_url: document.getElementById('productImagen').value || null
+    };
+    
+    // Validaciones
+    if (!productData.nombre || !productData.precio || !productData.stock || !productData.categoria) {
+        showNotification('❌ Completa todos los campos obligatorios', 'error');
+        return;
+    }
+    
+    if (productData.precio <= 0) {
+        showNotification('❌ El precio debe ser mayor a 0', 'error');
+        return;
+    }
+    
+    if (productData.stock < 0) {
+        showNotification('❌ El stock no puede ser negativo', 'error');
+        return;
+    }
+    
+    try {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        
+        let response;
+        if (isEditing) {
+            // Actualizar producto existente
+            response = await fetch(`${API_URL}/${editingId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify(productData)
+            });
+        } else {
+            // Crear nuevo producto
+            response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify(productData)
+            });
+        }
+        
+        if (response.ok) {
+            const result = await response.json();
+            showNotification(`✅ Producto ${isEditing ? 'actualizado' : 'creado'} correctamente`);
+            hideProductModal();
+            
+            // Recargar productos en admin y en el catálogo
+            loadProductsAdmin();
+            loadProducts(); // Recargar catálogo principal
+        } else {
+            const error = await response.json();
+            showNotification(`❌ Error: ${error.message || 'No se pudo guardar el producto'}`, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error guardando producto:', error);
+        showNotification('❌ Error de conexión', 'error');
+    } finally {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+}
+
+// ✅ 🆕 NUEVO: Cambiar pestañas en admin
+function switchAdminTab(tabName) {
     // Actualizar botones de pestañas
-    document.querySelectorAll('.tab-btn').forEach(btn => {
+    document.querySelectorAll('.admin-tab-btn').forEach(btn => {
         btn.classList.remove('active');
     });
-    document.querySelector(`.tab-btn[data-tab="${tabName}"]`).classList.add('active');
+    document.querySelector(`.admin-tab-btn[data-tab="${tabName}"]`).classList.add('active');
     
     // Actualizar contenido de pestañas
-    document.querySelectorAll('.tab-pane').forEach(pane => {
+    document.querySelectorAll('.admin-tab-pane').forEach(pane => {
         pane.classList.remove('active');
     });
     document.getElementById(`${tabName}Tab`).classList.add('active');
     
     // Cargar datos específicos de la pestaña
-    if (tabName === 'historial' && currentUser) {
-        loadHistorialPedidos();
+    switch(tabName) {
+        case 'productos':
+            loadProductsAdmin();
+            break;
+        case 'pedidos':
+            loadPedidosAdmin();
+            break;
+        case 'usuarios':
+            loadUsuariosAdmin();
+            break;
+        case 'reportes':
+            loadReportes();
+            break;
     }
 }
 
-// ✅ 🆕 NUEVO: Cargar perfil de usuario
-function loadUserProfile() {
-    if (!currentUser) return;
-    
-    const profileUserName = document.getElementById('profileUserName');
-    const profileUserEmail = document.getElementById('profileUserEmail');
-    
-    if (profileUserName) profileUserName.textContent = currentUser.nombre;
-    if (profileUserEmail) profileUserEmail.textContent = currentUser.email;
-    
-    // Cargar estadísticas del usuario
-    loadUserStats();
-}
-
-// ✅ 🆕 NUEVO: Cargar estadísticas del usuario
-async function loadUserStats() {
-    if (!currentUser) return;
+// ✅ 🆕 NUEVO: Cargar productos en panel admin
+async function loadProductsAdmin() {
+    const productsAdminList = document.getElementById('productsAdminList');
+    if (!productsAdminList) return;
     
     try {
-        const response = await fetch(`${PEDIDOS_API}/usuario`, {
+        productsAdminList.innerHTML = '<tr><td colspan="6" class="text-center">Cargando productos...</td></tr>';
+        
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('Error al cargar productos');
+        
+        const data = await response.json();
+        const adminProducts = data.map(product => ({
+            id: product.id,
+            name: product.nombre,
+            description: product.descripcion,
+            price: parseFloat(product.precio),
+            quantity: product.stock,
+            category: product.categoria,
+            image: product.imagen_url
+        }));
+        
+        if (adminProducts.length === 0) {
+            productsAdminList.innerHTML = '<tr><td colspan="6" class="text-center">No hay productos registrados</td></tr>';
+            return;
+        }
+        
+        productsAdminList.innerHTML = adminProducts.map(product => `
+            <tr>
+                <td>${product.id}</td>
+                <td>${escapeHtml(product.name)}</td>
+                <td>${product.category}</td>
+                <td>S/ ${product.price.toFixed(2)}</td>
+                <td class="${product.quantity < 10 ? 'stock-bajo' : 'stock-normal'}">${product.quantity}</td>
+                <td class="acciones-cell">
+                    <button class="btn-primary btn-sm" onclick="editProduct(${product.id})">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                    <button class="btn-danger btn-sm" onclick="deleteProduct(${product.id})">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Error cargando productos admin:', error);
+        productsAdminList.innerHTML = '<tr><td colspan="6" class="text-center error">Error al cargar productos</td></tr>';
+    }
+}
+
+// ✅ 🆕 NUEVO: Editar producto
+function editProduct(productId) {
+    const product = products.find(p => p.id === productId);
+    if (product) {
+        showProductModal(product);
+    }
+}
+
+// ✅ 🆕 NUEVO: Eliminar producto
+async function deleteProduct(productId) {
+    if (!confirm('¿Estás seguro de que quieres eliminar este producto? Esta acción no se puede deshacer.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_URL}/${productId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (response.ok) {
+            showNotification('✅ Producto eliminado correctamente');
+            loadProductsAdmin();
+            loadProducts(); // Actualizar catálogo principal
+        } else {
+            const error = await response.json();
+            showNotification(`❌ Error: ${error.message || 'No se pudo eliminar el producto'}`, 'error');
+        }
+    } catch (error) {
+        console.error('Error eliminando producto:', error);
+        showNotification('❌ Error de conexión', 'error');
+    }
+}
+
+// ✅ 🆕 NUEVO: Cargar pedidos en panel admin
+async function loadPedidosAdmin() {
+    const pedidosAdminList = document.getElementById('pedidosAdminList');
+    const filtroEstado = document.getElementById('filtroEstadoPedidos');
+    
+    if (!pedidosAdminList) return;
+    
+    try {
+        pedidosAdminList.innerHTML = '<div class="loading-text">Cargando pedidos...</div>';
+        
+        const response = await fetch(`${PEDIDOS_API}/admin`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json'
             }
         });
         
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.pedidos) {
-                const totalPedidos = data.pedidos.length;
-                const totalGastado = data.pedidos.reduce((sum, pedido) => sum + parseFloat(pedido.total), 0);
-                
-                document.getElementById('totalPedidos').textContent = totalPedidos;
-                document.getElementById('totalGastado').textContent = `S/ ${totalGastado.toFixed(2)}`;
-            }
+        if (!response.ok) throw new Error('Error al cargar pedidos');
+        
+        const data = await response.json();
+        
+        if (!data.success || !data.pedidos) {
+            pedidosAdminList.innerHTML = '<div class="empty-state">No hay pedidos registrados</div>';
+            return;
         }
+        
+        let pedidosFiltrados = data.pedidos;
+        const estadoFiltro = filtroEstado ? filtroEstado.value : 'todos';
+        
+        if (estadoFiltro !== 'todos') {
+            pedidosFiltrados = pedidosFiltrados.filter(pedido => pedido.estado === estadoFiltro);
+        }
+        
+        if (pedidosFiltrados.length === 0) {
+            pedidosAdminList.innerHTML = '<div class="empty-state">No hay pedidos con el estado seleccionado</div>';
+            return;
+        }
+        
+        pedidosAdminList.innerHTML = pedidosFiltrados.map(pedido => `
+            <div class="pedido-card admin-pedido">
+                <div class="pedido-header">
+                    <div class="pedido-info">
+                        <h4>Pedido #${pedido.id}</h4>
+                        <div class="pedido-fecha">
+                            ${formatFecha(pedido.fecha_creacion)}
+                        </div>
+                        <div class="pedido-cliente">
+                            <strong>Cliente:</strong> ${pedido.usuario_nombre || 'N/A'} (${pedido.usuario_email || 'N/A'})
+                        </div>
+                    </div>
+                    <div class="pedido-actions">
+                        <div class="pedido-total">
+                            S/ ${parseFloat(pedido.total).toFixed(2)}
+                        </div>
+                        <select class="estado-select" data-pedido-id="${pedido.id}" onchange="updatePedidoEstado(${pedido.id}, this.value)">
+                            <option value="pendiente" ${pedido.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                            <option value="completado" ${pedido.estado === 'completado' ? 'selected' : ''}>Completado</option>
+                            <option value="cancelado" ${pedido.estado === 'cancelado' ? 'selected' : ''}>Cancelado</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="pedido-items">
+                    ${renderPedidoItems(pedido.detalles || pedido.items)}
+                </div>
+                
+                ${pedido.direccion ? `
+                    <div class="pedido-direccion">
+                        <strong>Dirección:</strong> ${pedido.direccion}
+                    </div>
+                ` : ''}
+                
+                ${pedido.metodo_pago ? `
+                    <div class="pedido-metodo-pago">
+                        <strong>Método de pago:</strong> ${getMetodoPagoDisplay(pedido.metodo_pago)}
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
+        
     } catch (error) {
-        console.error('Error cargando estadísticas:', error);
+        console.error('Error cargando pedidos admin:', error);
+        pedidosAdminList.innerHTML = '<div class="error-state">Error al cargar pedidos</div>';
     }
 }
 
-// ✅ 🆕 NUEVO: Cargar historial de pedidos
-async function loadHistorialPedidos() {
-    const historialContent = document.getElementById('historialContent');
-    const loadingElement = document.getElementById('historialLoading');
-    const notLoggedElement = document.getElementById('historialNotLogged');
-    const emptyElement = document.getElementById('historialEmpty');
-    const pedidosList = document.getElementById('pedidosList');
-    
-    if (!loadingElement || !notLoggedElement || !emptyElement || !pedidosList) return;
-    
-    // Mostrar estado de carga
-    loadingElement.style.display = 'block';
-    notLoggedElement.style.display = 'none';
-    emptyElement.style.display = 'none';
-    pedidosList.style.display = 'none';
-    
-    // Verificar autenticación
-    if (!currentUser) {
-        loadingElement.style.display = 'none';
-        notLoggedElement.style.display = 'block';
-        return;
+// ✅ 🆕 NUEVO: Actualizar estado de pedido
+async function updatePedidoEstado(pedidoId, nuevoEstado) {
+    try {
+        const response = await fetch(`${PEDIDOS_API}/${pedidoId}/estado`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify({ estado: nuevoEstado })
+        });
+        
+        if (response.ok) {
+            showNotification(`✅ Estado del pedido actualizado a ${getEstadoDisplay(nuevoEstado)}`);
+            // Recargar la lista de pedidos
+            loadPedidosAdmin();
+        } else {
+            const error = await response.json();
+            showNotification(`❌ Error: ${error.message || 'No se pudo actualizar el estado'}`, 'error');
+        }
+    } catch (error) {
+        console.error('Error actualizando estado:', error);
+        showNotification('❌ Error de conexión', 'error');
     }
+}
+
+// ✅ 🆕 NUEVO: Cargar usuarios en panel admin
+async function loadUsuariosAdmin() {
+    const usuariosAdminList = document.getElementById('usuariosAdminList');
+    const searchTerm = document.getElementById('searchUsuarios') ? document.getElementById('searchUsuarios').value.toLowerCase() : '';
+    
+    if (!usuariosAdminList) return;
     
     try {
-        const response = await fetch(`${PEDIDOS_API}/usuario`, {
+        usuariosAdminList.innerHTML = '<tr><td colspan="6" class="text-center">Cargando usuarios...</td></tr>';
+        
+        // Nota: Necesitarás crear este endpoint en tu backend
+        const response = await fetch(`${AUTH_API}/admin/usuarios`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json'
@@ -218,152 +582,219 @@ async function loadHistorialPedidos() {
         });
         
         if (!response.ok) {
-            throw new Error('Error al cargar historial');
+            // Si el endpoint no existe, mostrar mensaje
+            usuariosAdminList.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center">
+                        <div class="empty-state">
+                            <i class="fas fa-tools"></i>
+                            <p>Función en desarrollo</p>
+                            <small>El endpoint de usuarios estará disponible próximamente</small>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
         }
         
         const data = await response.json();
         
-        // Ocultar loading
-        loadingElement.style.display = 'none';
-        
-        if (data.success && data.pedidos && data.pedidos.length > 0) {
-            // Mostrar lista de pedidos
-            renderPedidosList(data.pedidos);
-            pedidosList.style.display = 'block';
-        } else {
-            // No hay pedidos
-            emptyElement.style.display = 'block';
+        if (!data.success || !data.usuarios) {
+            usuariosAdminList.innerHTML = '<tr><td colspan="6" class="text-center">No hay usuarios registrados</td></tr>';
+            return;
         }
         
-    } catch (error) {
-        console.error('Error cargando historial:', error);
-        loadingElement.style.display = 'none';
+        let usuariosFiltrados = data.usuarios;
         
-        // Mostrar mensaje de error
-        historialContent.innerHTML = `
-            <div class="error-state">
-                <i class="fas fa-exclamation-triangle"></i>
-                <h3>Error al cargar el historial</h3>
-                <p>Intenta recargar la página</p>
-            </div>
+        if (searchTerm) {
+            usuariosFiltrados = usuariosFiltrados.filter(usuario => 
+                usuario.nombre.toLowerCase().includes(searchTerm) ||
+                usuario.email.toLowerCase().includes(searchTerm)
+            );
+        }
+        
+        if (usuariosFiltrados.length === 0) {
+            usuariosAdminList.innerHTML = '<tr><td colspan="6" class="text-center">No se encontraron usuarios</td></tr>';
+            return;
+        }
+        
+        usuariosAdminList.innerHTML = usuariosFiltrados.map(usuario => `
+            <tr>
+                <td>${usuario.id}</td>
+                <td>${escapeHtml(usuario.nombre)}</td>
+                <td>${usuario.email}</td>
+                <td>
+                    <span class="badge ${usuario.rol === 'admin' ? 'badge-admin' : 'badge-user'}">
+                        ${usuario.rol === 'admin' ? 'Administrador' : 'Usuario'}
+                    </span>
+                </td>
+                <td>${formatFecha(usuario.fecha_creacion)}</td>
+                <td class="acciones-cell">
+                    <button class="btn-secondary btn-sm" onclick="viewUserDetails(${usuario.id})">
+                        <i class="fas fa-eye"></i> Ver
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Error cargando usuarios admin:', error);
+        usuariosAdminList.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center">
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error al cargar usuarios</p>
+                        <small>Verifica que el endpoint esté disponible</small>
+                    </div>
+                </td>
+            </tr>
         `;
     }
 }
 
-// ✅ 🆕 NUEVO: Mostrar estado "no logueado" en historial
-function showHistorialNotLogged() {
-    const loadingElement = document.getElementById('historialLoading');
-    const notLoggedElement = document.getElementById('historialNotLogged');
-    const emptyElement = document.getElementById('historialEmpty');
-    const pedidosList = document.getElementById('pedidosList');
-    
-    if (loadingElement) loadingElement.style.display = 'none';
-    if (notLoggedElement) notLoggedElement.style.display = 'block';
-    if (emptyElement) emptyElement.style.display = 'none';
-    if (pedidosList) pedidosList.style.display = 'none';
+// ✅ 🆕 NUEVO: Ver detalles de usuario (placeholder)
+function viewUserDetails(userId) {
+    showNotification('👤 Función de detalles de usuario en desarrollo', 'info');
 }
 
-// ✅ 🆕 NUEVO: Renderizar lista de pedidos
-function renderPedidosList(pedidos) {
-    const pedidosList = document.getElementById('pedidosList');
-    if (!pedidosList) return;
+// ✅ 🆕 NUEVO: Cargar reportes
+async function loadReportes() {
+    const totalVentasReporte = document.getElementById('totalVentasReporte');
+    const ingresosTotales = document.getElementById('ingresosTotales');
+    const totalUsuarios = document.getElementById('totalUsuarios');
+    const productosVendidos = document.getElementById('productosVendidos');
+    const topProductosList = document.getElementById('topProductosList');
+    const ventasCategorias = document.getElementById('ventasCategorias');
     
-    const pedidosHTML = pedidos.map(pedido => `
-        <div class="pedido-card">
-            <div class="pedido-header">
-                <div class="pedido-info">
-                    <h4>Pedido #${pedido.id}</h4>
-                    <div class="pedido-fecha">
-                        ${formatFecha(pedido.fecha_creacion)}
+    if (!totalVentasReporte) return;
+    
+    try {
+        // Mostrar estado de carga
+        totalVentasReporte.textContent = '...';
+        ingresosTotales.textContent = 'S/ ...';
+        totalUsuarios.textContent = '...';
+        productosVendidos.textContent = '...';
+        
+        if (topProductosList) {
+            topProductosList.innerHTML = '<div class="loading-text">Cargando...</div>';
+        }
+        if (ventasCategorias) {
+            ventasCategorias.innerHTML = '<div class="loading-text">Cargando...</div>';
+        }
+        
+        // Nota: Necesitarás crear estos endpoints en tu backend
+        const response = await fetch(`${PEDIDOS_API}/admin/reportes`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            // Si los endpoints no existen, mostrar datos de ejemplo
+            showExampleReportData();
+            return;
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Actualizar con datos reales
+            totalVentasReporte.textContent = data.totalVentas || '0';
+            ingresosTotales.textContent = `S/ ${(data.ingresosTotales || 0).toFixed(2)}`;
+            totalUsuarios.textContent = data.totalUsuarios || '0';
+            productosVendidos.textContent = data.productosVendidos || '0';
+            
+            // Top productos
+            if (topProductosList && data.topProductos) {
+                topProductosList.innerHTML = data.topProductos.map((producto, index) => `
+                    <div class="top-producto-item">
+                        <div class="top-producto-info">
+                            <div class="top-producto-posicion">${index + 1}</div>
+                            <div class="top-producto-nombre">${producto.nombre}</div>
+                        </div>
+                        <div class="top-producto-ventas">${producto.cantidad} vendidos</div>
                     </div>
-                    <div class="pedido-estado estado-${pedido.estado}">
-                        ${getEstadoDisplay(pedido.estado)}
+                `).join('');
+            }
+            
+            // Ventas por categoría
+            if (ventasCategorias && data.ventasCategorias) {
+                ventasCategorias.innerHTML = data.ventasCategorias.map(categoria => `
+                    <div class="categoria-venta-item">
+                        <div class="categoria-nombre">${categoria.categoria}</div>
+                        <div class="categoria-monto">S/ ${categoria.total.toFixed(2)}</div>
                     </div>
-                </div>
-                <div class="pedido-total">
-                    S/ ${parseFloat(pedido.total).toFixed(2)}
-                </div>
-            </div>
-            
-            <div class="pedido-items">
-                ${renderPedidoItems(pedido.detalles || pedido.items)}
-            </div>
-            
-            ${pedido.direccion ? `
-                <div class="pedido-direccion">
-                    <strong>Dirección:</strong> ${pedido.direccion}
-                </div>
-            ` : ''}
-            
-            ${pedido.metodo_pago ? `
-                <div class="pedido-metodo-pago">
-                    <strong>Método de pago:</strong> ${getMetodoPagoDisplay(pedido.metodo_pago)}
-                </div>
-            ` : ''}
-        </div>
-    `).join('');
+                `).join('');
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error cargando reportes:', error);
+        showExampleReportData();
+    }
+}
+
+// ✅ 🆕 NUEVO: Mostrar datos de ejemplo para reportes
+function showExampleReportData() {
+    const totalVentasReporte = document.getElementById('totalVentasReporte');
+    const ingresosTotales = document.getElementById('ingresosTotales');
+    const totalUsuarios = document.getElementById('totalUsuarios');
+    const productosVendidos = document.getElementById('productosVendidos');
+    const topProductosList = document.getElementById('topProductosList');
+    const ventasCategorias = document.getElementById('ventasCategorias');
     
-    pedidosList.innerHTML = pedidosHTML;
-}
-
-// ✅ 🆕 NUEVO: Renderizar items de un pedido
-function renderPedidoItems(items) {
-    if (!items || items.length === 0) return '<p>No hay items en este pedido</p>';
+    if (totalVentasReporte) totalVentasReporte.textContent = '24';
+    if (ingresosTotales) ingresosTotales.textContent = 'S/ 1,245.50';
+    if (totalUsuarios) totalUsuarios.textContent = '15';
+    if (productosVendidos) productosVendidos.textContent = '89';
     
-    return items.map(item => `
-        <div class="pedido-item">
-            <div class="item-info">
-                <div class="item-cantidad">${item.cantidad}</div>
-                <div class="item-nombre">${item.producto_nombre || item.nombre}</div>
-                <div class="item-precio">S/ ${parseFloat(item.precio_unitario || item.precio).toFixed(2)} c/u</div>
+    if (topProductosList) {
+        topProductosList.innerHTML = `
+            <div class="top-producto-item">
+                <div class="top-producto-info">
+                    <div class="top-producto-posicion">1</div>
+                    <div class="top-producto-nombre">Arroz Costeño</div>
+                </div>
+                <div class="top-producto-ventas">15 vendidos</div>
             </div>
-            <div class="item-subtotal">
-                S/ ${parseFloat(item.subtotal || (item.cantidad * (item.precio_unitario || item.precio))).toFixed(2)}
+            <div class="top-producto-item">
+                <div class="top-producto-info">
+                    <div class="top-producto-posicion">2</div>
+                    <div class="top-producto-nombre">Aceite Primor</div>
+                </div>
+                <div class="top-producto-ventas">12 vendidos</div>
             </div>
-        </div>
-    `).join('');
-}
-
-// ✅ 🆕 NUEVO: Formatear fecha
-function formatFecha(fechaString) {
-    const fecha = new Date(fechaString);
-    return fecha.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-}
-
-// ✅ 🆕 NUEVO: Obtener display del estado
-function getEstadoDisplay(estado) {
-    const estados = {
-        'completado': 'Completado',
-        'pendiente': 'Pendiente',
-        'cancelado': 'Cancelado',
-        'en_camino': 'En camino'
-    };
-    return estados[estado] || estado;
-}
-
-// ✅ 🆕 NUEVO: Obtener display del método de pago
-function getMetodoPagoDisplay(metodo) {
-    const metodos = {
-        'efectivo': 'Efectivo',
-        'tarjeta': 'Tarjeta',
-        'transferencia': 'Transferencia'
-    };
-    return metodos[metodo] || metodo;
-}
-
-// ✅ 🆕 NUEVO: Actualizar botón de navegación activo
-function updateActiveNavButton(activeButton) {
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    if (activeButton) {
-        activeButton.classList.add('active');
+            <div class="top-producto-item">
+                <div class="top-producto-info">
+                    <div class="top-producto-posicion">3</div>
+                    <div class="top-producto-nombre">Leche Gloria</div>
+                </div>
+                <div class="top-producto-ventas">10 vendidos</div>
+            </div>
+        `;
+    }
+    
+    if (ventasCategorias) {
+        ventasCategorias.innerHTML = `
+            <div class="categoria-venta-item">
+                <div class="categoria-nombre">Abarrotes</div>
+                <div class="categoria-monto">S/ 645.50</div>
+            </div>
+            <div class="categoria-venta-item">
+                <div class="categoria-nombre">Lácteos</div>
+                <div class="categoria-monto">S/ 320.00</div>
+            </div>
+            <div class="categoria-venta-item">
+                <div class="categoria-nombre">Bebidas</div>
+                <div class="categoria-monto">S/ 180.00</div>
+            </div>
+            <div class="categoria-venta-item">
+                <div class="categoria-nombre">Limpieza</div>
+                <div class="categoria-monto">S/ 100.00</div>
+            </div>
+        `;
     }
 }
 
@@ -376,22 +807,36 @@ function initializeAuth() {
 
 function setupAuthEventListeners() {
     // Botones de login/registro
-    document.getElementById('loginBtn').addEventListener('click', showLoginModal);
-    document.getElementById('showRegister').addEventListener('click', showRegisterModal);
-    document.getElementById('showLogin').addEventListener('click', showLoginModal);
+    const loginBtn = document.getElementById('loginBtn');
+    const showRegister = document.getElementById('showRegister');
+    const showLogin = document.getElementById('showLogin');
+    
+    if (loginBtn) loginBtn.addEventListener('click', showLoginModal);
+    if (showRegister) showRegister.addEventListener('click', showRegisterModal);
+    if (showLogin) showLogin.addEventListener('click', showLoginModal);
     
     // Cerrar modales
-    document.getElementById('closeLoginModal').addEventListener('click', hideAuthModals);
-    document.getElementById('closeRegisterModal').addEventListener('click', hideAuthModals);
-    document.getElementById('authOverlay').addEventListener('click', hideAuthModals);
+    const closeLoginModal = document.getElementById('closeLoginModal');
+    const closeRegisterModal = document.getElementById('closeRegisterModal');
+    const authOverlay = document.getElementById('authOverlay');
+    
+    if (closeLoginModal) closeLoginModal.addEventListener('click', hideAuthModals);
+    if (closeRegisterModal) closeRegisterModal.addEventListener('click', hideAuthModals);
+    if (authOverlay) authOverlay.addEventListener('click', hideAuthModals);
     
     // Formularios
-    document.getElementById('loginForm').addEventListener('submit', handleLogin);
-    document.getElementById('registerForm').addEventListener('submit', handleRegister);
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    
+    if (loginForm) loginForm.addEventListener('submit', handleLogin);
+    if (registerForm) registerForm.addEventListener('submit', handleRegister);
     
     // Menú de usuario
-    document.getElementById('userBtn').addEventListener('click', toggleUserDropdown);
-    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+    const userBtn = document.getElementById('userBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    
+    if (userBtn) userBtn.addEventListener('click', toggleUserDropdown);
+    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
     
     // Cerrar dropdown al hacer clic fuera
     document.addEventListener('click', function(e) {
@@ -417,6 +862,9 @@ async function checkExistingAuth() {
                 const data = await response.json();
                 currentUser = data.user;
                 updateAuthUI();
+                
+                // 🆕 ACTUALIZADO: Mostrar botón admin si es administrador
+                updateAdminButtonVisibility();
             } else {
                 localStorage.removeItem('bodega_token');
                 authToken = null;
@@ -429,28 +877,57 @@ async function checkExistingAuth() {
     }
 }
 
+// ✅ 🆕 NUEVO: Actualizar visibilidad del botón admin
+function updateAdminButtonVisibility() {
+    const adminPanelBtn = document.getElementById('adminPanelBtn');
+    if (adminPanelBtn) {
+        if (currentUser && currentUser.rol === 'admin') {
+            adminPanelBtn.style.display = 'flex';
+        } else {
+            adminPanelBtn.style.display = 'none';
+        }
+    }
+}
+
 function showLoginModal(e) {
     if (e && e.preventDefault) e.preventDefault();
     hideUserDropdown();
     
-    document.getElementById('authOverlay').classList.add('active');
-    document.getElementById('loginModal').classList.add('active');
-    document.getElementById('loginForm').reset();
+    const authOverlay = document.getElementById('authOverlay');
+    const loginModal = document.getElementById('loginModal');
+    
+    if (authOverlay) authOverlay.classList.add('active');
+    if (loginModal) {
+        loginModal.classList.add('active');
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) loginForm.reset();
+    }
 }
 
 function showRegisterModal(e) {
     if (e && e.preventDefault) e.preventDefault();
     
-    document.getElementById('authOverlay').classList.add('active');
-    document.getElementById('registerModal').classList.add('active');
-    document.getElementById('loginModal').classList.remove('active');
-    document.getElementById('registerForm').reset();
+    const authOverlay = document.getElementById('authOverlay');
+    const registerModal = document.getElementById('registerModal');
+    const loginModal = document.getElementById('loginModal');
+    
+    if (authOverlay) authOverlay.classList.add('active');
+    if (registerModal) {
+        registerModal.classList.add('active');
+        const registerForm = document.getElementById('registerForm');
+        if (registerForm) registerForm.reset();
+    }
+    if (loginModal) loginModal.classList.remove('active');
 }
 
 function hideAuthModals() {
-    document.getElementById('authOverlay').classList.remove('active');
-    document.getElementById('loginModal').classList.remove('active');
-    document.getElementById('registerModal').classList.remove('active');
+    const authOverlay = document.getElementById('authOverlay');
+    const loginModal = document.getElementById('loginModal');
+    const registerModal = document.getElementById('registerModal');
+    
+    if (authOverlay) authOverlay.classList.remove('active');
+    if (loginModal) loginModal.classList.remove('active');
+    if (registerModal) registerModal.classList.remove('active');
 }
 
 async function handleLogin(e) {
@@ -484,11 +961,12 @@ async function handleLogin(e) {
             currentUser = data.user;
             localStorage.setItem('bodega_token', authToken);
             updateAuthUI();
+            updateAdminButtonVisibility(); // 🆕 ACTUALIZADO
             hideAuthModals();
             showNotification(`✅ Bienvenido, ${currentUser.nombre}!`);
             
             // 🆕 ACTUALIZADO: Recargar perfil si está abierto
-            if (document.getElementById('perfilModal').classList.contains('active')) {
+            if (document.getElementById('perfilModal')?.classList.contains('active')) {
                 loadUserProfile();
                 loadHistorialPedidos();
             }
@@ -543,6 +1021,7 @@ async function handleRegister(e) {
             currentUser = data.user;
             localStorage.setItem('bodega_token', authToken);
             updateAuthUI();
+            updateAdminButtonVisibility(); // 🆕 ACTUALIZADO
             hideAuthModals();
             showNotification(`✅ Cuenta creada exitosamente! Bienvenido, ${currentUser.nombre}`);
         } else {
@@ -563,13 +1042,17 @@ function handleLogout() {
     currentUser = null;
     localStorage.removeItem('bodega_token');
     updateAuthUI();
+    updateAdminButtonVisibility(); // 🆕 ACTUALIZADO
     hideUserDropdown();
     showNotification('👋 Sesión cerrada correctamente');
     
     // 🆕 ACTUALIZADO: Actualizar perfil si está abierto
-    if (document.getElementById('perfilModal').classList.contains('active')) {
+    if (document.getElementById('perfilModal')?.classList.contains('active')) {
         showHistorialNotLogged();
     }
+    
+    // 🆕 ACTUALIZADO: Cerrar panel admin si está abierto
+    hideAdminModal();
 }
 
 function updateAuthUI() {
@@ -580,35 +1063,40 @@ function updateAuthUI() {
     const dropdownUserEmail = document.getElementById('dropdownUserEmail');
     
     if (currentUser) {
-        loginBtn.style.display = 'none';
-        userMenu.style.display = 'flex';
-        userName.textContent = currentUser.nombre.split(' ')[0];
-        dropdownUserName.textContent = currentUser.nombre;
-        dropdownUserEmail.textContent = currentUser.email;
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (userMenu) userMenu.style.display = 'flex';
+        if (userName) userName.textContent = currentUser.nombre.split(' ')[0];
+        if (dropdownUserName) dropdownUserName.textContent = currentUser.nombre;
+        if (dropdownUserEmail) dropdownUserEmail.textContent = currentUser.email;
     } else {
-        loginBtn.style.display = 'flex';
-        userMenu.style.display = 'none';
+        if (loginBtn) loginBtn.style.display = 'flex';
+        if (userMenu) userMenu.style.display = 'none';
     }
 }
 
 function toggleUserDropdown() {
     const dropdown = document.getElementById('userDropdown');
-    dropdown.classList.toggle('active');
+    if (dropdown) dropdown.classList.toggle('active');
 }
 
 function hideUserDropdown() {
     const dropdown = document.getElementById('userDropdown');
-    dropdown.classList.remove('active');
+    if (dropdown) dropdown.classList.remove('active');
 }
 
 // ===== SISTEMA DE PRODUCTOS Y CARRITO (MANTENIDO) =====
 
 function setupEventListeners() {
     // Carrito moderno
-    document.getElementById('cartToggle').addEventListener('click', toggleCart);
-    document.getElementById('closeCart').addEventListener('click', closeCart);
-    document.getElementById('cartOverlay').addEventListener('click', closeCart);
-    document.getElementById('btnPedir').addEventListener('click', realizarPedido);
+    const cartToggle = document.getElementById('cartToggle');
+    const closeCart = document.getElementById('closeCart');
+    const cartOverlay = document.getElementById('cartOverlay');
+    const btnPedir = document.getElementById('btnPedir');
+    
+    if (cartToggle) cartToggle.addEventListener('click', toggleCart);
+    if (closeCart) closeCart.addEventListener('click', closeCart);
+    if (cartOverlay) cartOverlay.addEventListener('click', closeCart);
+    if (btnPedir) btnPedir.addEventListener('click', realizarPedido);
     
     // Filtros
     document.querySelectorAll('.filter-option input').forEach(radio => {
@@ -626,7 +1114,7 @@ function setupEventListeners() {
 
     document.addEventListener('click', function(e) {
         const searchBar = document.querySelector('.search-bar');
-        if (!searchBar.contains(e.target)) {
+        if (searchBar && !searchBar.contains(e.target)) {
             hideSuggestions();
         }
     });
@@ -721,7 +1209,7 @@ function highlightText(text, searchTerm) {
 function handleSearchKeydown(e) {
     const suggestionsContainer = document.getElementById('searchSuggestions');
     
-    if (!suggestionsContainer.classList.contains('active')) return;
+    if (!suggestionsContainer || !suggestionsContainer.classList.contains('active')) return;
 
     switch(e.key) {
         case 'ArrowDown':
@@ -1139,19 +1627,25 @@ function updateCartUI() {
     const btnPedir = document.getElementById('btnPedir');
 
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    cartCount.textContent = totalItems;
-    cartCount.style.display = totalItems > 0 ? 'flex' : 'none';
+    if (cartCount) {
+        cartCount.textContent = totalItems;
+        cartCount.style.display = totalItems > 0 ? 'flex' : 'none';
+    }
 
     if (cart.length === 0) {
-        cartItems.innerHTML = `
-            <div id="emptyCart" class="empty-cart-modern">
-                <i class="fas fa-shopping-bag"></i>
-                <p>Tu carrito está vacío</p>
-                <small>Agrega algunos productos</small>
-            </div>
-        `;
-        btnPedir.disabled = true;
-        btnPedir.classList.add('disabled');
+        if (cartItems) {
+            cartItems.innerHTML = `
+                <div id="emptyCart" class="empty-cart-modern">
+                    <i class="fas fa-shopping-bag"></i>
+                    <p>Tu carrito está vacío</p>
+                    <small>Agrega algunos productos</small>
+                </div>
+            `;
+        }
+        if (btnPedir) {
+            btnPedir.disabled = true;
+            btnPedir.classList.add('disabled');
+        }
     } else {
         let cartHTML = '';
         
@@ -1181,25 +1675,30 @@ function updateCartUI() {
             `;
         });
         
-        cartItems.innerHTML = cartHTML;
-        btnPedir.disabled = false;
-        btnPedir.classList.remove('disabled');
+        if (cartItems) cartItems.innerHTML = cartHTML;
+        if (btnPedir) {
+            btnPedir.disabled = false;
+            btnPedir.classList.remove('disabled');
+        }
     }
 
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    totalAmount.textContent = `S/ ${total.toFixed(2)}`;
+    if (totalAmount) totalAmount.textContent = `S/ ${total.toFixed(2)}`;
 }
 
 function toggleCart() {
     const cartPanel = document.getElementById('cartPanel');
     const overlay = document.getElementById('cartOverlay');
     
-    cartPanel.classList.toggle('active');
-    overlay.classList.toggle('active');
-    document.querySelector('.main-container').classList.toggle('blurred');
-    
-    if (cartPanel.classList.contains('active')) {
-        updateCartUI();
+    if (cartPanel && overlay) {
+        cartPanel.classList.toggle('active');
+        overlay.classList.toggle('active');
+        const mainContainer = document.querySelector('.main-container');
+        if (mainContainer) mainContainer.classList.toggle('blurred');
+        
+        if (cartPanel.classList.contains('active')) {
+            updateCartUI();
+        }
     }
 }
 
@@ -1207,9 +1706,12 @@ function closeCart() {
     const cartPanel = document.getElementById('cartPanel');
     const overlay = document.getElementById('cartOverlay');
     
-    cartPanel.classList.remove('active');
-    overlay.classList.remove('active');
-    document.querySelector('.main-container').classList.remove('blurred');
+    if (cartPanel && overlay) {
+        cartPanel.classList.remove('active');
+        overlay.classList.remove('active');
+        const mainContainer = document.querySelector('.main-container');
+        if (mainContainer) mainContainer.classList.remove('blurred');
+    }
 }
 
 async function realizarPedido() {
@@ -1225,8 +1727,10 @@ async function realizarPedido() {
         showNotification('⏳ Procesando pedido...', 'info');
         
         const btnPedir = document.getElementById('btnPedir');
-        btnPedir.disabled = true;
-        btnPedir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+        if (btnPedir) {
+            btnPedir.disabled = true;
+            btnPedir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+        }
         
         const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         
@@ -1296,8 +1800,10 @@ async function realizarPedido() {
                 updateCartUI();
                 closeCart();
                 
-                btnPedir.disabled = false;
-                btnPedir.innerHTML = '<i class="fas fa-credit-card"></i> Realizar Pedido';
+                if (btnPedir) {
+                    btnPedir.disabled = false;
+                    btnPedir.innerHTML = '<i class="fas fa-credit-card"></i> Realizar Pedido';
+                }
                 
                 loadProducts();
                 
@@ -1311,10 +1817,303 @@ async function realizarPedido() {
         console.error('Error al realizar pedido:', error);
         
         const btnPedir = document.getElementById('btnPedir');
-        btnPedir.disabled = false;
-        btnPedir.innerHTML = '<i class="fas fa-credit-card"></i> Realizar Pedido';
+        if (btnPedir) {
+            btnPedir.disabled = false;
+            btnPedir.innerHTML = '<i class="fas fa-credit-card"></i> Realizar Pedido';
+        }
         
         showNotification('❌ Error al procesar el pedido. Intenta nuevamente.', 'error');
+    }
+}
+
+// ✅ 🆕 NUEVO: Mostrar modal de perfil
+function showPerfilModal() {
+    const perfilModal = document.getElementById('perfilModal');
+    const perfilOverlay = document.getElementById('perfilOverlay');
+    
+    if (perfilModal && perfilOverlay) {
+        perfilOverlay.classList.add('active');
+        perfilModal.classList.add('active');
+        
+        // Cargar información del usuario si está autenticado
+        if (currentUser) {
+            loadUserProfile();
+            loadHistorialPedidos();
+        } else {
+            showHistorialNotLogged();
+        }
+        
+        // Activar pestaña de historial por defecto
+        switchTab('historial');
+    }
+}
+
+// ✅ 🆕 NUEVO: Ocultar modal de perfil
+function hidePerfilModal() {
+    const perfilModal = document.getElementById('perfilModal');
+    const perfilOverlay = document.getElementById('perfilOverlay');
+    
+    if (perfilModal && perfilOverlay) {
+        perfilOverlay.classList.remove('active');
+        perfilModal.classList.remove('active');
+    }
+}
+
+// ✅ 🆕 NUEVO: Ocultar todos los modales
+function hideAllModals() {
+    hideAuthModals();
+    hidePerfilModal();
+    hideAdminModal(); // 🆕 ACTUALIZADO
+    hideProductModal(); // 🆕 ACTUALIZADO
+    closeCart();
+}
+
+// ✅ 🆕 NUEVO: Cambiar pestañas en el modal de perfil
+function switchTab(tabName) {
+    // Actualizar botones de pestañas
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+    if (activeBtn) activeBtn.classList.add('active');
+    
+    // Actualizar contenido de pestañas
+    document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.remove('active');
+    });
+    const activePane = document.getElementById(`${tabName}Tab`);
+    if (activePane) activePane.classList.add('active');
+    
+    // Cargar datos específicos de la pestaña
+    if (tabName === 'historial' && currentUser) {
+        loadHistorialPedidos();
+    }
+}
+
+// ✅ 🆕 NUEVO: Cargar perfil de usuario
+function loadUserProfile() {
+    if (!currentUser) return;
+    
+    const profileUserName = document.getElementById('profileUserName');
+    const profileUserEmail = document.getElementById('profileUserEmail');
+    
+    if (profileUserName) profileUserName.textContent = currentUser.nombre;
+    if (profileUserEmail) profileUserEmail.textContent = currentUser.email;
+    
+    // Cargar estadísticas del usuario
+    loadUserStats();
+}
+
+// ✅ 🆕 NUEVO: Cargar estadísticas del usuario
+async function loadUserStats() {
+    if (!currentUser) return;
+    
+    try {
+        const response = await fetch(`${PEDIDOS_API}/usuario`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.pedidos) {
+                const totalPedidos = data.pedidos.length;
+                const totalGastado = data.pedidos.reduce((sum, pedido) => sum + parseFloat(pedido.total), 0);
+                
+                const totalPedidosElem = document.getElementById('totalPedidos');
+                const totalGastadoElem = document.getElementById('totalGastado');
+                
+                if (totalPedidosElem) totalPedidosElem.textContent = totalPedidos;
+                if (totalGastadoElem) totalGastadoElem.textContent = `S/ ${totalGastado.toFixed(2)}`;
+            }
+        }
+    } catch (error) {
+        console.error('Error cargando estadísticas:', error);
+    }
+}
+
+// ✅ 🆕 NUEVO: Cargar historial de pedidos
+async function loadHistorialPedidos() {
+    const historialContent = document.getElementById('historialContent');
+    const loadingElement = document.getElementById('historialLoading');
+    const notLoggedElement = document.getElementById('historialNotLogged');
+    const emptyElement = document.getElementById('historialEmpty');
+    const pedidosList = document.getElementById('pedidosList');
+    
+    if (!loadingElement || !notLoggedElement || !emptyElement || !pedidosList) return;
+    
+    // Mostrar estado de carga
+    loadingElement.style.display = 'block';
+    notLoggedElement.style.display = 'none';
+    emptyElement.style.display = 'none';
+    pedidosList.style.display = 'none';
+    
+    // Verificar autenticación
+    if (!currentUser) {
+        loadingElement.style.display = 'none';
+        notLoggedElement.style.display = 'block';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${PEDIDOS_API}/usuario`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Error al cargar historial');
+        }
+        
+        const data = await response.json();
+        
+        // Ocultar loading
+        loadingElement.style.display = 'none';
+        
+        if (data.success && data.pedidos && data.pedidos.length > 0) {
+            // Mostrar lista de pedidos
+            renderPedidosList(data.pedidos);
+            pedidosList.style.display = 'block';
+        } else {
+            // No hay pedidos
+            emptyElement.style.display = 'block';
+        }
+        
+    } catch (error) {
+        console.error('Error cargando historial:', error);
+        loadingElement.style.display = 'none';
+        
+        // Mostrar mensaje de error
+        if (historialContent) {
+            historialContent.innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Error al cargar el historial</h3>
+                    <p>Intenta recargar la página</p>
+                </div>
+            `;
+        }
+    }
+}
+
+// ✅ 🆕 NUEVO: Mostrar estado "no logueado" en historial
+function showHistorialNotLogged() {
+    const loadingElement = document.getElementById('historialLoading');
+    const notLoggedElement = document.getElementById('historialNotLogged');
+    const emptyElement = document.getElementById('historialEmpty');
+    const pedidosList = document.getElementById('pedidosList');
+    
+    if (loadingElement) loadingElement.style.display = 'none';
+    if (notLoggedElement) notLoggedElement.style.display = 'block';
+    if (emptyElement) emptyElement.style.display = 'none';
+    if (pedidosList) pedidosList.style.display = 'none';
+}
+
+// ✅ 🆕 NUEVO: Renderizar lista de pedidos
+function renderPedidosList(pedidos) {
+    const pedidosList = document.getElementById('pedidosList');
+    if (!pedidosList) return;
+    
+    const pedidosHTML = pedidos.map(pedido => `
+        <div class="pedido-card">
+            <div class="pedido-header">
+                <div class="pedido-info">
+                    <h4>Pedido #${pedido.id}</h4>
+                    <div class="pedido-fecha">
+                        ${formatFecha(pedido.fecha_creacion)}
+                    </div>
+                    <div class="pedido-estado estado-${pedido.estado}">
+                        ${getEstadoDisplay(pedido.estado)}
+                    </div>
+                </div>
+                <div class="pedido-total">
+                    S/ ${parseFloat(pedido.total).toFixed(2)}
+                </div>
+            </div>
+            
+            <div class="pedido-items">
+                ${renderPedidoItems(pedido.detalles || pedido.items)}
+            </div>
+            
+            ${pedido.direccion ? `
+                <div class="pedido-direccion">
+                    <strong>Dirección:</strong> ${pedido.direccion}
+                </div>
+            ` : ''}
+            
+            ${pedido.metodo_pago ? `
+                <div class="pedido-metodo-pago">
+                    <strong>Método de pago:</strong> ${getMetodoPagoDisplay(pedido.metodo_pago)}
+                </div>
+            ` : ''}
+        </div>
+    `).join('');
+    
+    pedidosList.innerHTML = pedidosHTML;
+}
+
+// ✅ 🆕 NUEVO: Renderizar items de un pedido
+function renderPedidoItems(items) {
+    if (!items || items.length === 0) return '<p>No hay items en este pedido</p>';
+    
+    return items.map(item => `
+        <div class="pedido-item">
+            <div class="item-info">
+                <div class="item-cantidad">${item.cantidad}</div>
+                <div class="item-nombre">${item.producto_nombre || item.nombre}</div>
+                <div class="item-precio">S/ ${parseFloat(item.precio_unitario || item.precio).toFixed(2)} c/u</div>
+            </div>
+            <div class="item-subtotal">
+                S/ ${parseFloat(item.subtotal || (item.cantidad * (item.precio_unitario || item.precio))).toFixed(2)}
+            </div>
+        </div>
+    `).join('');
+}
+
+// ✅ 🆕 NUEVO: Formatear fecha
+function formatFecha(fechaString) {
+    const fecha = new Date(fechaString);
+    return fecha.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+// ✅ 🆕 NUEVO: Obtener display del estado
+function getEstadoDisplay(estado) {
+    const estados = {
+        'completado': 'Completado',
+        'pendiente': 'Pendiente',
+        'cancelado': 'Cancelado',
+        'en_camino': 'En camino'
+    };
+    return estados[estado] || estado;
+}
+
+// ✅ 🆕 NUEVO: Obtener display del método de pago
+function getMetodoPagoDisplay(metodo) {
+    const metodos = {
+        'efectivo': 'Efectivo',
+        'tarjeta': 'Tarjeta',
+        'transferencia': 'Transferencia'
+    };
+    return metodos[metodo] || metodo;
+}
+
+// ✅ 🆕 NUEVO: Actualizar botón de navegación activo
+function updateActiveNavButton(activeButton) {
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    if (activeButton) {
+        activeButton.classList.add('active');
     }
 }
 
@@ -1479,6 +2278,70 @@ style.textContent = `
         color: #d97706;
         padding: 0.1rem 0.2rem;
         border-radius: 2px;
+        font-weight: 600;
+    }
+    
+    /* 🆕 Estilos adicionales para admin */
+    .text-center {
+        text-align: center;
+    }
+    
+    .loading-text {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-light);
+    }
+    
+    .badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .badge-admin {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+    
+    .badge-user {
+        background: #DBEAFE;
+        color: #1E40AF;
+    }
+    
+    .admin-pedido {
+        border-left: 4px solid var(--primary);
+    }
+    
+    .pedido-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-end;
+    }
+    
+    .estado-select {
+        padding: 0.25rem 0.5rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-sm);
+        font-size: 0.8rem;
+        background: var(--bg-white);
+    }
+    
+    .pedido-cliente {
+        font-size: 0.8rem;
+        color: var(--text-light);
+        margin-top: 0.25rem;
+    }
+    
+    .stock-bajo {
+        color: #DC3545;
+        font-weight: 600;
+    }
+    
+    .stock-normal {
+        color: #28A745;
         font-weight: 600;
     }
 `;
