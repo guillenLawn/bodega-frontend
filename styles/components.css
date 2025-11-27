@@ -146,3 +146,34 @@
     box-shadow: var(--shadow-md);
     transform: translateY(-2px);
 }
+
+/* ===== 🆕 ACTUALIZACIÓN PARA NAVBAR CON 3 BOTONES ===== */
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    flex-wrap: wrap;
+}
+
+.nav-navigation {
+    display: flex;
+    gap: var(--space-xs);
+    flex-wrap: wrap;
+}
+
+/* 🆕 ESTILOS ESPECÍFICOS PARA BOTÓN ADMIN */
+.nav-btn.admin-only {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    border: 2px solid #7c3aed;
+}
+
+.nav-btn.admin-only:hover {
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    transform: translateY(-1px);
+}
+
+.nav-btn.admin-only.active {
+    background: #6d28d9;
+    border-color: #6d28d9;
+}
