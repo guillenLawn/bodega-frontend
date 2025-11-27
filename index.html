@@ -32,7 +32,8 @@
             </div>
             
             <div class="nav-actions">
-                <div class="search-bar">
+                <!-- 🔧 BUSCADOR (oculto en modo admin) -->
+                <div class="search-bar" id="searchBar">
                     <i class="fas fa-search"></i>
                     <input type="text" placeholder="Buscar productos..." class="search-input" id="searchInput">
                     <div class="search-suggestions" id="searchSuggestions">
@@ -65,6 +66,14 @@
                                 <i class="fas fa-user-edit"></i>
                                 Mi Perfil
                             </button>
+                            <!-- 🔧 OPCIÓN ADMIN (solo para admins) -->
+                            <div class="admin-menu-item" id="adminMenuItem" style="display: none;">
+                                <div class="dropdown-divider"></div>
+                                <button class="dropdown-item admin-option" data-view="admin">
+                                    <i class="fas fa-crown"></i>
+                                    Panel de Administrador
+                                </button>
+                            </div>
                             <div class="dropdown-divider"></div>
                             <button class="dropdown-item" id="logoutBtn">
                                 <i class="fas fa-sign-out-alt"></i>
@@ -74,6 +83,7 @@
                     </div>
                 </div>
                 
+                <!-- 🔧 CARRITO (oculto en modo admin) -->
                 <div class="cart-icon-nav" id="cartToggle">
                     <i class="fas fa-shopping-bag"></i>
                     <span class="cart-count-nav" id="cartCount">0</span>
@@ -242,6 +252,230 @@
                 </div>
             </section>
 
+            <!-- 🔧 VISTA PANEL DE ADMINISTRADOR -->
+            <section class="view-content" id="viewAdmin">
+                <div class="admin-container">
+                    <!-- Header del Panel Admin -->
+                    <div class="admin-header">
+                        <div class="admin-title-section">
+                            <h2 class="admin-title">
+                                <i class="fas fa-crown"></i>
+                                Panel de Administrador
+                            </h2>
+                            <p class="admin-subtitle">Gestión completa de productos y pedidos</p>
+                        </div>
+                        <div class="admin-badge">
+                            <span class="badge-admin">
+                                <i class="fas fa-shield-alt"></i>
+                                Modo Administrador
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas Rápidas -->
+                    <div class="admin-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="totalProducts">0</h3>
+                                <p>Productos Totales</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="totalOrders">0</h3>
+                                <p>Pedidos Totales</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="totalUsers">0</h3>
+                                <p>Usuarios Registrados</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="revenue">S/ 0.00</h3>
+                                <p>Ingresos Totales</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navegación por Pestañas -->
+                    <div class="admin-tabs">
+                        <button class="admin-tab active" data-tab="gestion-productos">
+                            <i class="fas fa-boxes"></i>
+                            Gestión de Productos
+                        </button>
+                        <button class="admin-tab" data-tab="agregar-producto">
+                            <i class="fas fa-plus-circle"></i>
+                            Agregar Producto
+                        </button>
+                        <button class="admin-tab" data-tab="pedidos-sistema">
+                            <i class="fas fa-clipboard-list"></i>
+                            Pedidos del Sistema
+                        </button>
+                    </div>
+
+                    <!-- Contenido de las Pestañas -->
+                    <div class="admin-tab-content">
+                        
+                        <!-- 🔧 PESTAÑA: GESTIÓN DE PRODUCTOS -->
+                        <div class="tab-pane active" id="gestion-productos">
+                            <div class="tab-header">
+                                <h3>
+                                    <i class="fas fa-boxes"></i>
+                                    Gestión de Productos
+                                </h3>
+                                <div class="tab-actions">
+                                    <button class="btn-refresh" id="refreshProducts">
+                                        <i class="fas fa-sync-alt"></i>
+                                        Actualizar
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="products-table-container">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th>Categoría</th>
+                                            <th>Precio</th>
+                                            <th>Stock</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="adminProductsTable">
+                                        <!-- Los productos se cargarán aquí dinámicamente -->
+                                        <tr class="table-loading">
+                                            <td colspan="6">
+                                                <i class="fas fa-spinner fa-spin"></i>
+                                                Cargando productos...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- 🔧 PESTAÑA: AGREGAR PRODUCTO -->
+                        <div class="tab-pane" id="agregar-producto">
+                            <div class="tab-header">
+                                <h3>
+                                    <i class="fas fa-plus-circle"></i>
+                                    Agregar Nuevo Producto
+                                </h3>
+                            </div>
+                            
+                            <form class="admin-product-form" id="addProductForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="productName">Nombre del Producto *</label>
+                                        <input type="text" id="productName" required placeholder="Ej: Arroz Costeño">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="productCategory">Categoría *</label>
+                                        <select id="productCategory" required>
+                                            <option value="">Seleccionar categoría</option>
+                                            <option value="Abarrotes">Abarrotes</option>
+                                            <option value="Lácteos y Carnes">Lácteos y Carnes</option>
+                                            <option value="Bebidas">Bebidas</option>
+                                            <option value="Limpieza">Limpieza</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="productPrice">Precio (S/) *</label>
+                                        <input type="number" id="productPrice" step="0.01" min="0" required placeholder="0.00">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="productStock">Stock *</label>
+                                        <input type="number" id="productStock" min="0" required placeholder="0">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="productDescription">Descripción</label>
+                                    <textarea id="productDescription" rows="3" placeholder="Descripción del producto..."></textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="productImage">URL de la Imagen</label>
+                                    <input type="url" id="productImage" placeholder="https://ejemplo.com/imagen.jpg">
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="reset" class="btn-secondary">
+                                        <i class="fas fa-undo"></i>
+                                        Limpiar
+                                    </button>
+                                    <button type="submit" class="btn-primary">
+                                        <i class="fas fa-save"></i>
+                                        Guardar Producto
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- 🔧 PESTAÑA: PEDIDOS DEL SISTEMA -->
+                        <div class="tab-pane" id="pedidos-sistema">
+                            <div class="tab-header">
+                                <h3>
+                                    <i class="fas fa-clipboard-list"></i>
+                                    Pedidos del Sistema
+                                </h3>
+                                <div class="tab-actions">
+                                    <button class="btn-refresh" id="refreshOrders">
+                                        <i class="fas fa-sync-alt"></i>
+                                        Actualizar
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="orders-table-container">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Pedido ID</th>
+                                            <th>Usuario</th>
+                                            <th>Productos</th>
+                                            <th>Total</th>
+                                            <th>Fecha</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="adminOrdersTable">
+                                        <!-- Los pedidos se cargarán aquí dinámicamente -->
+                                        <tr class="table-loading">
+                                            <td colspan="7">
+                                                <i class="fas fa-spinner fa-spin"></i>
+                                                Cargando pedidos...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
         </div>
     </main>
 
@@ -292,6 +526,93 @@
                 <i class="fas fa-credit-card"></i>
                 Realizar Pedido
             </button>
+        </div>
+    </div>
+
+    <!-- 🔧 MODALES ESPECÍFICOS PARA ADMIN -->
+    
+    <!-- Modal Editar Producto -->
+    <div class="modal-overlay" id="editProductOverlay"></div>
+    <div class="modal" id="editProductModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-edit"></i>
+                    Editar Producto
+                </h3>
+                <button class="modal-close" id="closeEditProductModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editProductForm" class="auth-form">
+                <input type="hidden" id="editProductId">
+                <div class="form-group">
+                    <label for="editProductName">Nombre del Producto</label>
+                    <input type="text" id="editProductName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editProductCategory">Categoría</label>
+                    <select id="editProductCategory" required>
+                        <option value="Abarrotes">Abarrotes</option>
+                        <option value="Lácteos y Carnes">Lácteos y Carnes</option>
+                        <option value="Bebidas">Bebidas</option>
+                        <option value="Limpieza">Limpieza</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editProductPrice">Precio (S/)</label>
+                        <input type="number" id="editProductPrice" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductStock">Stock</label>
+                        <input type="number" id="editProductStock" min="0" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editProductDescription">Descripción</label>
+                    <textarea id="editProductDescription" rows="3"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="cancelEditProduct">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Confirmar Eliminación -->
+    <div class="modal-overlay" id="deleteProductOverlay"></div>
+    <div class="modal modal-sm" id="deleteProductModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Confirmar Eliminación
+                </h3>
+                <button class="modal-close" id="closeDeleteProductModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar este producto?</p>
+                <p class="text-warning"><strong>Esta acción no se puede deshacer.</strong></p>
+                <input type="hidden" id="deleteProductId">
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" id="cancelDeleteProduct">
+                    Cancelar
+                </button>
+                <button type="button" class="btn-danger" id="confirmDeleteProduct">
+                    <i class="fas fa-trash"></i>
+                    Eliminar Producto
+                </button>
+            </div>
         </div>
     </div>
 
