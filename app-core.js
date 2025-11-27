@@ -105,6 +105,15 @@ function enableAdminMode() {
     // Aplicar estilos de admin al body
     document.body.classList.add('admin-mode');
     
+    // Ocultar elementos que no se usan en modo admin
+    const searchBar = document.getElementById('searchBar');
+    const cartToggle = document.getElementById('cartToggle');
+    const filtersSidebar = document.getElementById('filtersSidebar');
+    
+    if (searchBar) searchBar.style.display = 'none';
+    if (cartToggle) cartToggle.style.display = 'none';
+    if (filtersSidebar) filtersSidebar.style.display = 'none';
+    
     console.log('🔧 Modo administrador activado');
 }
 
@@ -119,6 +128,15 @@ function disableAdminMode() {
     
     // Remover estilos de admin
     document.body.classList.remove('admin-mode');
+    
+    // Mostrar elementos normales
+    const searchBar = document.getElementById('searchBar');
+    const cartToggle = document.getElementById('cartToggle');
+    const filtersSidebar = document.getElementById('filtersSidebar');
+    
+    if (searchBar) searchBar.style.display = 'flex';
+    if (cartToggle) cartToggle.style.display = 'flex';
+    if (filtersSidebar) filtersSidebar.style.display = 'block';
     
     // Si está en vista admin, volver al catálogo
     if (currentView === 'admin') {
@@ -144,7 +162,13 @@ function setupAdminEventListeners() {
     // Formulario agregar producto
     document.getElementById('addProductForm')?.addEventListener('submit', handleAddProduct);
     
-    // Botones de acción en tablas (se asignan dinámicamente)
+    // Navegación desde el menú de usuario
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.admin-option')) {
+            e.preventDefault();
+            showAdminView();
+        }
+    });
 }
 
 function setupAdminModals() {
@@ -171,8 +195,11 @@ function switchAdminTab(tabName) {
     });
     
     // Activar pestaña seleccionada
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-    document.getElementById(tabName).classList.add('active');
+    const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
+    const activePane = document.getElementById(tabName);
+    
+    if (activeTab) activeTab.classList.add('active');
+    if (activePane) activePane.classList.add('active');
     
     // Cargar datos según la pestaña
     switch(tabName) {
@@ -184,9 +211,41 @@ function switchAdminTab(tabName) {
             break;
         case 'agregar-producto':
             // Resetear formulario
-            document.getElementById('addProductForm').reset();
+            document.getElementById('addProductForm')?.reset();
             break;
     }
+}
+
+// ===== 🔧 MOSTRAR VISTA DE ADMINISTRADOR =====
+function showAdminView() {
+    // Ocultar todas las vistas
+    hideAllViews();
+    
+    // Mostrar vista admin
+    const adminView = document.getElementById('viewAdmin');
+    if (adminView) {
+        adminView.classList.add('active');
+        currentView = 'admin';
+        
+        // Cargar datos del panel admin
+        loadAdminPanelData();
+        
+        // Actualizar navegación
+        updateNavigationState();
+        
+        console.log('📊 Vista de administrador activada');
+    }
+}
+
+function loadAdminPanelData() {
+    // Cargar productos para gestión
+    loadAdminProducts();
+    
+    // Cargar pedidos del sistema
+    loadAdminOrders();
+    
+    // Cargar estadísticas
+    loadAdminStats();
 }
 
 // ===== 🔧 FUNCIONES DE GESTIÓN DE PRODUCTOS (ADMIN) =====
@@ -254,10 +313,10 @@ async function loadAdminProducts() {
                 </td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn-edit" onclick="openEditProductModal(${product.id})" title="Editar">
+                        <button class="btn-edit" onclick="openEditProductModal('${product.id || product._id}')" title="Editar">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn-delete" onclick="openDeleteProductModal(${product.id})" title="Eliminar">
+                        <button class="btn-delete" onclick="openDeleteProductModal('${product.id || product._id}')" title="Eliminar">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -359,7 +418,7 @@ async function loadAdminOrders() {
                     </span>
                 </td>
                 <td>
-                    <button class="btn-view" onclick="viewOrderDetails(${order.id || order._id})" title="Ver detalles">
+                    <button class="btn-view" onclick="viewOrderDetails('${order.id || order._id}')" title="Ver detalles">
                         <i class="fas fa-eye"></i>
                     </button>
                 </td>
@@ -396,10 +455,13 @@ function updateAdminStats() {
 
 // ===== 🔧 MODALES DE ADMIN =====
 function openEditProductModal(productId) {
-    const product = products.find(p => p.id == productId);
-    if (!product) return;
+    const product = products.find(p => p.id == productId || p._id == productId);
+    if (!product) {
+        showNotification('❌ Producto no encontrado', 'error');
+        return;
+    }
     
-    document.getElementById('editProductId').value = product.id;
+    document.getElementById('editProductId').value = product.id || product._id;
     document.getElementById('editProductName').value = product.name;
     document.getElementById('editProductCategory').value = product.category;
     document.getElementById('editProductPrice').value = product.price;
@@ -542,6 +604,68 @@ function getStatusText(status) {
         'en_camino': 'En Camino'
     };
     return statusMap[status] || 'Pendiente';
+}
+
+// ===== GESTIÓN DE VISTAS Y NAVEGACIÓN =====
+function initializeNavigation() {
+    // Navegación entre vistas
+    document.addEventListener('click', function(e) {
+        const viewBtn = e.target.closest('[data-view]');
+        if (viewBtn) {
+            e.preventDefault();
+            const viewName = viewBtn.getAttribute('data-view');
+            switchView(viewName);
+        }
+    });
+}
+
+function switchView(viewName) {
+    // 🔧 Si es admin y quiere ver catálogo, mostrar panel admin
+    if (isAdminMode && viewName === 'catalogo') {
+        showAdminView();
+        return;
+    }
+    
+    hideAllViews();
+    currentView = viewName;
+    
+    const viewElement = document.getElementById(`view${viewName.charAt(0).toUpperCase() + viewName.slice(1)}`);
+    if (viewElement) {
+        viewElement.classList.add('active');
+    }
+    
+    updateNavigationState();
+    
+    // Cargar datos específicos de la vista
+    switch(viewName) {
+        case 'historial':
+            loadHistorialPedidos();
+            break;
+        case 'admin':
+            showAdminView();
+            break;
+        case 'catalogo':
+            // Ya se cargan los productos al inicio
+            break;
+    }
+}
+
+function hideAllViews() {
+    document.querySelectorAll('.view-content').forEach(view => {
+        view.classList.remove('active');
+    });
+}
+
+function updateNavigationState() {
+    // Actualizar estado activo en navegación si es necesario
+    document.querySelectorAll('[data-view]').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    const activeBtn = document.querySelector(`[data-view="${currentView}"]`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
 }
 
 // ===== GESTIÓN DEL CARRITO =====
@@ -981,3 +1105,127 @@ function initializeProductAnimations() {
 }
 
 setTimeout(initializeProductAnimations, 100);
+
+// ===== FUNCIONES QUE FALTAN (para evitar errores) =====
+async function loadProducts() {
+    try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('Error al cargar productos');
+        products = await response.json();
+        console.log('Productos cargados:', products);
+        renderProducts();
+    } catch (error) {
+        console.error('Error cargando productos:', error);
+        showNotification('❌ Error al cargar productos', 'error');
+    }
+}
+
+function renderProducts() {
+    // Implementación básica - puedes expandir esto según tus necesidades
+    console.log('Renderizando productos:', products);
+}
+
+function addToCart(productId) {
+    const product = products.find(p => p.id == productId);
+    if (!product) return;
+    
+    const existingItem = cart.find(item => item.id == productId);
+    
+    if (existingItem) {
+        if (existingItem.quantity >= product.quantity) {
+            showNotification('❌ No hay más stock disponible', 'error');
+            return;
+        }
+        existingItem.quantity++;
+    } else {
+        cart.push({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            quantity: 1,
+            category: product.category
+        });
+    }
+    
+    saveCartToStorage();
+    updateCartUI();
+    showNotification('✅ Producto agregado al carrito');
+}
+
+async function realizarPedido() {
+    if (cart.length === 0) return;
+    
+    if (!currentUser) {
+        showNotification('🔐 Inicia sesión para realizar pedidos', 'error');
+        return;
+    }
+    
+    try {
+        const pedidoData = {
+            items: cart,
+            total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+            userId: currentUser.id,
+            userName: currentUser.nombre,
+            userEmail: currentUser.email
+        };
+        
+        const response = await fetch(PEDIDOS_API, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify(pedidoData)
+        });
+        
+        if (!response.ok) throw new Error('Error al realizar pedido');
+        
+        const result = await response.json();
+        showNotification('✅ Pedido realizado exitosamente');
+        
+        // Limpiar carrito
+        cart = [];
+        saveCartToStorage();
+        updateCartUI();
+        closeCart();
+        
+    } catch (error) {
+        console.error('Error realizando pedido:', error);
+        showNotification('❌ Error al realizar pedido', 'error');
+    }
+}
+
+async function loadHistorialPedidos() {
+    // Implementación básica del historial
+    console.log('Cargando historial de pedidos...');
+}
+
+function handleFilterChange(e) {
+    currentFilter = e.target.value;
+    // Implementar filtrado de productos
+}
+
+function handleSearch() {
+    // Implementar búsqueda
+}
+
+function handleSearchKeydown() {
+    // Implementar navegación con teclado en búsqueda
+}
+
+function handleSearchFocus() {
+    // Mostrar sugerencias
+}
+
+function handleSearchBlur() {
+    // Ocultar sugerencias
+}
+
+function hideSuggestions() {
+    // Ocultar sugerencias de búsqueda
+}
+
+function loadAdminStats() {
+    // Cargar estadísticas del admin
+    console.log('Cargando estadísticas del admin...');
+}
