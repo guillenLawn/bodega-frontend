@@ -1,6 +1,6 @@
 const API_URL = 'https://bodega-backend-4md3.onrender.com/api/inventory';
 const AUTH_API = 'https://bodega-backend-4md3.onrender.com/api/auth';
-const PEDIDOS_API = 'https://bodega-backend-4md3.onrender.com/api/pedidos'; // 🆕 NUEVO
+const PEDIDOS_API = 'https://bodega-backend-4md3.onrender.com/api/pedidos';
 
 // Estado global de la aplicación
 let cart = [];
@@ -10,13 +10,13 @@ let currentSuggestions = [];
 let selectedSuggestionIndex = -1;
 let currentUser = null;
 let authToken = localStorage.getItem('bodega_token');
-let currentView = 'catalogo'; // 🆕 NUEVO: Vista actual
+let currentView = 'catalogo';
 
 // ✅ Inicializar la aplicación CON AUTENTICACIÓN Y NAVEGACIÓN
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     initializeAuth();
-    initializeNavigation(); // 🆕 NUEVO: Inicializar navegación
+    initializeNavigation();
 });
 
 function initializeApp() {
@@ -26,20 +26,21 @@ function initializeApp() {
     updateCartUI();
 }
 
-// ✅ 🆕 NUEVO: Inicializar sistema de navegación
+// ✅ 🆕 INICIALIZAR SISTEMA DE NAVEGACIÓN
 function initializeNavigation() {
     setupNavigationEventListeners();
-    showView('catalogo'); // Vista por defecto
+    showView('catalogo');
 }
 
-// ✅ 🆕 NUEVO: Configurar event listeners para navegación
+// ✅ 🆕 CONFIGURAR EVENT LISTENERS PARA NAVEGACIÓN
 function setupNavigationEventListeners() {
-    // Navegación lateral
-    document.querySelectorAll('.menu-item[data-view]').forEach(item => {
+    // Navegación desde el menú desplegable "Cuenta"
+    document.querySelectorAll('.dropdown-item[data-view]').forEach(item => {
         item.addEventListener('click', function(e) {
             e.preventDefault();
             const view = this.getAttribute('data-view');
             showView(view);
+            hideUserDropdown();
         });
     });
 
@@ -59,7 +60,7 @@ function setupNavigationEventListeners() {
     });
 }
 
-// ✅ 🆕 NUEVO: Mostrar vista específica
+// ✅ 🆕 MOSTRAR VISTA ESPECÍFICA
 function showView(viewName) {
     console.log('Cambiando a vista:', viewName);
     
@@ -68,22 +69,10 @@ function showView(viewName) {
         view.classList.remove('active');
     });
     
-    // Remover activo de todos los items del menú
-    document.querySelectorAll('.menu-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    
     // Mostrar vista seleccionada
     const targetView = document.getElementById(`view${viewName.charAt(0).toUpperCase() + viewName.slice(1)}`);
     if (targetView) {
         targetView.classList.add('active');
-        
-        // Activar item del menú correspondiente
-        const menuItem = document.querySelector(`.menu-item[data-view="${viewName}"]`);
-        if (menuItem) {
-            menuItem.classList.add('active');
-        }
-        
         currentView = viewName;
         
         // Acciones específicas por vista
@@ -92,7 +81,6 @@ function showView(viewName) {
                 loadHistorialPedidos();
                 break;
             case 'catalogo':
-                // Asegurar que los filtros sean visibles
                 document.getElementById('filtersSidebar').style.display = 'block';
                 break;
         }
@@ -102,23 +90,21 @@ function showView(viewName) {
     }
 }
 
-// ✅ 🆕 NUEVO: Ajustar layout según vista
+// ✅ 🆕 AJUSTAR LAYOUT SEGÚN VISTA
 function adjustLayoutForView(viewName) {
     const mainContainer = document.querySelector('.main-container');
     const filtersSidebar = document.getElementById('filtersSidebar');
     
     if (viewName === 'catalogo') {
-        // Vista catálogo: mostrar filtros
         mainContainer.style.gridTemplateColumns = '280px 1fr';
         filtersSidebar.style.display = 'block';
     } else {
-        // Otras vistas: ocultar filtros
         mainContainer.style.gridTemplateColumns = '1fr';
         filtersSidebar.style.display = 'none';
     }
 }
 
-// ✅ 🆕 NUEVO: Cargar historial de pedidos
+// ✅ 🆕 CARGAR HISTORIAL DE PEDIDOS
 async function loadHistorialPedidos() {
     const historialContent = document.getElementById('historialContent');
     const loadingElement = document.getElementById('historialLoading');
@@ -153,15 +139,12 @@ async function loadHistorialPedidos() {
         
         const data = await response.json();
         
-        // Ocultar loading
         loadingElement.style.display = 'none';
         
         if (data.success && data.pedidos && data.pedidos.length > 0) {
-            // Mostrar lista de pedidos
             renderPedidosList(data.pedidos);
             pedidosList.style.display = 'block';
         } else {
-            // No hay pedidos
             emptyElement.style.display = 'block';
         }
         
@@ -169,7 +152,6 @@ async function loadHistorialPedidos() {
         console.error('Error cargando historial:', error);
         loadingElement.style.display = 'none';
         
-        // Mostrar mensaje de error
         historialContent.innerHTML = `
             <div class="error-state">
                 <i class="fas fa-exclamation-triangle"></i>
@@ -184,7 +166,7 @@ async function loadHistorialPedidos() {
     }
 }
 
-// ✅ 🆕 NUEVO: Renderizar lista de pedidos
+// ✅ 🆕 RENDERIZAR LISTA DE PEDIDOS
 function renderPedidosList(pedidos) {
     const pedidosList = document.getElementById('pedidosList');
     
@@ -224,7 +206,7 @@ function renderPedidosList(pedidos) {
     pedidosList.innerHTML = pedidosHTML;
 }
 
-// ✅ 🆕 NUEVO: Renderizar items de un pedido
+// ✅ 🆕 RENDERIZAR ITEMS DE UN PEDIDO
 function renderPedidoItems(items) {
     if (!items || items.length === 0) return '<p>No hay items en este pedido</p>';
     
@@ -242,7 +224,7 @@ function renderPedidoItems(items) {
     `).join('');
 }
 
-// ✅ 🆕 NUEVO: Formatear fecha
+// ✅ 🆕 FORMATEAR FECHA
 function formatFecha(fechaString) {
     const fecha = new Date(fechaString);
     return fecha.toLocaleDateString('es-ES', {
@@ -254,7 +236,7 @@ function formatFecha(fechaString) {
     });
 }
 
-// ✅ 🆕 NUEVO: Obtener display del estado
+// ✅ 🆕 OBTENER DISPLAY DEL ESTADO
 function getEstadoDisplay(estado) {
     const estados = {
         'completado': 'Completado',
@@ -265,7 +247,7 @@ function getEstadoDisplay(estado) {
     return estados[estado] || estado;
 }
 
-// ✅ 🆕 NUEVO: Obtener display del método de pago
+// ✅ 🆕 OBTENER DISPLAY DEL MÉTODO DE PAGO
 function getMetodoPagoDisplay(metodo) {
     const metodos = {
         'efectivo': 'Efectivo',
@@ -275,13 +257,13 @@ function getMetodoPagoDisplay(metodo) {
     return metodos[metodo] || metodo;
 }
 
-// ✅ Inicializar sistema de autenticación
+// ✅ INICIALIZAR SISTEMA DE AUTENTICACIÓN
 function initializeAuth() {
     setupAuthEventListeners();
     checkExistingAuth();
 }
 
-// ✅ Configurar event listeners para autenticación
+// ✅ CONFIGURAR EVENT LISTENERS PARA AUTENTICACIÓN
 function setupAuthEventListeners() {
     // Botones de login/registro
     document.getElementById('loginBtn').addEventListener('click', showLoginModal);
@@ -297,7 +279,7 @@ function setupAuthEventListeners() {
     document.getElementById('loginForm').addEventListener('submit', handleLogin);
     document.getElementById('registerForm').addEventListener('submit', handleRegister);
     
-    // Menú de usuario
+    // 🆕 MENÚ DE USUARIO EN HEADER
     document.getElementById('userBtn').addEventListener('click', toggleUserDropdown);
     document.getElementById('logoutBtn').addEventListener('click', handleLogout);
     
@@ -312,7 +294,7 @@ function setupAuthEventListeners() {
     });
 }
 
-// ✅ Verificar autenticación existente
+// ✅ VERIFICAR AUTENTICACIÓN EXISTENTE
 async function checkExistingAuth() {
     if (authToken) {
         try {
@@ -327,12 +309,10 @@ async function checkExistingAuth() {
                 currentUser = data.user;
                 updateAuthUI();
                 
-                // 🆕 NUEVO: Si estamos en historial, recargar
                 if (currentView === 'historial') {
                     loadHistorialPedidos();
                 }
             } else {
-                // Token inválido, limpiar
                 localStorage.removeItem('bodega_token');
                 authToken = null;
             }
@@ -344,38 +324,34 @@ async function checkExistingAuth() {
     }
 }
 
-// ✅ Mostrar modal de login
+// ✅ MOSTRAR MODAL DE LOGIN
 function showLoginModal(e) {
     if (e && e.preventDefault) e.preventDefault();
     hideUserDropdown();
     
     document.getElementById('authOverlay').classList.add('active');
     document.getElementById('loginModal').classList.add('active');
-    
-    // Limpiar formularios
     document.getElementById('loginForm').reset();
 }
 
-// ✅ Mostrar modal de registro
+// ✅ MOSTRAR MODAL DE REGISTRO
 function showRegisterModal(e) {
     if (e && e.preventDefault) e.preventDefault();
     
     document.getElementById('authOverlay').classList.add('active');
     document.getElementById('registerModal').classList.add('active');
     document.getElementById('loginModal').classList.remove('active');
-    
-    // Limpiar formularios
     document.getElementById('registerForm').reset();
 }
 
-// ✅ Ocultar modales de autenticación
+// ✅ OCULTAR MODALES DE AUTENTICACIÓN
 function hideAuthModals() {
     document.getElementById('authOverlay').classList.remove('active');
     document.getElementById('loginModal').classList.remove('active');
     document.getElementById('registerModal').classList.remove('active');
 }
 
-// ✅ Manejar login
+// ✅ MANEJAR LOGIN
 async function handleLogin(e) {
     e.preventDefault();
     
@@ -383,14 +359,12 @@ async function handleLogin(e) {
     const password = document.getElementById('loginPassword').value;
     const submitBtn = e.target.querySelector('button[type="submit"]');
     
-    // Validación básica
     if (!email || !password) {
         showNotification('❌ Por favor completa todos los campos', 'error');
         return;
     }
     
     try {
-        // Mostrar estado de carga
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ingresando...';
         
@@ -405,31 +379,24 @@ async function handleLogin(e) {
         const data = await response.json();
         
         if (response.ok) {
-            // Login exitoso
             authToken = data.token;
             currentUser = data.user;
-            
-            // Guardar token en localStorage
             localStorage.setItem('bodega_token', authToken);
             
-            // Actualizar UI
             updateAuthUI();
             hideAuthModals();
             
             showNotification(`✅ Bienvenido, ${currentUser.nombre}!`);
             
-            // 🆕 NUEVO: Si estamos en historial, recargar
             if (currentView === 'historial') {
                 loadHistorialPedidos();
             }
             
-            // Si hay productos en el carrito, podrías guardarlos para el usuario
             if (cart.length > 0) {
                 showNotification('🛒 Tus productos del carrito están listos para pedir');
             }
             
         } else {
-            // Error en login
             showNotification(`❌ ${data.error}`, 'error');
         }
         
@@ -437,13 +404,12 @@ async function handleLogin(e) {
         console.error('Error en login:', error);
         showNotification('❌ Error de conexión', 'error');
     } finally {
-        // Restaurar botón
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Ingresar';
     }
 }
 
-// ✅ Manejar registro
+// ✅ MANEJAR REGISTRO
 async function handleRegister(e) {
     e.preventDefault();
     
@@ -452,7 +418,6 @@ async function handleRegister(e) {
     const password = document.getElementById('registerPassword').value;
     const submitBtn = e.target.querySelector('button[type="submit"]');
     
-    // Validación básica
     if (!nombre || !email || !password) {
         showNotification('❌ Por favor completa todos los campos', 'error');
         return;
@@ -464,7 +429,6 @@ async function handleRegister(e) {
     }
     
     try {
-        // Mostrar estado de carga
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando cuenta...';
         
@@ -479,21 +443,16 @@ async function handleRegister(e) {
         const data = await response.json();
         
         if (response.ok) {
-            // Registro exitoso
             authToken = data.token;
             currentUser = data.user;
-            
-            // Guardar token en localStorage
             localStorage.setItem('bodega_token', authToken);
             
-            // Actualizar UI
             updateAuthUI();
             hideAuthModals();
             
             showNotification(`✅ Cuenta creada exitosamente! Bienvenido, ${currentUser.nombre}`);
             
         } else {
-            // Error en registro
             showNotification(`❌ ${data.error}`, 'error');
         }
         
@@ -501,24 +460,20 @@ async function handleRegister(e) {
         console.error('Error en registro:', error);
         showNotification('❌ Error de conexión', 'error');
     } finally {
-        // Restaurar botón
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> Crear Cuenta';
     }
 }
 
-// ✅ Manejar logout
+// ✅ MANEJAR LOGOUT
 function handleLogout() {
-    // Limpiar datos de autenticación
     authToken = null;
     currentUser = null;
     localStorage.removeItem('bodega_token');
     
-    // Actualizar UI
     updateAuthUI();
     hideUserDropdown();
     
-    // 🆕 NUEVO: Si estamos en historial, recargar para mostrar mensaje de no logueado
     if (currentView === 'historial') {
         loadHistorialPedidos();
     }
@@ -526,7 +481,7 @@ function handleLogout() {
     showNotification('👋 Sesión cerrada correctamente');
 }
 
-// ✅ Actualizar UI según estado de autenticación
+// ✅ ACTUALIZAR UI SEGÚN ESTADO DE AUTENTICACIÓN
 function updateAuthUI() {
     const loginBtn = document.getElementById('loginBtn');
     const userMenu = document.getElementById('userMenu');
@@ -535,34 +490,31 @@ function updateAuthUI() {
     const dropdownUserEmail = document.getElementById('dropdownUserEmail');
     
     if (currentUser) {
-        // Usuario autenticado
         loginBtn.style.display = 'none';
         userMenu.style.display = 'flex';
         
-        // Actualizar información del usuario
-        userName.textContent = currentUser.nombre.split(' ')[0]; // Solo primer nombre
+        userName.textContent = 'Cuenta';
         dropdownUserName.textContent = currentUser.nombre;
         dropdownUserEmail.textContent = currentUser.email;
     } else {
-        // Usuario no autenticado
         loginBtn.style.display = 'flex';
         userMenu.style.display = 'none';
     }
 }
 
-// ✅ Toggle dropdown de usuario
+// ✅ 🆕 TOGGLE DROPDOWN DE USUARIO
 function toggleUserDropdown() {
     const dropdown = document.getElementById('userDropdown');
     dropdown.classList.toggle('active');
 }
 
-// ✅ Ocultar dropdown de usuario
+// ✅ 🆕 OCULTAR DROPDOWN DE USUARIO
 function hideUserDropdown() {
     const dropdown = document.getElementById('userDropdown');
     dropdown.classList.remove('active');
 }
 
-// ✅ Configurar event listeners para autocompletado
+// ✅ CONFIGURAR EVENT LISTENERS PARA AUTOCOMPLETADO
 function setupEventListeners() {
     // Carrito moderno
     document.getElementById('cartToggle').addEventListener('click', toggleCart);
@@ -593,7 +545,7 @@ function setupEventListeners() {
     });
 }
 
-// ✅ Manejar búsqueda con autocompletado
+// ✅ MANEJAR BÚSQUEDA CON AUTOCOMPLETADO
 function handleSearch(e) {
     const searchTerm = e.target.value.toLowerCase().trim();
     const suggestionsContainer = document.getElementById('searchSuggestions');
@@ -609,13 +561,12 @@ function handleSearch(e) {
         return;
     }
 
-    // Filtrar productos para sugerencias
     const filteredProducts = products.filter(product => 
         product.name.toLowerCase().includes(searchTerm) ||
         product.category.toLowerCase().includes(searchTerm)
     );
 
-    currentSuggestions = filteredProducts.slice(0, 8); // Máximo 8 sugerencias
+    currentSuggestions = filteredProducts.slice(0, 8);
     selectedSuggestionIndex = -1;
 
     if (currentSuggestions.length > 0) {
@@ -625,7 +576,7 @@ function handleSearch(e) {
     }
 }
 
-// ✅ Mostrar sugerencias
+// ✅ MOSTRAR SUGERENCIAS
 function showSuggestions(suggestions, searchTerm) {
     const suggestionsContainer = document.getElementById('searchSuggestions');
     
@@ -645,7 +596,6 @@ function showSuggestions(suggestions, searchTerm) {
     suggestionsContainer.innerHTML = suggestionsHTML;
     suggestionsContainer.classList.add('active');
 
-    // Agregar event listeners a las sugerencias
     suggestionsContainer.querySelectorAll('.suggestion-item').forEach(item => {
         item.addEventListener('click', function() {
             const productId = parseInt(this.getAttribute('data-product-id'));
@@ -659,7 +609,7 @@ function showSuggestions(suggestions, searchTerm) {
     });
 }
 
-// ✅ Mostrar mensaje de no hay sugerencias
+// ✅ MOSTRAR MENSAJE DE NO HAY SUGERENCIAS
 function showNoSuggestions() {
     const suggestionsContainer = document.getElementById('searchSuggestions');
     suggestionsContainer.innerHTML = `
@@ -671,14 +621,14 @@ function showNoSuggestions() {
     suggestionsContainer.classList.add('active');
 }
 
-// ✅ Ocultar sugerencias
+// ✅ OCULTAR SUGERENCIAS
 function hideSuggestions() {
     const suggestionsContainer = document.getElementById('searchSuggestions');
     suggestionsContainer.classList.remove('active');
     selectedSuggestionIndex = -1;
 }
 
-// ✅ Resaltar texto en sugerencias
+// ✅ RESALTAR TEXTO EN SUGERENCIAS
 function highlightText(text, searchTerm) {
     if (!searchTerm) return text;
     
@@ -686,7 +636,7 @@ function highlightText(text, searchTerm) {
     return text.replace(regex, '<mark>$1</mark>');
 }
 
-// ✅ Manejar teclado en búsqueda
+// ✅ MANEJAR TECLADO EN BÚSQUEDA
 function handleSearchKeydown(e) {
     const suggestionsContainer = document.getElementById('searchSuggestions');
     
@@ -711,7 +661,6 @@ function handleSearchKeydown(e) {
                 const productId = currentSuggestions[selectedSuggestionIndex].id;
                 selectSuggestion(productId);
             } else {
-                // Búsqueda normal
                 performSearch();
             }
             break;
@@ -722,21 +671,19 @@ function handleSearchKeydown(e) {
     }
 }
 
-// ✅ Actualizar sugerencia seleccionada
+// ✅ ACTUALIZAR SUGERENCIA SELECCIONADA
 function updateSelectedSuggestion() {
     const suggestions = document.querySelectorAll('.suggestion-item');
     
     suggestions.forEach((suggestion, index) => {
         if (index === selectedSuggestionIndex) {
             suggestion.classList.add('selected');
-            // Scroll a la sugerencia seleccionada
             suggestion.scrollIntoView({ block: 'nearest' });
         } else {
             suggestion.classList.remove('selected');
         }
     });
 
-    // Actualizar input con texto de sugerencia seleccionada
     const searchInput = document.getElementById('searchInput');
     if (selectedSuggestionIndex >= 0) {
         const selectedProduct = currentSuggestions[selectedSuggestionIndex];
@@ -744,23 +691,18 @@ function updateSelectedSuggestion() {
     }
 }
 
-// ✅ Seleccionar sugerencia
+// ✅ SELECCIONAR SUGERENCIA
 function selectSuggestion(productId) {
     const product = products.find(p => p.id === productId);
     if (product) {
-        // Agregar al carrito directamente
         addToCart(productId);
-        
-        // Limpiar búsqueda
         document.getElementById('searchInput').value = '';
         hideSuggestions();
-        
-        // Mostrar notificación
         showNotification(`✅ ${product.name} agregado al carrito`);
     }
 }
 
-// ✅ Realizar búsqueda completa
+// ✅ REALIZAR BÚSQUEDA COMPLETA
 function performSearch() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
     
@@ -775,7 +717,7 @@ function performSearch() {
     }
 }
 
-// ✅ Manejar focus en búsqueda
+// ✅ MANEJAR FOCUS EN BÚSQUEDA
 function handleSearchFocus() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
     if (searchTerm.length >= 2 && currentSuggestions.length > 0) {
@@ -783,14 +725,14 @@ function handleSearchFocus() {
     }
 }
 
-// ✅ Manejar blur en búsqueda (con delay para permitir clicks)
+// ✅ MANEJAR BLUR EN BÚSQUEDA
 function handleSearchBlur() {
     setTimeout(() => {
         hideSuggestions();
     }, 200);
 }
 
-// ✅ Cargar carrito desde localStorage
+// ✅ CARGAR CARRITO DESDE LOCALSTORAGE
 function loadCartFromStorage() {
     const savedCart = localStorage.getItem('bodega_cart');
     if (savedCart) {
@@ -804,7 +746,7 @@ function loadCartFromStorage() {
     }
 }
 
-// ✅ Guardar carrito en localStorage
+// ✅ GUARDAR CARRITO EN LOCALSTORAGE
 function saveCartToStorage() {
     try {
         localStorage.setItem('bodega_cart', JSON.stringify(cart));
@@ -814,17 +756,15 @@ function saveCartToStorage() {
     }
 }
 
-// ✅ Manejar cambio de filtros
+// ✅ MANEJAR CAMBIO DE FILTROS
 function handleFilterChange(e) {
     const filterText = e.target.nextElementSibling.textContent.toLowerCase();
     
-    // Actualizar estado activo visual
     document.querySelectorAll('.filter-option').forEach(option => {
         option.classList.remove('active');
     });
     e.target.closest('.filter-option').classList.add('active');
     
-    // Mapear texto del filtro a categorías
     const filterMap = {
         'todos los productos': 'all',
         'abarrotes': 'abarrotes',
@@ -837,7 +777,7 @@ function handleFilterChange(e) {
     renderProductsByCategory();
 }
 
-// ✅ Renderizar resultados de búsqueda
+// ✅ RENDERIZAR RESULTADOS DE BÚSQUEDA
 function renderSearchResults(filteredProducts) {
     const catalogMain = document.querySelector('.catalog-main');
     
@@ -853,7 +793,6 @@ function renderSearchResults(filteredProducts) {
         return;
     }
 
-    // Agrupar por categoría para mantener la estructura
     const groupedProducts = groupProductsByCategory(filteredProducts);
     
     let catalogHTML = '';
@@ -875,12 +814,10 @@ function renderSearchResults(filteredProducts) {
     });
     
     catalogMain.innerHTML = catalogHTML;
-    
-    // Agregar event listeners a los botones
     attachEventListenersToProducts();
 }
 
-// ✅ Cargar productos desde la API
+// ✅ CARGAR PRODUCTOS DESDE LA API
 async function loadProducts() {
     try {
         showLoadingState(true);
@@ -889,7 +826,6 @@ async function loadProducts() {
         
         const data = await response.json();
         
-        // Transformar datos del backend al formato del frontend
         products = data.map(product => ({
             id: product.id,
             name: product.nombre,
@@ -901,7 +837,6 @@ async function loadProducts() {
         }));
         
         console.log('Productos transformados:', products);
-        
         renderProductsByCategory();
         
     } catch (error) {
@@ -912,7 +847,7 @@ async function loadProducts() {
     }
 }
 
-// ✅ Mostrar/ocultar estado de carga
+// ✅ MOSTRAR/OCULTAR ESTADO DE CARGA
 function showLoadingState(show) {
     const catalogMain = document.querySelector('.catalog-main');
     if (show) {
@@ -927,25 +862,22 @@ function showLoadingState(show) {
     }
 }
 
-// ✅ Renderizar productos por categoría
+// ✅ RENDERIZAR PRODUCTOS POR CATEGORÍA
 function renderProductsByCategory() {
     console.log('Renderizando productos por categoría...');
     console.log('Total de productos:', products.length);
     
     const catalogMain = document.querySelector('.catalog-main');
     
-    // Filtrar productos según el filtro activo
     let filteredProducts = products;
     if (currentFilter !== 'all') {
         filteredProducts = filterProductsByCategory(products, currentFilter);
     }
     
-    // Agrupar productos por categoría para el display
     const groupedProducts = groupProductsByCategory(filteredProducts);
     
     let catalogHTML = '';
     
-    // Renderizar cada categoría que tenga productos
     Object.keys(groupedProducts).forEach(category => {
         if (groupedProducts[category].length > 0) {
             catalogHTML += `
@@ -963,12 +895,10 @@ function renderProductsByCategory() {
     });
     
     catalogMain.innerHTML = catalogHTML;
-    
-    // Agregar event listeners a los botones de agregar al carrito
     attachEventListenersToProducts();
 }
 
-// ✅ Filtrar productos por categoría
+// ✅ FILTRAR PRODUCTOS POR CATEGORÍA
 function filterProductsByCategory(products, filter) {
     const filterMap = {
         'abarrotes': ['Granos', 'Pastas', 'Aceites'],
@@ -981,7 +911,7 @@ function filterProductsByCategory(products, filter) {
     return products.filter(product => categories.includes(product.category));
 }
 
-// ✅ Agrupar productos por categoría
+// ✅ AGRUPAR PRODUCTOS POR CATEGORÍA
 function groupProductsByCategory(products) {
     const grouped = {
         'abarrotes': [],
@@ -1005,7 +935,7 @@ function groupProductsByCategory(products) {
     return grouped;
 }
 
-// ✅ Obtener nombre display para categoría
+// ✅ OBTENER NOMBRE DISPLAY PARA CATEGORÍA
 function getCategoryDisplayName(categoryKey) {
     const names = {
         'abarrotes': 'Abarrotes Esenciales',
@@ -1016,7 +946,7 @@ function getCategoryDisplayName(categoryKey) {
     return names[categoryKey] || categoryKey;
 }
 
-// ✅ Obtener descripción para categoría
+// ✅ OBTENER DESCRIPCIÓN PARA CATEGORÍA
 function getCategoryDescription(categoryKey) {
     const descriptions = {
         'abarrotes': 'Productos básicos de la más alta calidad',
@@ -1027,7 +957,7 @@ function getCategoryDescription(categoryKey) {
     return descriptions[categoryKey] || '';
 }
 
-// ✅ Crear HTML de tarjeta de producto
+// ✅ CREAR HTML DE TARJETA DE PRODUCTO
 function createProductCardHTML(product) {
     const stockStatus = product.quantity === 0 ? 'out' : product.quantity < 10 ? 'low' : '';
     const stockText = product.quantity === 0 ? 'Sin stock' : `Stock: ${product.quantity}`;
@@ -1055,7 +985,7 @@ function createProductCardHTML(product) {
     `;
 }
 
-// ✅ Obtener icono según categoría
+// ✅ OBTENER ICONO SEGÚN CATEGORÍA
 function getProductIcon(category) {
     const icons = {
         'Granos': 'wheat',
@@ -1070,7 +1000,7 @@ function getProductIcon(category) {
     return icons[category] || 'box';
 }
 
-// ✅ Agregar event listeners a los productos
+// ✅ AGREGAR EVENT LISTENERS A LOS PRODUCTOS
 function attachEventListenersToProducts() {
     document.querySelectorAll('.btn-add-cart:not(.disabled)').forEach(button => {
         button.addEventListener('click', function() {
@@ -1080,7 +1010,7 @@ function attachEventListenersToProducts() {
     });
 }
 
-// ✅ Funciones del Carrito
+// ✅ FUNCIONES DEL CARRITO
 function addToCart(productId) {
     console.log('Agregando producto ID:', productId);
     
@@ -1091,7 +1021,6 @@ function addToCart(productId) {
         return;
     }
 
-    // Verificar stock
     if (product.quantity <= 0) {
         showNotification('❌ Producto sin stock', 'error');
         return;
@@ -1100,7 +1029,6 @@ function addToCart(productId) {
     const existingItem = cart.find(item => item.id == productId);
     
     if (existingItem) {
-        // Verificar que no exceda el stock disponible
         if (existingItem.quantity >= product.quantity) {
             showNotification('❌ No hay más stock disponible', 'error');
             return;
@@ -1139,7 +1067,6 @@ function updateQuantity(productId, change) {
     const originalProduct = products.find(p => p.id == productId);
     
     if (change > 0) {
-        // Verificar stock al aumentar cantidad
         if (item.quantity >= originalProduct.quantity) {
             showNotification('❌ No hay más stock disponible', 'error');
             return;
@@ -1161,19 +1088,15 @@ function updateCartUI() {
     const cartCount = document.getElementById('cartCount');
     const cartItems = document.getElementById('cartItems');
     const totalAmount = document.getElementById('totalAmount');
-    const emptyCart = document.getElementById('emptyCart');
     const btnPedir = document.getElementById('btnPedir');
 
     console.log('Actualizando UI del carrito. Productos en carrito:', cart.length);
 
-    // Actualizar contador en el navbar
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     cartCount.textContent = totalItems;
     cartCount.style.display = totalItems > 0 ? 'flex' : 'none';
 
-    // Manejo completo del estado del carrito
     if (cart.length === 0) {
-        // Carrito vacío
         cartItems.innerHTML = `
             <div id="emptyCart" class="empty-cart-modern">
                 <i class="fas fa-shopping-bag"></i>
@@ -1184,7 +1107,6 @@ function updateCartUI() {
         btnPedir.disabled = true;
         btnPedir.classList.add('disabled');
     } else {
-        // Reconstruir completamente los items del carrito
         let cartHTML = '';
         
         cart.forEach(item => {
@@ -1218,23 +1140,19 @@ function updateCartUI() {
         btnPedir.classList.remove('disabled');
     }
 
-    // Actualizar total
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     totalAmount.textContent = `S/ ${total.toFixed(2)}`;
 }
 
-// ✅ Control del panel del carrito MODERNO
+// ✅ CONTROL DEL PANEL DEL CARRITO MODERNO
 function toggleCart() {
     const cartPanel = document.getElementById('cartPanel');
     const overlay = document.getElementById('cartOverlay');
     
     cartPanel.classList.toggle('active');
     overlay.classList.toggle('active');
-    
-    // Agregar efecto de blur al fondo
     document.querySelector('.main-container').classList.toggle('blurred');
     
-    // Actualizar UI cuando se abre el carrito
     if (cartPanel.classList.contains('active')) {
         updateCartUI();
     }
@@ -1249,9 +1167,8 @@ function closeCart() {
     document.querySelector('.main-container').classList.remove('blurred');
 }
 
-// ✅ 🆕 NUEVO: REALIZAR PEDIDO MEJORADO CON CREACIÓN EN BD
+// ✅ REALIZAR PEDIDO MEJORADO CON CREACIÓN EN BD
 async function realizarPedido() {
-    // VERIFICAR AUTENTICACIÓN ANTES DE PROCEDER
     if (!currentUser) {
         showNotification('🔐 Por favor inicia sesión para realizar tu pedido', 'info');
         showLoginModal({ preventDefault: () => {} });
@@ -1261,15 +1178,12 @@ async function realizarPedido() {
     if (cart.length === 0) return;
 
     try {
-        // Mostrar mensaje de procesamiento
         showNotification('⏳ Procesando pedido...', 'info');
         
-        // Deshabilitar botón temporalmente
         const btnPedir = document.getElementById('btnPedir');
         btnPedir.disabled = true;
         btnPedir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
         
-        // 🆕 NUEVO: Crear pedido en la base de datos
         const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         
         const pedidoData = {
@@ -1280,8 +1194,8 @@ async function realizarPedido() {
                 precio: item.price
             })),
             total: total,
-            direccion: "Entrega en tienda", // Por defecto
-            metodoPago: "efectivo" // Por defecto
+            direccion: "Entrega en tienda",
+            metodoPago: "efectivo"
         };
         
         console.log('Enviando pedido a la API:', pedidoData);
@@ -1302,7 +1216,6 @@ async function realizarPedido() {
         const pedidoResult = await response.json();
         
         if (pedidoResult.success) {
-            // 🆕 NUEVO: Actualizar stock en la base de datos
             const updatePromises = cart.map(async (item) => {
                 const product = products.find(p => p.id == item.id);
                 const newQuantity = product.quantity - item.quantity;
@@ -1327,32 +1240,25 @@ async function realizarPedido() {
                 return updateResponse.json();
             });
 
-            // Esperar a que todas las actualizaciones terminen
             await Promise.all(updatePromises);
             
-            // Mostrar resumen del pedido
             const productosResumen = cart.map(item => 
                 `• ${item.name} x${item.quantity} - S/ ${(item.price * item.quantity).toFixed(2)}`
             ).join('\n');
             
-            // Mostrar alerta de confirmación elegante
             setTimeout(() => {
                 alert(`¡Pedido realizado con éxito!\n\nPedido #${pedidoResult.pedido.id}\nCliente: ${currentUser.nombre}\nEmail: ${currentUser.email}\n\nProductos:\n${productosResumen}\n\nTotal: S/ ${total.toFixed(2)}\n\n¡Gracias por tu compra!`);
                 
-                // Limpiar carrito
                 cart = [];
                 localStorage.removeItem('bodega_cart');
                 updateCartUI();
                 closeCart();
                 
-                // Restaurar botón
                 btnPedir.disabled = false;
                 btnPedir.innerHTML = '<i class="fas fa-credit-card"></i> Realizar Pedido';
                 
-                // Recargar productos para mostrar stock actualizado
                 loadProducts();
                 
-                // 🆕 NUEVO: Si estamos en historial, recargar
                 if (currentView === 'historial') {
                     loadHistorialPedidos();
                 }
@@ -1366,7 +1272,6 @@ async function realizarPedido() {
     } catch (error) {
         console.error('Error al realizar pedido:', error);
         
-        // Restaurar botón
         const btnPedir = document.getElementById('btnPedir');
         btnPedir.disabled = false;
         btnPedir.innerHTML = '<i class="fas fa-credit-card"></i> Realizar Pedido';
@@ -1375,9 +1280,8 @@ async function realizarPedido() {
     }
 }
 
-// ✅ Mostrar notificación mejorada
+// ✅ MOSTRAR NOTIFICACIÓN MEJORADA
 function showNotification(message, type = 'success') {
-    // Crear notificación temporal
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
     notification.style.cssText = `
@@ -1407,7 +1311,7 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-// ✅ Escapar HTML para seguridad
+// ✅ ESCAPAR HTML PARA SEGURIDAD
 function escapeHtml(unsafe) {
     if (!unsafe) return '';
     return unsafe
@@ -1418,7 +1322,7 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
-// ✅ Agregar animaciones CSS dinámicas
+// ✅ AGREGAR ANIMACIONES CSS DINÁMICAS
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideInRight {
@@ -1483,7 +1387,6 @@ style.textContent = `
         animation: slideInRight 0.3s ease;
     }
     
-    /* 🆕 NUEVO: Estilos para estados del pedido */
     .estado-completado {
         background: #D1FAE5;
         color: #065F46;
@@ -1504,7 +1407,6 @@ style.textContent = `
         color: #1E40AF;
     }
     
-    /* 🆕 NUEVO: Estilos para error state */
     .error-state {
         text-align: center;
         padding: var(--space-xl);
@@ -1522,7 +1424,6 @@ style.textContent = `
         color: var(--text-dark);
     }
     
-    /* 🆕 NUEVO: Estilos para información adicional del pedido */
     .pedido-direccion,
     .pedido-metodo-pago {
         margin-top: var(--space-sm);
@@ -1547,7 +1448,7 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// ✅ Inicializar animaciones de productos
+// ✅ INICIALIZAR ANIMACIONES DE PRODUCTOS
 function initializeProductAnimations() {
     const productCards = document.querySelectorAll('.product-card-modern');
     productCards.forEach((card, index) => {
@@ -1555,5 +1456,4 @@ function initializeProductAnimations() {
     });
 }
 
-// Llamar a las animaciones después de renderizar
 setTimeout(initializeProductAnimations, 100);
