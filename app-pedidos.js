@@ -29,6 +29,16 @@ function setupNavigationEventListeners() {
         e.preventDefault();
         showLoginModal();
     });
+
+    // 🔧 Navegación específica para admin
+    document.querySelectorAll('.admin-option[data-view]').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const view = this.getAttribute('data-view');
+            showView(view);
+            hideUserDropdown();
+        });
+    });
 }
 
 function showView(viewName) {
@@ -53,6 +63,9 @@ function showView(viewName) {
             case 'catalogo':
                 document.getElementById('filtersSidebar').style.display = 'block';
                 break;
+            case 'admin':
+                initializeAdminView();
+                break;
         }
         
         // Ajustar layout según la vista
@@ -67,10 +80,355 @@ function adjustLayoutForView(viewName) {
     if (viewName === 'catalogo') {
         mainContainer.style.gridTemplateColumns = '280px 1fr';
         filtersSidebar.style.display = 'block';
+        
+        // 🔧 Mostrar elementos de usuario normal
+        document.getElementById('searchBar').style.display = 'flex';
+        document.getElementById('cartToggle').style.display = 'flex';
+        
+    } else if (viewName === 'admin') {
+        mainContainer.style.gridTemplateColumns = '1fr';
+        filtersSidebar.style.display = 'none';
+        
+        // 🔧 Ocultar elementos de usuario normal en modo admin
+        document.getElementById('searchBar').style.display = 'none';
+        document.getElementById('cartToggle').style.display = 'none';
+        
     } else {
         mainContainer.style.gridTemplateColumns = '1fr';
         filtersSidebar.style.display = 'none';
+        
+        // Mostrar elementos de usuario normal
+        document.getElementById('searchBar').style.display = 'flex';
+        document.getElementById('cartToggle').style.display = 'flex';
     }
+}
+
+// ===== 🔧 VISTA DE ADMINISTRADOR =====
+function initializeAdminView() {
+    // Verificar permisos de administrador
+    if (!isAdminMode) {
+        showNotification('🔐 No tienes permisos de administrador', 'error');
+        showView('catalogo');
+        return;
+    }
+    
+    // Cargar datos iniciales del admin
+    loadAdminProducts();
+    loadAdminOrders();
+    updateAdminStats();
+}
+
+// ===== 🔧 FUNCIONES DE GESTIÓN DE PRODUCTOS (ADMIN) =====
+async function loadAdminProducts() {
+    const tableBody = document.getElementById('adminProductsTable');
+    if (!tableBody) return;
+    
+    try {
+        tableBody.innerHTML = `
+            <tr class="table-loading">
+                <td colspan="6">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    Cargando productos...
+                </td>
+            </tr>
+        `;
+        
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('Error al cargar productos');
+        
+        const productsData = await response.json();
+        
+        if (productsData.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center">
+                        <i class="fas fa-box-open"></i>
+                        <p>No hay productos registrados</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        tableBody.innerHTML = '';
+        productsData.forEach(product => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <div class="product-info-cell">
+                        <div class="product-avatar">
+                            <i class="fas fa-${getProductIcon(product.categoria)}"></i>
+                        </div>
+                        <div class="product-details">
+                            <strong>${escapeHtml(product.nombre)}</strong>
+                            ${product.descripcion ? `<small>${escapeHtml(product.descripcion)}</small>` : ''}
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="category-badge">${escapeHtml(product.categoria)}</span>
+                </td>
+                <td>
+                    <strong class="price">S/ ${parseFloat(product.precio).toFixed(2)}</strong>
+                </td>
+                <td>
+                    <span class="stock ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}">
+                        ${product.stock}
+                    </span>
+                </td>
+                <td>
+                    <span class="status-badge ${product.stock > 0 ? 'active' : 'inactive'}">
+                        ${product.stock > 0 ? 'Activo' : 'Sin Stock'}
+                    </span>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-edit" onclick="openEditProductModal(${product.id})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-delete" onclick="openDeleteProductModal(${product.id})" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+        
+    } catch (error) {
+        console.error('Error cargando productos admin:', error);
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error al cargar productos</p>
+                    <button class="btn-retry" onclick="loadAdminProducts()">
+                        Reintentar
+                    </button>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+async function loadAdminOrders() {
+    const tableBody = document.getElementById('adminOrdersTable');
+    if (!tableBody) return;
+    
+    try {
+        tableBody.innerHTML = `
+            <tr class="table-loading">
+                <td colspan="7">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    Cargando pedidos...
+                </td>
+            </tr>
+        `;
+        
+        const response = await fetch(`${PEDIDOS_API}/all`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            if (response.status === 401) {
+                showNotification('🔐 No autorizado para ver pedidos del sistema', 'error');
+                return;
+            }
+            throw new Error('Error al cargar pedidos');
+        }
+        
+        const ordersData = await response.json();
+        
+        if (!ordersData.pedidos || ordersData.pedidos.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>No hay pedidos en el sistema</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        const orders = ordersData.pedidos;
+        tableBody.innerHTML = '';
+        orders.forEach(order => {
+            const total = order.total || order.items?.reduce((sum, item) => sum + (item.precio * item.cantidad), 0) || 0;
+            const productCount = order.items?.length || 0;
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <strong>#${order.id || order._id}</strong>
+                </td>
+                <td>
+                    <div class="user-info-cell">
+                        <strong>${escapeHtml(order.userName || order.nombre_usuario || 'Cliente')}</strong>
+                        <small>${escapeHtml(order.userEmail || order.email_usuario || '')}</small>
+                    </div>
+                </td>
+                <td>
+                    <span class="product-count">${productCount} producto(s)</span>
+                </td>
+                <td>
+                    <strong class="price">S/ ${parseFloat(total).toFixed(2)}</strong>
+                </td>
+                <td>
+                    ${formatFecha(order.fecha_creacion || order.createdAt)}
+                </td>
+                <td>
+                    <span class="status-badge estado-${order.estado || 'pendiente'}">
+                        ${getEstadoDisplay(order.estado)}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn-view" onclick="viewOrderDetails(${order.id || order._id})" title="Ver detalles">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+        
+    } catch (error) {
+        console.error('Error cargando pedidos admin:', error);
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error al cargar pedidos</p>
+                    <button class="btn-retry" onclick="loadAdminOrders()">
+                        Reintentar
+                    </button>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function updateAdminStats() {
+    // Actualizar estadísticas en el panel admin
+    const totalProducts = products.length;
+    const totalRevenue = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    document.getElementById('totalProducts').textContent = totalProducts;
+    document.getElementById('totalOrders').textContent = '0'; // Se actualizará con datos reales
+    document.getElementById('totalUsers').textContent = '0'; // Se actualizará con datos reales
+    document.getElementById('revenue').textContent = `S/ ${totalRevenue.toFixed(2)}`;
+}
+
+// ===== 🔧 FUNCIONES DE CRUD PARA PRODUCTOS =====
+async function handleAddProduct(e) {
+    e.preventDefault();
+    
+    const formData = {
+        nombre: document.getElementById('productName').value,
+        categoria: document.getElementById('productCategory').value,
+        precio: parseFloat(document.getElementById('productPrice').value),
+        stock: parseInt(document.getElementById('productStock').value),
+        descripcion: document.getElementById('productDescription').value,
+        imagen_url: document.getElementById('productImage').value || null
+    };
+    
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        if (!response.ok) throw new Error('Error al crear producto');
+        
+        const newProduct = await response.json();
+        showNotification('✅ Producto creado exitosamente');
+        
+        // Resetear formulario
+        document.getElementById('addProductForm').reset();
+        
+        // Recargar productos
+        loadAdminProducts();
+        loadProducts(); // Recargar también en el catálogo
+        
+    } catch (error) {
+        console.error('Error creando producto:', error);
+        showNotification('❌ Error al crear producto', 'error');
+    }
+}
+
+async function handleEditProduct(e) {
+    e.preventDefault();
+    
+    const productId = document.getElementById('editProductId').value;
+    const formData = {
+        nombre: document.getElementById('editProductName').value,
+        categoria: document.getElementById('editProductCategory').value,
+        precio: parseFloat(document.getElementById('editProductPrice').value),
+        stock: parseInt(document.getElementById('editProductStock').value),
+        descripcion: document.getElementById('editProductDescription').value
+    };
+    
+    try {
+        const response = await fetch(`${API_URL}/${productId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        if (!response.ok) throw new Error('Error al actualizar producto');
+        
+        showNotification('✅ Producto actualizado exitosamente');
+        closeEditProductModal();
+        
+        // Recargar productos
+        loadAdminProducts();
+        loadProducts();
+        
+    } catch (error) {
+        console.error('Error actualizando producto:', error);
+        showNotification('❌ Error al actualizar producto', 'error');
+    }
+}
+
+async function handleDeleteProduct() {
+    const productId = document.getElementById('deleteProductId').value;
+    
+    try {
+        const response = await fetch(`${API_URL}/${productId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (!response.ok) throw new Error('Error al eliminar producto');
+        
+        showNotification('🗑️ Producto eliminado exitosamente');
+        closeDeleteProductModal();
+        
+        // Recargar productos
+        loadAdminProducts();
+        loadProducts();
+        
+    } catch (error) {
+        console.error('Error eliminando producto:', error);
+        showNotification('❌ Error al eliminar producto', 'error');
+    }
+}
+
+function viewOrderDetails(orderId) {
+    // Implementar vista detallada del pedido
+    showNotification(`📋 Viendo detalles del pedido #${orderId}`, 'info');
+    // Aquí puedes implementar un modal con detalles completos del pedido
 }
 
 // ===== HISTORIAL DE PEDIDOS =====
@@ -484,10 +842,10 @@ async function realizarPedido() {
                         'Authorization': `Bearer ${authToken}`
                     },
                     body: JSON.stringify({
-                        name: product.name,
-                        category: product.category,
-                        quantity: newQuantity,
-                        price: product.price
+                        nombre: product.name,
+                        categoria: product.category,
+                        stock: newQuantity,
+                        precio: product.price
                     })
                 });
                 
