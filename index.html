@@ -37,7 +37,7 @@
                     </div>
                 </div>
                 
-                <!-- BOTONES DE AUTENTICACIÓN AÑADIDOS -->
+                <!-- 🆕 MENÚ CUENTA MEJORADO -->
                 <div class="auth-buttons" id="authButtons">
                     <button class="btn-login" id="loginBtn">
                         <i class="fas fa-user"></i>
@@ -46,13 +46,23 @@
                     <div class="user-menu" id="userMenu" style="display: none;">
                         <button class="btn-user" id="userBtn">
                             <i class="fas fa-user-circle"></i>
-                            <span id="userName">Usuario</span>
+                            <span id="userName">Cuenta</span>
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
                         </button>
                         <div class="user-dropdown" id="userDropdown">
                             <div class="user-info">
                                 <strong id="dropdownUserName">Usuario</strong>
                                 <span id="dropdownUserEmail">email@ejemplo.com</span>
                             </div>
+                            <button class="dropdown-item" data-view="historial">
+                                <i class="fas fa-history"></i>
+                                Historial de Compras
+                            </button>
+                            <button class="dropdown-item" data-view="perfil">
+                                <i class="fas fa-user-edit"></i>
+                                Mi Perfil
+                            </button>
+                            <div class="dropdown-divider"></div>
                             <button class="dropdown-item" id="logoutBtn">
                                 <i class="fas fa-sign-out-alt"></i>
                                 Cerrar Sesión
@@ -66,24 +76,6 @@
                     <span class="cart-count-nav" id="cartCount">0</span>
                 </div>
             </div>
-        </div>
-    </nav>
-
-    <!-- 🆕 MENÚ LATERAL DE USUARIO -->
-    <nav class="user-sidebar" id="userSidebar">
-        <div class="user-menu">
-            <a href="#" class="menu-item active" data-view="catalogo">
-                <i class="fas fa-store"></i>
-                <span>Catálogo</span>
-            </a>
-            <a href="#" class="menu-item" data-view="historial" id="historialBtn">
-                <i class="fas fa-history"></i>
-                <span>Historial de Compras</span>
-            </a>
-            <a href="#" class="menu-item" data-view="perfil">
-                <i class="fas fa-user-circle"></i>
-                <span>Mi Perfil</span>
-            </a>
         </div>
     </nav>
 
