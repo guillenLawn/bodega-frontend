@@ -20,6 +20,19 @@
         width: 200px;
     }
     
+    /* 🆕 NAVBAR CON 3 BOTONES - TABLET */
+    .nav-brand {
+        gap: var(--space-md);
+    }
+    
+    .nav-navigation {
+        gap: var(--space-xs);
+    }
+    
+    .nav-btn span {
+        font-size: 0.85rem;
+    }
+    
     /* Responsive admin */
     .admin-modal {
         width: 98%;
@@ -39,21 +52,25 @@
 
 /* Tablets pequeñas y móviles grandes */
 @media (max-width: 768px) {
+    /* 🆕 NAVBAR CON 3 BOTONES - MÓVIL GRANDE */
     .nav-brand {
         flex-direction: column;
         gap: var(--space-sm);
         align-items: start;
+        width: 100%;
     }
     
     .nav-navigation {
         width: 100%;
         justify-content: center;
         margin-top: var(--space-sm);
+        order: 3; /* Mover navegación al final */
     }
     
     .nav-actions {
         width: 100%;
         justify-content: space-between;
+        order: 2; /* Acciones en el medio */
     }
     
     .search-input {
@@ -147,12 +164,18 @@
 
 /* Móviles pequeños */
 @media (max-width: 480px) {
+    /* 🆕 NAVBAR CON 3 BOTONES - MÓVIL PEQUEÑO */
     .nav-btn span {
-        display: none;
+        display: none; /* Ocultar texto en móviles pequeños */
     }
     
     .nav-btn {
         padding: 0.5rem;
+        min-width: 44px; /* Tamaño mínimo táctil */
+    }
+    
+    .nav-btn i {
+        margin: 0;
     }
     
     .main-container {
@@ -205,7 +228,7 @@
     }
 }
 
-/* Navbar responsive específico */
+/* 🆕 NAVBAR RESPONSIVE ESPECÍFICO PARA 3 BOTONES */
 @media (max-width: 768px) {
     .nav-container {
         flex-wrap: wrap;
@@ -221,6 +244,7 @@
         order: 3;
         width: 100%;
         margin-top: var(--space-sm);
+        justify-content: space-around; /* Distribuir 3 botones equitativamente */
     }
     
     .nav-actions {
@@ -255,5 +279,11 @@
     .suggestion-item {
         min-height: 44px;
         padding: 0.75rem 1rem;
+    }
+    
+    /* 🆕 TAMAÑO MÍNIMO PARA BOTONES DE NAVEGACIÓN */
+    .nav-btn {
+        min-height: 44px;
+        min-width: 44px;
     }
 }
