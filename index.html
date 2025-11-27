@@ -24,8 +24,22 @@
     <!-- Navbar Elegante -->
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-logo">
-                <h1>Bodega Guadalupe</h1>
+            <div class="nav-brand">
+                <div class="nav-logo">
+                    <h1>Bodega Guadalupe</h1>
+                </div>
+                
+                <!-- 🆕 BOTONES DE NAVEGACIÓN EN EL NAVBAR -->
+                <div class="nav-navigation" id="navNavigation">
+                    <button class="nav-btn active" data-view="catalogo">
+                        <i class="fas fa-store"></i>
+                        <span>Catálogo</span>
+                    </button>
+                    <button class="nav-btn" id="perfilBtn">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Mi Perfil</span>
+                    </button>
+                </div>
             </div>
             
             <div class="nav-actions">
@@ -69,24 +83,6 @@
         </div>
     </nav>
 
-    <!-- 🆕 MENÚ LATERAL DE USUARIO -->
-    <nav class="user-sidebar" id="userSidebar">
-        <div class="user-menu">
-            <a href="#" class="menu-item active" data-view="catalogo">
-                <i class="fas fa-store"></i>
-                <span>Catálogo</span>
-            </a>
-            <a href="#" class="menu-item" data-view="historial" id="historialBtn">
-                <i class="fas fa-history"></i>
-                <span>Historial de Compras</span>
-            </a>
-            <a href="#" class="menu-item" data-view="perfil">
-                <i class="fas fa-user-circle"></i>
-                <span>Mi Perfil</span>
-            </a>
-        </div>
-    </nav>
-
     <!-- Hero Banner -->
     <section class="hero">
         <div class="hero-content">
@@ -95,10 +91,10 @@
         </div>
     </section>
 
-    <!-- 🆕 MAIN CONTENT CON VISTAS MÚLTIPLES -->
+    <!-- Main Content -->
     <main class="main-container">
-        <!-- Filtros Laterales (solo visible en catálogo) -->
-        <aside class="filters-sidebar" id="filtersSidebar">
+        <!-- Filtros Laterales -->
+        <aside class="filters-sidebar">
             <div class="filter-section">
                 <h3>Categorías</h3>
                 <div class="filter-options">
@@ -126,128 +122,48 @@
             </div>
         </aside>
 
-        <!-- 🆕 CONTENEDOR PRINCIPAL DE VISTAS -->
-        <div class="main-content" id="mainContent">
-            
-            <!-- VISTA CATÁLOGO (por defecto) -->
-            <section class="view-content active" id="viewCatalogo">
-                <!-- Catálogo de Productos -->
-                <section class="catalog-main">
-                    <!-- Sección: Abarrotes -->
-                    <div class="category-section">
-                        <div class="category-header">
-                            <h2 class="category-title">Abarrotes Esenciales</h2>
-                        </div>
-                        <div class="products-grid" id="abarrotesGrid">
-                            <!-- Los productos se cargarán aquí -->
-                        </div>
-                    </div>
-
-                    <!-- Sección: Lácteos y Carnes -->
-                    <div class="category-section">
-                        <div class="category-header">
-                            <h2 class="category-title">Lácteos y Carnes Frescas</h2>
-                        </div>
-                        <div class="products-grid" id="lacteosGrid">
-                            <!-- Los productos se cargarán aquí -->
-                        </div>
-                    </div>
-
-                    <!-- Sección: Bebidas -->
-                    <div class="category-section">
-                        <div class="category-header">
-                            <h2 class="category-title">Bebidas y Refrescos</h2>
-                        </div>
-                        <div class="products-grid" id="bebidasGrid">
-                            <!-- Los productos se cargarán aquí -->
-                        </div>
-                    </div>
-
-                    <!-- Sección: Limpieza -->
-                    <div class="category-section">
-                        <div class="category-header">
-                            <h2 class="category-title">Limpieza y Hogar</h2>
-                        </div>
-                        <div class="products-grid" id="limpiezaGrid">
-                            <!-- Los productos se cargarán aquí -->
-                        </div>
-                    </div>
-                </section>
-            </section>
-
-            <!-- 🆕 VISTA HISTORIAL DE COMPRAS -->
-            <section class="view-content" id="viewHistorial">
-                <div class="historial-header">
-                    <h2 class="historial-title">
-                        <i class="fas fa-history"></i>
-                        Historial de Compras
-                    </h2>
-                    <p class="historial-subtitle">Revisa tus pedidos anteriores</p>
+        <!-- Catálogo de Productos -->
+        <section class="catalog-main">
+            <!-- Sección: Abarrotes -->
+            <div class="category-section">
+                <div class="category-header">
+                    <h2 class="category-title">Abarrotes Esenciales</h2>
                 </div>
-
-                <div class="historial-content" id="historialContent">
-                    <!-- Estado: Cargando -->
-                    <div class="historial-loading" id="historialLoading">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Cargando tu historial...</p>
-                    </div>
-
-                    <!-- Estado: No logueado -->
-                    <div class="historial-not-logged" id="historialNotLogged" style="display: none;">
-                        <div class="empty-state">
-                            <i class="fas fa-user-lock"></i>
-                            <h3>Inicia sesión para ver tu historial</h3>
-                            <p>Necesitas estar logueado para ver tus pedidos anteriores</p>
-                            <button class="btn-login-historial" id="loginFromHistorial">
-                                <i class="fas fa-sign-in-alt"></i>
-                                Iniciar Sesión
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Estado: Sin pedidos -->
-                    <div class="historial-empty" id="historialEmpty" style="display: none;">
-                        <div class="empty-state">
-                            <i class="fas fa-shopping-bag"></i>
-                            <h3>Aún no tienes pedidos</h3>
-                            <p>Realiza tu primera compra para verla aquí</p>
-                            <button class="btn-back-catalog" data-view="catalogo">
-                                <i class="fas fa-store"></i>
-                                Ir al Catálogo
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- 🆕 LISTA DE PEDIDOS -->
-                    <div class="pedidos-list" id="pedidosList" style="display: none;">
-                        <!-- Los pedidos se cargarán aquí dinámicamente -->
-                    </div>
+                <div class="products-grid" id="abarrotesGrid">
+                    <!-- Los productos se cargarán aquí -->
                 </div>
-            </section>
+            </div>
 
-            <!-- 🆕 VISTA PERFIL (placeholder) -->
-            <section class="view-content" id="viewPerfil">
-                <div class="profile-header">
-                    <h2 class="profile-title">
-                        <i class="fas fa-user-circle"></i>
-                        Mi Perfil
-                    </h2>
-                    <p class="profile-subtitle">Gestiona tu información personal</p>
+            <!-- Sección: Lácteos y Carnes -->
+            <div class="category-section">
+                <div class="category-header">
+                    <h2 class="category-title">Lácteos y Carnes Frescas</h2>
                 </div>
-                <div class="profile-content">
-                    <div class="coming-soon">
-                        <i class="fas fa-tools"></i>
-                        <h3>Próximamente</h3>
-                        <p>Esta sección estará disponible en una próxima actualización</p>
-                        <button class="btn-back-catalog" data-view="catalogo">
-                            <i class="fas fa-store"></i>
-                            Volver al Catálogo
-                        </button>
-                    </div>
+                <div class="products-grid" id="lacteosGrid">
+                    <!-- Los productos se cargarán aquí -->
                 </div>
-            </section>
+            </div>
 
-        </div>
+            <!-- Sección: Bebidas -->
+            <div class="category-section">
+                <div class="category-header">
+                    <h2 class="category-title">Bebidas y Refrescos</h2>
+                </div>
+                <div class="products-grid" id="bebidasGrid">
+                    <!-- Los productos se cargarán aquí -->
+                </div>
+            </div>
+
+            <!-- Sección: Limpieza -->
+            <div class="category-section">
+                <div class="category-header">
+                    <h2 class="category-title">Limpieza y Hogar</h2>
+                </div>
+                <div class="products-grid" id="limpiezaGrid">
+                    <!-- Los productos se cargarán aquí -->
+                </div>
+            </div>
+        </section>
     </main>
 
     <!-- Footer Elegante -->
@@ -361,6 +277,109 @@
             </form>
             <div class="auth-switch">
                 <p>¿Ya tienes cuenta? <a href="#" id="showLogin">Inicia sesión aquí</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🆕 MODAL DE PERFIL CON HISTORIAL -->
+    <div class="modal-overlay" id="perfilOverlay"></div>
+    <div class="modal profile-modal" id="perfilModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-user-circle"></i>
+                    Mi Perfil
+                </h3>
+                <button class="modal-close" id="closePerfilModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="profile-modal-content">
+                <!-- Información del usuario -->
+                <div class="profile-info" id="profileInfo">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <h4 id="profileUserName">Usuario</h4>
+                        <p id="profileUserEmail">email@ejemplo.com</p>
+                        <div class="user-stats">
+                            <div class="stat">
+                                <strong id="totalPedidos">0</strong>
+                                <span>Pedidos</span>
+                            </div>
+                            <div class="stat">
+                                <strong id="totalGastado">S/ 0.00</strong>
+                                <span>Total Gastado</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pestañas de navegación -->
+                <div class="profile-tabs">
+                    <button class="tab-btn active" data-tab="historial">
+                        <i class="fas fa-history"></i>
+                        Historial de Compras
+                    </button>
+                    <button class="tab-btn" data-tab="configuracion">
+                        <i class="fas fa-cog"></i>
+                        Configuración
+                    </button>
+                </div>
+
+                <!-- Contenido de pestañas -->
+                <div class="tab-content">
+                    <!-- Pestaña Historial -->
+                    <div class="tab-pane active" id="historialTab">
+                        <div class="historial-content" id="historialContent">
+                            <!-- Estado: Cargando -->
+                            <div class="historial-loading" id="historialLoading">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p>Cargando tu historial...</p>
+                            </div>
+
+                            <!-- Estado: No logueado -->
+                            <div class="historial-not-logged" id="historialNotLogged" style="display: none;">
+                                <div class="empty-state">
+                                    <i class="fas fa-user-lock"></i>
+                                    <h3>Inicia sesión para ver tu historial</h3>
+                                    <p>Necesitas estar logueado para ver tus pedidos anteriores</p>
+                                    <button class="btn-login-historial" id="loginFromPerfil">
+                                        <i class="fas fa-sign-in-alt"></i>
+                                        Iniciar Sesión
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Estado: Sin pedidos -->
+                            <div class="historial-empty" id="historialEmpty" style="display: none;">
+                                <div class="empty-state">
+                                    <i class="fas fa-shopping-bag"></i>
+                                    <h3>Aún no tienes pedidos</h3>
+                                    <p>Realiza tu primera compra para verla aquí</p>
+                                </div>
+                            </div>
+
+                            <!-- Lista de Pedidos -->
+                            <div class="pedidos-list" id="pedidosList" style="display: none;">
+                                <!-- Los pedidos se cargarán aquí dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pestaña Configuración -->
+                    <div class="tab-pane" id="configuracionTab">
+                        <div class="configuracion-content">
+                            <div class="coming-soon">
+                                <i class="fas fa-tools"></i>
+                                <h3>Próximamente</h3>
+                                <p>Esta sección estará disponible en una próxima actualización</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
