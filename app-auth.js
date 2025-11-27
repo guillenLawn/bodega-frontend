@@ -53,6 +53,10 @@ async function checkExistingAuth() {
                 // 🔧 VERIFICAR SI ES ADMIN Y ACTIVAR MODO ADMIN
                 if (currentUser.role === 'admin') {
                     enableAdminMode();
+                    // 🔧 MOSTRAR PANEL ADMIN AUTOMÁTICAMENTE
+                    if (typeof showAdminView === 'function') {
+                        showAdminView();
+                    }
                 }
                 
                 if (currentView === 'historial') {
@@ -127,12 +131,27 @@ async function handleLogin(e) {
             currentUser = data.user;
             localStorage.setItem('bodega_token', authToken);
             
+            // 🔧 DETECTAR SI ES ADMIN POR EMAIL (para casos donde el backend no envía role)
+            if (!currentUser.role) {
+                if (email === 'admin@bodega.com' || email.includes('admin')) {
+                    currentUser.role = 'admin';
+                    // Actualizar en localStorage
+                    localStorage.setItem('bodega_user', JSON.stringify(currentUser));
+                }
+            }
+            
             updateAuthUI();
             hideAuthModals();
             
-            // 🔧 ACTIVAR MODO ADMIN SI EL USUARIO ES ADMIN
+            // 🔧 ACTIVAR MODO ADMIN Y MOSTRAR PANEL SI ES ADMIN
             if (currentUser.role === 'admin') {
                 enableAdminMode();
+                // 🔧 MOSTRAR PANEL ADMIN AUTOMÁTICAMENTE
+                if (typeof showAdminView === 'function') {
+                    setTimeout(() => {
+                        showAdminView();
+                    }, 100);
+                }
                 showNotification(`👑 ¡Bienvenido Administrador ${currentUser.nombre}!`, 'success');
             } else {
                 showNotification(`✅ Bienvenido, ${currentUser.nombre}!`);
@@ -214,9 +233,15 @@ async function handleRegister(e) {
             updateAuthUI();
             hideAuthModals();
             
-            // 🔧 NOTIFICACIÓN ESPECIAL SI ES ADMIN
+            // 🔧 NOTIFICACIÓN ESPECIAL Y ACTIVAR MODO ADMIN SI ES ADMIN
             if (userRole === 'admin') {
                 enableAdminMode();
+                // 🔧 MOSTRAR PANEL ADMIN AUTOMÁTICAMENTE
+                if (typeof showAdminView === 'function') {
+                    setTimeout(() => {
+                        showAdminView();
+                    }, 100);
+                }
                 showNotification(`👑 ¡Cuenta de Administrador creada exitosamente! Bienvenido, ${currentUser.nombre}`, 'success');
             } else {
                 showNotification(`✅ Cuenta creada exitosamente! Bienvenido, ${currentUser.nombre}`);
@@ -298,7 +323,21 @@ function enableAdminMode() {
     document.body.classList.add('admin-mode');
     document.body.setAttribute('data-user-role', 'admin');
     
-    // Aquí se cargará el panel de administrador cuando lo implementemos
+    // 🔧 OCULTAR ELEMENTOS QUE NO SE USAN EN MODO ADMIN
+    const searchBar = document.getElementById('searchBar');
+    const cartToggle = document.getElementById('cartToggle');
+    const filtersSidebar = document.getElementById('filtersSidebar');
+    
+    if (searchBar) searchBar.style.display = 'none';
+    if (cartToggle) cartToggle.style.display = 'none';
+    if (filtersSidebar) filtersSidebar.style.display = 'none';
+    
+    // 🔧 MOSTRAR OPCIÓN ADMIN EN EL MENÚ
+    const adminMenuItem = document.getElementById('adminMenuItem');
+    if (adminMenuItem) {
+        adminMenuItem.style.display = 'block';
+    }
+    
     console.log('🔧 Modo administrador activado');
 }
 
@@ -307,8 +346,62 @@ function disableAdminMode() {
     document.body.classList.remove('admin-mode');
     document.body.removeAttribute('data-user-role');
     
-    // Volver a la vista normal del catálogo
-    if (currentView === 'admin') {
-        showCatalogoView();
+    // 🔧 MOSTRAR ELEMENTOS NORMALES
+    const searchBar = document.getElementById('searchBar');
+    const cartToggle = document.getElementById('cartToggle');
+    const filtersSidebar = document.getElementById('filtersSidebar');
+    
+    if (searchBar) searchBar.style.display = 'flex';
+    if (cartToggle) cartToggle.style.display = 'flex';
+    if (filtersSidebar) filtersSidebar.style.display = 'block';
+    
+    // 🔧 OCULTAR OPCIÓN ADMIN EN EL MENÚ
+    const adminMenuItem = document.getElementById('adminMenuItem');
+    if (adminMenuItem) {
+        adminMenuItem.style.display = 'none';
+    }
+    
+    // 🔧 VOLVER A LA VISTA NORMAL DEL CATÁLOGO
+    if (typeof switchView === 'function' && currentView === 'admin') {
+        switchView('catalogo');
+    }
+    
+    console.log('🔧 Modo administrador desactivado');
+}
+
+// 🔧 FUNCIÓN TEMPORAL PARA MOSTRAR VISTA ADMIN (si no existe en app-core.js)
+function showAdminView() {
+    // Ocultar todas las vistas
+    const allViews = document.querySelectorAll('.view-content');
+    allViews.forEach(view => view.classList.remove('active'));
+    
+    // Mostrar vista admin
+    const adminView = document.getElementById('viewAdmin');
+    if (adminView) {
+        adminView.classList.add('active');
+        currentView = 'admin';
+        console.log('📊 Vista de administrador activada');
+        
+        // Cargar datos del panel admin si las funciones existen
+        if (typeof loadAdminPanelData === 'function') {
+            loadAdminPanelData();
+        } else if (typeof loadAdminProducts === 'function') {
+            loadAdminProducts();
+        }
+    }
+}
+
+// 🔧 FUNCIÓN TEMPORAL PARA CAMBIAR VISTA (si no existe en app-core.js)
+function switchView(viewName) {
+    // Ocultar todas las vistas
+    const allViews = document.querySelectorAll('.view-content');
+    allViews.forEach(view => view.classList.remove('active'));
+    
+    // Mostrar vista seleccionada
+    const viewElement = document.getElementById(`view${viewName.charAt(0).toUpperCase() + viewName.slice(1)}`);
+    if (viewElement) {
+        viewElement.classList.add('active');
+        currentView = viewName;
+        console.log(`🔄 Cambiando a vista: ${viewName}`);
     }
 }
