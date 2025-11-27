@@ -6,6 +6,14 @@
     --accent: #60a5fa;
     --accent-dark: #4b7fd6;
     
+    /* Colores para administrador */
+    --admin-primary: #dc2626;
+    --admin-dark: #b91c1c;
+    --admin-light: #ef4444;
+    --admin-accent: #f87171;
+    --admin-bg: #fef2f2;
+    --admin-border: #fecaca;
+    
     --text-dark: #1A1A1A;
     --text-light: #666666;
     --text-lighter: #999999;
@@ -13,6 +21,12 @@
     --bg-white: #FFFFFF;
     --border-light: #E8E8E8;
     --border-medium: #D1D1D1;
+    
+    /* Estados */
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+    --info: #3b82f6;
     
     /* Sombras suaves */
     --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
@@ -124,6 +138,26 @@ h4 { font-size: 1.25rem; }
     font-weight: 700;
 }
 
+/* Indicador de Admin en el logo */
+.admin-mode .nav-logo h1 {
+    color: var(--admin-primary);
+    position: relative;
+}
+
+.admin-mode .nav-logo h1::after {
+    content: "Admin";
+    position: absolute;
+    top: -8px;
+    right: -45px;
+    background: var(--admin-primary);
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+}
+
 .nav-actions {
     display: flex;
     align-items: center;
@@ -137,6 +171,11 @@ h4 { font-size: 1.25rem; }
     color: white;
     padding: var(--space-xl) 0;
     text-align: center;
+}
+
+/* Hero para modo administrador */
+.admin-mode .hero {
+    background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-dark) 100%);
 }
 
 .hero-content {
@@ -193,6 +232,53 @@ h4 { font-size: 1.25rem; }
     color: rgba(255,255,255,0.5);
 }
 
+/* ===== CLASES UTILITARIAS PARA ADMIN ===== */
+.admin-badge {
+    background: var(--admin-primary);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.status-active {
+    background: var(--success);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-inactive {
+    background: var(--text-lighter);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-pending {
+    background: var(--warning);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-completed {
+    background: var(--success);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
 /* ===== ANIMACIONES ===== */
 @keyframes fadeInUp {
     from {
@@ -210,6 +296,17 @@ h4 { font-size: 1.25rem; }
     100% { transform: translateY(-50%) rotate(360deg); }
 }
 
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 /* Scroll suave */
 html {
     scroll-behavior: smooth;
@@ -219,6 +316,11 @@ html {
 .loading {
     opacity: 0.6;
     pointer-events: none;
+}
+
+/* Modo administrador en body */
+body.admin-mode {
+    background: var(--admin-bg);
 }
 
 /* Mejoras de accesibilidad */
@@ -264,6 +366,13 @@ html {
     
     .hero-subtitle {
         font-size: 1rem;
+    }
+    
+    .admin-mode .nav-logo h1::after {
+        position: static;
+        display: block;
+        margin-top: 4px;
+        font-size: 0.6rem;
     }
 }
 
