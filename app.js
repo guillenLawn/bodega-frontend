@@ -1,5 +1,6 @@
 const API_URL = 'https://bodega-backend-4md3.onrender.com/api/inventory';
 const AUTH_API = 'https://bodega-backend-4md3.onrender.com/api/auth';
+const PEDIDOS_API = 'https://bodega-backend-4md3.onrender.com/api/pedidos'; // 🆕 NUEVO
 
 // Estado global de la aplicación
 let cart = [];
@@ -9,11 +10,13 @@ let currentSuggestions = [];
 let selectedSuggestionIndex = -1;
 let currentUser = null;
 let authToken = localStorage.getItem('bodega_token');
+let currentView = 'catalogo'; // 🆕 NUEVO: Vista actual
 
-// ✅ Inicializar la aplicación CON AUTENTICACIÓN
+// ✅ Inicializar la aplicación CON AUTENTICACIÓN Y NAVEGACIÓN
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     initializeAuth();
+    initializeNavigation(); // 🆕 NUEVO: Inicializar navegación
 });
 
 function initializeApp() {
@@ -21,6 +24,255 @@ function initializeApp() {
     setupEventListeners();
     loadCartFromStorage();
     updateCartUI();
+}
+
+// ✅ 🆕 NUEVO: Inicializar sistema de navegación
+function initializeNavigation() {
+    setupNavigationEventListeners();
+    showView('catalogo'); // Vista por defecto
+}
+
+// ✅ 🆕 NUEVO: Configurar event listeners para navegación
+function setupNavigationEventListeners() {
+    // Navegación lateral
+    document.querySelectorAll('.menu-item[data-view]').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const view = this.getAttribute('data-view');
+            showView(view);
+        });
+    });
+
+    // Botones "Volver al Catálogo"
+    document.querySelectorAll('.btn-back-catalog').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const view = this.getAttribute('data-view') || 'catalogo';
+            showView(view);
+        });
+    });
+
+    // Botón login desde historial
+    document.getElementById('loginFromHistorial')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        showLoginModal();
+    });
+}
+
+// ✅ 🆕 NUEVO: Mostrar vista específica
+function showView(viewName) {
+    console.log('Cambiando a vista:', viewName);
+    
+    // Ocultar todas las vistas
+    document.querySelectorAll('.view-content').forEach(view => {
+        view.classList.remove('active');
+    });
+    
+    // Remover activo de todos los items del menú
+    document.querySelectorAll('.menu-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Mostrar vista seleccionada
+    const targetView = document.getElementById(`view${viewName.charAt(0).toUpperCase() + viewName.slice(1)}`);
+    if (targetView) {
+        targetView.classList.add('active');
+        
+        // Activar item del menú correspondiente
+        const menuItem = document.querySelector(`.menu-item[data-view="${viewName}"]`);
+        if (menuItem) {
+            menuItem.classList.add('active');
+        }
+        
+        currentView = viewName;
+        
+        // Acciones específicas por vista
+        switch(viewName) {
+            case 'historial':
+                loadHistorialPedidos();
+                break;
+            case 'catalogo':
+                // Asegurar que los filtros sean visibles
+                document.getElementById('filtersSidebar').style.display = 'block';
+                break;
+        }
+        
+        // Ajustar layout según la vista
+        adjustLayoutForView(viewName);
+    }
+}
+
+// ✅ 🆕 NUEVO: Ajustar layout según vista
+function adjustLayoutForView(viewName) {
+    const mainContainer = document.querySelector('.main-container');
+    const filtersSidebar = document.getElementById('filtersSidebar');
+    
+    if (viewName === 'catalogo') {
+        // Vista catálogo: mostrar filtros
+        mainContainer.style.gridTemplateColumns = '280px 1fr';
+        filtersSidebar.style.display = 'block';
+    } else {
+        // Otras vistas: ocultar filtros
+        mainContainer.style.gridTemplateColumns = '1fr';
+        filtersSidebar.style.display = 'none';
+    }
+}
+
+// ✅ 🆕 NUEVO: Cargar historial de pedidos
+async function loadHistorialPedidos() {
+    const historialContent = document.getElementById('historialContent');
+    const loadingElement = document.getElementById('historialLoading');
+    const notLoggedElement = document.getElementById('historialNotLogged');
+    const emptyElement = document.getElementById('historialEmpty');
+    const pedidosList = document.getElementById('pedidosList');
+    
+    // Mostrar estado de carga
+    loadingElement.style.display = 'block';
+    notLoggedElement.style.display = 'none';
+    emptyElement.style.display = 'none';
+    pedidosList.style.display = 'none';
+    
+    // Verificar autenticación
+    if (!currentUser) {
+        loadingElement.style.display = 'none';
+        notLoggedElement.style.display = 'block';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${PEDIDOS_API}/usuario`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Error al cargar historial');
+        }
+        
+        const data = await response.json();
+        
+        // Ocultar loading
+        loadingElement.style.display = 'none';
+        
+        if (data.success && data.pedidos && data.pedidos.length > 0) {
+            // Mostrar lista de pedidos
+            renderPedidosList(data.pedidos);
+            pedidosList.style.display = 'block';
+        } else {
+            // No hay pedidos
+            emptyElement.style.display = 'block';
+        }
+        
+    } catch (error) {
+        console.error('Error cargando historial:', error);
+        loadingElement.style.display = 'none';
+        
+        // Mostrar mensaje de error
+        historialContent.innerHTML = `
+            <div class="error-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Error al cargar el historial</h3>
+                <p>Intenta recargar la página</p>
+                <button class="btn-back-catalog" data-view="catalogo">
+                    <i class="fas fa-store"></i>
+                    Volver al Catálogo
+                </button>
+            </div>
+        `;
+    }
+}
+
+// ✅ 🆕 NUEVO: Renderizar lista de pedidos
+function renderPedidosList(pedidos) {
+    const pedidosList = document.getElementById('pedidosList');
+    
+    const pedidosHTML = pedidos.map(pedido => `
+        <div class="pedido-card">
+            <div class="pedido-header">
+                <div class="pedido-info">
+                    <h4>Pedido #${pedido.id}</h4>
+                    <div class="pedido-fecha">
+                        ${formatFecha(pedido.fecha_creacion)}
+                    </div>
+                    <div class="pedido-estado estado-${pedido.estado}">
+                        ${getEstadoDisplay(pedido.estado)}
+                    </div>
+                </div>
+                <div class="pedido-total">
+                    S/ ${parseFloat(pedido.total).toFixed(2)}
+                </div>
+            </div>
+            
+            <div class="pedido-items">
+                ${renderPedidoItems(pedido.items)}
+            </div>
+            
+            ${pedido.direccion_entrega ? `
+                <div class="pedido-direccion">
+                    <strong>Dirección:</strong> ${pedido.direccion_entrega}
+                </div>
+            ` : ''}
+            
+            <div class="pedido-metodo-pago">
+                <strong>Método de pago:</strong> ${getMetodoPagoDisplay(pedido.metodo_pago)}
+            </div>
+        </div>
+    `).join('');
+    
+    pedidosList.innerHTML = pedidosHTML;
+}
+
+// ✅ 🆕 NUEVO: Renderizar items de un pedido
+function renderPedidoItems(items) {
+    if (!items || items.length === 0) return '<p>No hay items en este pedido</p>';
+    
+    return items.map(item => `
+        <div class="pedido-item">
+            <div class="item-info">
+                <div class="item-cantidad">${item.cantidad}</div>
+                <div class="item-nombre">${item.producto_nombre}</div>
+                <div class="item-precio">S/ ${parseFloat(item.precio_unitario).toFixed(2)} c/u</div>
+            </div>
+            <div class="item-subtotal">
+                S/ ${parseFloat(item.subtotal).toFixed(2)}
+            </div>
+        </div>
+    `).join('');
+}
+
+// ✅ 🆕 NUEVO: Formatear fecha
+function formatFecha(fechaString) {
+    const fecha = new Date(fechaString);
+    return fecha.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+// ✅ 🆕 NUEVO: Obtener display del estado
+function getEstadoDisplay(estado) {
+    const estados = {
+        'completado': 'Completado',
+        'pendiente': 'Pendiente',
+        'cancelado': 'Cancelado',
+        'en_camino': 'En camino'
+    };
+    return estados[estado] || estado;
+}
+
+// ✅ 🆕 NUEVO: Obtener display del método de pago
+function getMetodoPagoDisplay(metodo) {
+    const metodos = {
+        'efectivo': 'Efectivo',
+        'tarjeta': 'Tarjeta',
+        'transferencia': 'Transferencia'
+    };
+    return metodos[metodo] || metodo;
 }
 
 // ✅ Inicializar sistema de autenticación
@@ -74,6 +326,11 @@ async function checkExistingAuth() {
                 const data = await response.json();
                 currentUser = data.user;
                 updateAuthUI();
+                
+                // 🆕 NUEVO: Si estamos en historial, recargar
+                if (currentView === 'historial') {
+                    loadHistorialPedidos();
+                }
             } else {
                 // Token inválido, limpiar
                 localStorage.removeItem('bodega_token');
@@ -160,6 +417,11 @@ async function handleLogin(e) {
             hideAuthModals();
             
             showNotification(`✅ Bienvenido, ${currentUser.nombre}!`);
+            
+            // 🆕 NUEVO: Si estamos en historial, recargar
+            if (currentView === 'historial') {
+                loadHistorialPedidos();
+            }
             
             // Si hay productos en el carrito, podrías guardarlos para el usuario
             if (cart.length > 0) {
@@ -256,6 +518,11 @@ function handleLogout() {
     updateAuthUI();
     hideUserDropdown();
     
+    // 🆕 NUEVO: Si estamos en historial, recargar para mostrar mensaje de no logueado
+    if (currentView === 'historial') {
+        loadHistorialPedidos();
+    }
+    
     showNotification('👋 Sesión cerrada correctamente');
 }
 
@@ -295,7 +562,7 @@ function hideUserDropdown() {
     dropdown.classList.remove('active');
 }
 
-// ✅ NUEVO: Configurar event listeners para autocompletado
+// ✅ Configurar event listeners para autocompletado
 function setupEventListeners() {
     // Carrito moderno
     document.getElementById('cartToggle').addEventListener('click', toggleCart);
@@ -326,7 +593,7 @@ function setupEventListeners() {
     });
 }
 
-// ✅ NUEVO: Manejar búsqueda con autocompletado
+// ✅ Manejar búsqueda con autocompletado
 function handleSearch(e) {
     const searchTerm = e.target.value.toLowerCase().trim();
     const suggestionsContainer = document.getElementById('searchSuggestions');
@@ -358,7 +625,7 @@ function handleSearch(e) {
     }
 }
 
-// ✅ NUEVO: Mostrar sugerencias
+// ✅ Mostrar sugerencias
 function showSuggestions(suggestions, searchTerm) {
     const suggestionsContainer = document.getElementById('searchSuggestions');
     
@@ -392,7 +659,7 @@ function showSuggestions(suggestions, searchTerm) {
     });
 }
 
-// ✅ NUEVO: Mostrar mensaje de no hay sugerencias
+// ✅ Mostrar mensaje de no hay sugerencias
 function showNoSuggestions() {
     const suggestionsContainer = document.getElementById('searchSuggestions');
     suggestionsContainer.innerHTML = `
@@ -404,14 +671,14 @@ function showNoSuggestions() {
     suggestionsContainer.classList.add('active');
 }
 
-// ✅ NUEVO: Ocultar sugerencias
+// ✅ Ocultar sugerencias
 function hideSuggestions() {
     const suggestionsContainer = document.getElementById('searchSuggestions');
     suggestionsContainer.classList.remove('active');
     selectedSuggestionIndex = -1;
 }
 
-// ✅ NUEVO: Resaltar texto en sugerencias
+// ✅ Resaltar texto en sugerencias
 function highlightText(text, searchTerm) {
     if (!searchTerm) return text;
     
@@ -419,7 +686,7 @@ function highlightText(text, searchTerm) {
     return text.replace(regex, '<mark>$1</mark>');
 }
 
-// ✅ NUEVO: Manejar teclado en búsqueda
+// ✅ Manejar teclado en búsqueda
 function handleSearchKeydown(e) {
     const suggestionsContainer = document.getElementById('searchSuggestions');
     
@@ -455,7 +722,7 @@ function handleSearchKeydown(e) {
     }
 }
 
-// ✅ NUEVO: Actualizar sugerencia seleccionada
+// ✅ Actualizar sugerencia seleccionada
 function updateSelectedSuggestion() {
     const suggestions = document.querySelectorAll('.suggestion-item');
     
@@ -477,7 +744,7 @@ function updateSelectedSuggestion() {
     }
 }
 
-// ✅ NUEVO: Seleccionar sugerencia
+// ✅ Seleccionar sugerencia
 function selectSuggestion(productId) {
     const product = products.find(p => p.id === productId);
     if (product) {
@@ -493,7 +760,7 @@ function selectSuggestion(productId) {
     }
 }
 
-// ✅ NUEVO: Realizar búsqueda completa
+// ✅ Realizar búsqueda completa
 function performSearch() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
     
@@ -508,7 +775,7 @@ function performSearch() {
     }
 }
 
-// ✅ NUEVO: Manejar focus en búsqueda
+// ✅ Manejar focus en búsqueda
 function handleSearchFocus() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
     if (searchTerm.length >= 2 && currentSuggestions.length > 0) {
@@ -516,14 +783,14 @@ function handleSearchFocus() {
     }
 }
 
-// ✅ NUEVO: Manejar blur en búsqueda (con delay para permitir clicks)
+// ✅ Manejar blur en búsqueda (con delay para permitir clicks)
 function handleSearchBlur() {
     setTimeout(() => {
         hideSuggestions();
     }, 200);
 }
 
-// ✅ NUEVO: Cargar carrito desde localStorage
+// ✅ Cargar carrito desde localStorage
 function loadCartFromStorage() {
     const savedCart = localStorage.getItem('bodega_cart');
     if (savedCart) {
@@ -537,7 +804,7 @@ function loadCartFromStorage() {
     }
 }
 
-// ✅ NUEVO: Guardar carrito en localStorage
+// ✅ Guardar carrito en localStorage
 function saveCartToStorage() {
     try {
         localStorage.setItem('bodega_cart', JSON.stringify(cart));
@@ -614,7 +881,6 @@ function renderSearchResults(filteredProducts) {
 }
 
 // ✅ Cargar productos desde la API
-// ✅ Cargar productos desde la API - VERSIÓN CORREGIDA
 async function loadProducts() {
     try {
         showLoadingState(true);
@@ -623,32 +889,24 @@ async function loadProducts() {
         
         const data = await response.json();
         
-        // ✅ CORRECCIÓN: Transformar datos del backend al formato del frontend
+        // Transformar datos del backend al formato del frontend
         products = data.map(product => ({
             id: product.id,
-            name: product.nombre,           // ← nombre → name
+            name: product.nombre,
             description: product.descripcion,
-            price: parseFloat(product.precio), // ← string → number
-            quantity: product.stock,        // ← stock → quantity
-            category: product.categoria,    // ← categoria → category
-            image: product.imagen_url       // ← imagen_url → image
+            price: parseFloat(product.precio),
+            quantity: product.stock,
+            category: product.categoria,
+            image: product.imagen_url
         }));
         
         console.log('Productos transformados:', products);
         
-        // Si hay menos de 10 productos, cargar más productos de bodega
-        if (products.length < 10) {
-            console.log('Cargando productos adicionales...');
-            await loadAdditionalBodegaProducts();
-        } else {
-            renderProductsByCategory();
-        }
+        renderProductsByCategory();
         
     } catch (error) {
         console.error('Error cargando productos:', error);
         showNotification('❌ Error al cargar productos', 'error');
-        // Cargar productos de bodega si hay error
-        await loadAdditionalBodegaProducts();
     } finally {
         showLoadingState(false);
     }
@@ -669,81 +927,7 @@ function showLoadingState(show) {
     }
 }
 
-// ✅ Cargar productos adicionales de bodega
-async function loadAdditionalBodegaProducts() {
-    const additionalProducts = [
-        // Abarrotes - usando categorías que ya tienes
-        { name: 'Azúcar Rubia 1kg', category: 'Granos', quantity: 40, price: 3.80 },
-        { name: 'Lentejas La Iberica 500g', category: 'Granos', quantity: 25, price: 4.20 },
-        { name: 'Harina Blanca Flor 1kg', category: 'Granos', quantity: 35, price: 3.50 },
-        { name: 'Avena Molino 500g', category: 'Granos', quantity: 28, price: 3.80 },
-        { name: 'Sal Rosada 1kg', category: 'Granos', quantity: 45, price: 2.20 },
-
-        // Lácteos
-        { name: 'Queso Fresco Laive 250g', category: 'Lácteos', quantity: 25, price: 8.50 },
-        { name: 'Huevos Blancos Docena', category: 'Lácteos', quantity: 40, price: 9.00 },
-        { name: 'Yogurt Gloria 1L', category: 'Lácteos', quantity: 30, price: 6.50 },
-        { name: 'Mantequilla Gloria 200g', category: 'Lácteos', quantity: 22, price: 7.80 },
-
-        // Bebidas
-        { name: 'Coca-Cola 1L', category: 'Bebidas', quantity: 45, price: 5.00 },
-        { name: 'Inca Kola 1L', category: 'Bebidas', quantity: 38, price: 4.80 },
-        { name: 'Agua Cielo 1L', category: 'Bebidas', quantity: 50, price: 2.00 },
-        { name: 'Jugo Pulp Naranja 1L', category: 'Bebidas', quantity: 25, price: 6.00 },
-        { name: 'Gatorade 500ml', category: 'Bebidas', quantity: 30, price: 4.00 },
-
-        // Carnes
-        { name: 'Pollo Fresco Entero', category: 'Carnes', quantity: 20, price: 15.00 },
-        { name: 'Jamón de Pavo San Fernando', category: 'Carnes', quantity: 18, price: 12.50 },
-        { name: 'Salchicha Huachana', category: 'Carnes', quantity: 32, price: 5.50 },
-
-        // Limpieza
-        { name: 'Jabón Bolivar', category: 'Limpieza', quantity: 40, price: 2.80 },
-        { name: 'Detergente Ace 500g', category: 'Limpieza', quantity: 35, price: 4.20 },
-        { name: 'Lavavajillas Sapolio', category: 'Limpieza', quantity: 28, price: 3.50 },
-        { name: 'Cloro Clorox 1L', category: 'Limpieza', quantity: 22, price: 5.20 },
-
-        // Conservas
-        { name: 'Sardinas en Salsa de Tomate', category: 'Conservas', quantity: 20, price: 4.80 },
-        { name: 'Menestras Mixtas 500g', category: 'Conservas', quantity: 30, price: 6.00 },
-        { name: 'Galletas Casino Vainilla', category: 'Conservas', quantity: 55, price: 3.00 }
-    ];
-
-    try {
-        console.log('Cargando productos adicionales en la base de datos...');
-        
-        // Insertar productos en la base de datos
-        for (const product of additionalProducts) {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(product)
-            });
-            
-            if (!response.ok) {
-                console.error('Error insertando producto:', product.name);
-            } else {
-                console.log('Producto agregado:', product.name);
-            }
-        }
-        
-        console.log('Productos adicionales cargados exitosamente');
-        
-        // Recargar productos desde la BD
-        const response = await fetch(API_URL);
-        products = await response.json();
-        
-        console.log('Todos los productos recargados desde BD:', products);
-        renderProductsByCategory();
-        
-    } catch (error) {
-        console.error('Error cargando productos adicionales:', error);
-        // Si falla, renderizar con los productos que ya tenemos
-        renderProductsByCategory();
-    }
-}
-
-// ✅ Renderizar productos por categoría - ADAPTADO AL NUEVO DISEÑO
+// ✅ Renderizar productos por categoría
 function renderProductsByCategory() {
     console.log('Renderizando productos por categoría...');
     console.log('Total de productos:', products.length);
@@ -896,7 +1080,7 @@ function attachEventListenersToProducts() {
     });
 }
 
-// ✅ Funciones del Carrito - ADAPTADAS AL NUEVO DISEÑO
+// ✅ Funciones del Carrito
 function addToCart(productId) {
     console.log('Agregando producto ID:', productId);
     
@@ -972,7 +1156,7 @@ function updateQuantity(productId, change) {
     }
 }
 
-// ✅ ACTUALIZAR INTERFAZ DEL CARRITO - CORREGIDO COMPLETAMENTE
+// ✅ ACTUALIZAR INTERFAZ DEL CARRITO
 function updateCartUI() {
     const cartCount = document.getElementById('cartCount');
     const cartItems = document.getElementById('cartItems');
@@ -981,27 +1165,26 @@ function updateCartUI() {
     const btnPedir = document.getElementById('btnPedir');
 
     console.log('Actualizando UI del carrito. Productos en carrito:', cart.length);
-    console.log('Carrito actual:', cart);
 
-    // ✅ CORRECCIÓN: Actualizar contador en el navbar
+    // Actualizar contador en el navbar
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     cartCount.textContent = totalItems;
     cartCount.style.display = totalItems > 0 ? 'flex' : 'none';
 
-    // ✅ CORRECCIÓN: Manejo completo del estado del carrito
+    // Manejo completo del estado del carrito
     if (cart.length === 0) {
         // Carrito vacío
         cartItems.innerHTML = `
-            <div id="emptyCart" class="empty-cart">
-                <i class="fas fa-shopping-cart"></i>
+            <div id="emptyCart" class="empty-cart-modern">
+                <i class="fas fa-shopping-bag"></i>
                 <p>Tu carrito está vacío</p>
-                <span>Agrega productos desde el catálogo</span>
+                <small>Agrega algunos productos</small>
             </div>
         `;
         btnPedir.disabled = true;
         btnPedir.classList.add('disabled');
     } else {
-        // ✅ CORRECCIÓN: Reconstruir completamente los items del carrito
+        // Reconstruir completamente los items del carrito
         let cartHTML = '';
         
         cart.forEach(item => {
@@ -1013,7 +1196,6 @@ function updateCartUI() {
                     <div class="cart-item-details">
                         <div class="cart-item-name">${escapeHtml(item.name)}</div>
                         <div class="cart-item-price">S/ ${item.price.toFixed(2)} c/u</div>
-                        <div class="cart-item-total">S/ ${(item.price * item.quantity).toFixed(2)}</div>
                     </div>
                     <div class="cart-item-controls-modern">
                         <button class="quantity-btn" onclick="updateQuantity(${item.id}, -1)">
@@ -1036,12 +1218,9 @@ function updateCartUI() {
         btnPedir.classList.remove('disabled');
     }
 
-    // ✅ CORRECCIÓN: Actualizar total
+    // Actualizar total
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     totalAmount.textContent = `S/ ${total.toFixed(2)}`;
-    
-    // ✅ CORRECCIÓN: Forzar reflow para asegurar que los cambios se muestren
-    cartItems.offsetHeight;
 }
 
 // ✅ Control del panel del carrito MODERNO
@@ -1055,7 +1234,7 @@ function toggleCart() {
     // Agregar efecto de blur al fondo
     document.querySelector('.main-container').classList.toggle('blurred');
     
-    // ✅ CORRECCIÓN: Actualizar UI cuando se abre el carrito
+    // Actualizar UI cuando se abre el carrito
     if (cartPanel.classList.contains('active')) {
         updateCartUI();
     }
@@ -1070,7 +1249,7 @@ function closeCart() {
     document.querySelector('.main-container').classList.remove('blurred');
 }
 
-// ✅ MODIFICAR función realizarPedido para requerir autenticación
+// ✅ 🆕 NUEVO: REALIZAR PEDIDO MEJORADO CON CREACIÓN EN BD
 async function realizarPedido() {
     // VERIFICAR AUTENTICACIÓN ANTES DE PROCEDER
     if (!currentUser) {
@@ -1090,59 +1269,99 @@ async function realizarPedido() {
         btnPedir.disabled = true;
         btnPedir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
         
-        // Actualizar stock en la base de datos para cada producto
-        const updatePromises = cart.map(async (item) => {
-            const product = products.find(p => p.id == item.id);
-            const newQuantity = product.quantity - item.quantity;
-            
-            console.log(`Actualizando producto ${product.name}: ${product.quantity} - ${item.quantity} = ${newQuantity}`);
-            
-            const response = await fetch(`${API_URL}/${item.id}`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}` // Añadir token para autenticación
-                },
-                body: JSON.stringify({
-                    name: product.name,
-                    category: product.category,
-                    quantity: newQuantity,
-                    price: product.price
-                })
-            });
-            
-            if (!response.ok) throw new Error('Error actualizando producto');
-            return response.json();
-        });
-
-        // Esperar a que todas las actualizaciones terminen
-        await Promise.all(updatePromises);
-        
+        // 🆕 NUEVO: Crear pedido en la base de datos
         const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         
-        // Mostrar resumen del pedido
-        const productosResumen = cart.map(item => 
-            `• ${item.name} x${item.quantity} - S/ ${(item.price * item.quantity).toFixed(2)}`
-        ).join('\n');
+        const pedidoData = {
+            items: cart.map(item => ({
+                id: item.id,
+                nombre: item.name,
+                cantidad: item.quantity,
+                precio: item.price
+            })),
+            total: total,
+            direccion: "Entrega en tienda", // Por defecto
+            metodoPago: "efectivo" // Por defecto
+        };
         
-        // Mostrar alerta de confirmación elegante
-        setTimeout(() => {
-            alert(`¡Pedido realizado con éxito!\n\nCliente: ${currentUser.nombre}\nEmail: ${currentUser.email}\n\nProductos:\n${productosResumen}\n\nTotal: S/ ${total.toFixed(2)}\n\n¡Gracias por tu compra!`);
+        console.log('Enviando pedido a la API:', pedidoData);
+        
+        const response = await fetch(PEDIDOS_API, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify(pedidoData)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Error al crear pedido en la base de datos');
+        }
+        
+        const pedidoResult = await response.json();
+        
+        if (pedidoResult.success) {
+            // 🆕 NUEVO: Actualizar stock en la base de datos
+            const updatePromises = cart.map(async (item) => {
+                const product = products.find(p => p.id == item.id);
+                const newQuantity = product.quantity - item.quantity;
+                
+                console.log(`Actualizando producto ${product.name}: ${product.quantity} - ${item.quantity} = ${newQuantity}`);
+                
+                const updateResponse = await fetch(`${API_URL}/${item.id}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        name: product.name,
+                        category: product.category,
+                        quantity: newQuantity,
+                        price: product.price
+                    })
+                });
+                
+                if (!updateResponse.ok) throw new Error('Error actualizando producto');
+                return updateResponse.json();
+            });
+
+            // Esperar a que todas las actualizaciones terminen
+            await Promise.all(updatePromises);
             
-            // Limpiar carrito
-            cart = [];
-            localStorage.removeItem('bodega_cart');
-            updateCartUI();
-            closeCart();
+            // Mostrar resumen del pedido
+            const productosResumen = cart.map(item => 
+                `• ${item.name} x${item.quantity} - S/ ${(item.price * item.quantity).toFixed(2)}`
+            ).join('\n');
             
-            // Restaurar botón
-            btnPedir.disabled = false;
-            btnPedir.innerHTML = '<i class="fas fa-credit-card"></i> Realizar Pedido';
+            // Mostrar alerta de confirmación elegante
+            setTimeout(() => {
+                alert(`¡Pedido realizado con éxito!\n\nPedido #${pedidoResult.pedido.id}\nCliente: ${currentUser.nombre}\nEmail: ${currentUser.email}\n\nProductos:\n${productosResumen}\n\nTotal: S/ ${total.toFixed(2)}\n\n¡Gracias por tu compra!`);
+                
+                // Limpiar carrito
+                cart = [];
+                localStorage.removeItem('bodega_cart');
+                updateCartUI();
+                closeCart();
+                
+                // Restaurar botón
+                btnPedir.disabled = false;
+                btnPedir.innerHTML = '<i class="fas fa-credit-card"></i> Realizar Pedido';
+                
+                // Recargar productos para mostrar stock actualizado
+                loadProducts();
+                
+                // 🆕 NUEVO: Si estamos en historial, recargar
+                if (currentView === 'historial') {
+                    loadHistorialPedidos();
+                }
+                
+            }, 1000);
             
-            // Recargar productos para mostrar stock actualizado
-            loadProducts();
-            
-        }, 1000);
+        } else {
+            throw new Error(pedidoResult.message || 'Error al crear pedido');
+        }
         
     } catch (error) {
         console.error('Error al realizar pedido:', error);
@@ -1264,41 +1483,60 @@ style.textContent = `
         animation: slideInRight 0.3s ease;
     }
     
-    /* ✅ CORRECCIÓN: Estilos para el carrito vacío */
-    .empty-cart {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 40px 20px;
+    /* 🆕 NUEVO: Estilos para estados del pedido */
+    .estado-completado {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+    
+    .estado-pendiente {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+    
+    .estado-cancelado {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+    
+    .estado-en_camino {
+        background: #DBEAFE;
+        color: #1E40AF;
+    }
+    
+    /* 🆕 NUEVO: Estilos para error state */
+    .error-state {
         text-align: center;
-        color: #6b7280;
+        padding: var(--space-xl);
+        color: var(--text-light);
     }
     
-    .empty-cart i {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        color: #d1d5db;
+    .error-state i {
+        font-size: 4rem;
+        color: #e74c3c;
+        margin-bottom: var(--space-md);
     }
     
-    .empty-cart p {
-        font-size: 1.2rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
+    .error-state h3 {
+        margin-bottom: var(--space-sm);
+        color: var(--text-dark);
     }
     
-    .empty-cart span {
+    /* 🆕 NUEVO: Estilos para información adicional del pedido */
+    .pedido-direccion,
+    .pedido-metodo-pago {
+        margin-top: var(--space-sm);
+        padding-top: var(--space-sm);
+        border-top: 1px solid var(--border-light);
         font-size: 0.9rem;
-        color: #9ca3af;
+        color: var(--text-light);
     }
     
-    /* ✅ CORRECCIÓN: Estilos para botón deshabilitado */
-    .disabled {
-        opacity: 0.6;
-        cursor: not-allowed !important;
+    .pedido-direccion strong,
+    .pedido-metodo-pago strong {
+        color: var(--text-dark);
     }
     
-    /* ✅ NUEVO: Estilos para resaltado en búsqueda */
     mark {
         background: #fef3c7;
         color: #d97706;
