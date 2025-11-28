@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     initializeAuth();
     initializeNavigation();
-    initializeAdmin(); // 🔧 Nueva inicialización para admin
+    initializeAdmin();
 });
 
 function initializeApp() {
@@ -28,7 +28,7 @@ function initializeApp() {
     setupEventListeners();
     loadCartFromStorage();
     updateCartUI();
-    checkAdminMode(); // 🔧 Verificar si es admin al cargar
+    checkAdminMode();
 }
 
 // ===== FUNCIONES DE UTILIDAD =====
@@ -79,33 +79,34 @@ function initializeAdmin() {
 }
 
 function checkAdminMode() {
-    // Verificar si el usuario actual es admin
     const userData = localStorage.getItem('bodega_user');
     if (userData) {
         try {
             const user = JSON.parse(userData);
             if (user.role === 'admin' || user.email === 'admin@bodega.com') {
                 enableAdminMode();
+            } else {
+                disableAdminMode();
             }
         } catch (error) {
             console.error('Error parsing user data:', error);
+            disableAdminMode();
         }
+    } else {
+        disableAdminMode();
     }
 }
 
 function enableAdminMode() {
     isAdminMode = true;
     
-    // Mostrar opción admin en menú usuario
     const adminMenuItem = document.getElementById('adminMenuItem');
     if (adminMenuItem) {
         adminMenuItem.style.display = 'block';
     }
     
-    // Aplicar estilos de admin al body
     document.body.classList.add('admin-mode');
     
-    // Ocultar elementos que no se usan en modo admin
     const searchBar = document.getElementById('searchBar');
     const cartToggle = document.getElementById('cartToggle');
     const filtersSidebar = document.getElementById('filtersSidebar');
@@ -120,16 +121,13 @@ function enableAdminMode() {
 function disableAdminMode() {
     isAdminMode = false;
     
-    // Ocultar opción admin en menú usuario
     const adminMenuItem = document.getElementById('adminMenuItem');
     if (adminMenuItem) {
         adminMenuItem.style.display = 'none';
     }
     
-    // Remover estilos de admin
     document.body.classList.remove('admin-mode');
     
-    // Mostrar elementos normales
     const searchBar = document.getElementById('searchBar');
     const cartToggle = document.getElementById('cartToggle');
     const filtersSidebar = document.getElementById('filtersSidebar');
@@ -138,7 +136,6 @@ function disableAdminMode() {
     if (cartToggle) cartToggle.style.display = 'flex';
     if (filtersSidebar) filtersSidebar.style.display = 'block';
     
-    // Si está en vista admin, volver al catálogo
     if (currentView === 'admin') {
         switchView('catalogo');
     }
@@ -147,7 +144,6 @@ function disableAdminMode() {
 }
 
 function setupAdminEventListeners() {
-    // Navegación entre pestañas del admin
     document.querySelectorAll('.admin-tab').forEach(tab => {
         tab.addEventListener('click', function() {
             const tabName = this.getAttribute('data-tab');
@@ -155,30 +151,18 @@ function setupAdminEventListeners() {
         });
     });
     
-    // Botones de actualización
     document.getElementById('refreshProducts')?.addEventListener('click', loadAdminProducts);
     document.getElementById('refreshOrders')?.addEventListener('click', loadAdminOrders);
     
-    // Formulario agregar producto
     document.getElementById('addProductForm')?.addEventListener('submit', handleAddProduct);
-    
-    // Navegación desde el menú de usuario
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.admin-option')) {
-            e.preventDefault();
-            showAdminView();
-        }
-    });
 }
 
 function setupAdminModals() {
-    // Modal editar producto
     document.getElementById('closeEditProductModal')?.addEventListener('click', closeEditProductModal);
     document.getElementById('cancelEditProduct')?.addEventListener('click', closeEditProductModal);
     document.getElementById('editProductOverlay')?.addEventListener('click', closeEditProductModal);
     document.getElementById('editProductForm')?.addEventListener('submit', handleEditProduct);
     
-    // Modal eliminar producto
     document.getElementById('closeDeleteProductModal')?.addEventListener('click', closeDeleteProductModal);
     document.getElementById('cancelDeleteProduct')?.addEventListener('click', closeDeleteProductModal);
     document.getElementById('deleteProductOverlay')?.addEventListener('click', closeDeleteProductModal);
@@ -186,7 +170,6 @@ function setupAdminModals() {
 }
 
 function switchAdminTab(tabName) {
-    // Actualizar pestañas activas
     document.querySelectorAll('.admin-tab').forEach(tab => {
         tab.classList.remove('active');
     });
@@ -194,14 +177,12 @@ function switchAdminTab(tabName) {
         pane.classList.remove('active');
     });
     
-    // Activar pestaña seleccionada
     const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
     const activePane = document.getElementById(tabName);
     
     if (activeTab) activeTab.classList.add('active');
     if (activePane) activePane.classList.add('active');
     
-    // Cargar datos según la pestaña
     switch(tabName) {
         case 'gestion-productos':
             loadAdminProducts();
@@ -210,7 +191,6 @@ function switchAdminTab(tabName) {
             loadAdminOrders();
             break;
         case 'agregar-producto':
-            // Resetear formulario
             document.getElementById('addProductForm')?.reset();
             break;
     }
@@ -218,19 +198,21 @@ function switchAdminTab(tabName) {
 
 // ===== 🔧 MOSTRAR VISTA DE ADMINISTRADOR =====
 function showAdminView() {
-    // Ocultar todas las vistas
+    // ✅ VALIDAR PERMISOS PRIMERO
+    if (!isAdminMode) {
+        showNotification('🔐 No tienes permisos de administrador', 'error');
+        switchView('catalogo');
+        return;
+    }
+    
     hideAllViews();
     
-    // Mostrar vista admin
     const adminView = document.getElementById('viewAdmin');
     if (adminView) {
         adminView.classList.add('active');
         currentView = 'admin';
         
-        // Cargar datos del panel admin
         loadAdminPanelData();
-        
-        // Actualizar navegación
         updateNavigationState();
         
         console.log('📊 Vista de administrador activada');
@@ -238,13 +220,8 @@ function showAdminView() {
 }
 
 function loadAdminPanelData() {
-    // Cargar productos para gestión
     loadAdminProducts();
-    
-    // Cargar pedidos del sistema
     loadAdminOrders();
-    
-    // Cargar estadísticas
     loadAdminStats();
 }
 
@@ -325,7 +302,6 @@ async function loadAdminProducts() {
             tableBody.appendChild(row);
         });
         
-        // Actualizar estadísticas
         updateAdminStats();
         
     } catch (error) {
@@ -443,13 +419,12 @@ async function loadAdminOrders() {
 }
 
 function updateAdminStats() {
-    // Actualizar estadísticas en el panel admin
     const totalProducts = products.length;
     const totalRevenue = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
     document.getElementById('totalProducts').textContent = totalProducts;
-    document.getElementById('totalOrders').textContent = '0'; // Se actualizará con datos reales
-    document.getElementById('totalUsers').textContent = '0'; // Se actualizará con datos reales
+    document.getElementById('totalOrders').textContent = '0';
+    document.getElementById('totalUsers').textContent = '0';
     document.getElementById('revenue').textContent = `S/ ${totalRevenue.toFixed(2)}`;
 }
 
@@ -515,12 +490,9 @@ async function handleAddProduct(e) {
         const newProduct = await response.json();
         showNotification('✅ Producto creado exitosamente');
         
-        // Resetear formulario
         document.getElementById('addProductForm').reset();
-        
-        // Recargar productos
         loadAdminProducts();
-        loadProducts(); // Recargar también en el catálogo
+        loadProducts();
         
     } catch (error) {
         console.error('Error creando producto:', error);
@@ -554,8 +526,6 @@ async function handleEditProduct(e) {
         
         showNotification('✅ Producto actualizado exitosamente');
         closeEditProductModal();
-        
-        // Recargar productos
         loadAdminProducts();
         loadProducts();
         
@@ -580,8 +550,6 @@ async function handleDeleteProduct() {
         
         showNotification('🗑️ Producto eliminado exitosamente');
         closeDeleteProductModal();
-        
-        // Recargar productos
         loadAdminProducts();
         loadProducts();
         
@@ -592,7 +560,6 @@ async function handleDeleteProduct() {
 }
 
 function viewOrderDetails(orderId) {
-    // Implementar vista detallada del pedido
     showNotification(`📋 Viendo detalles del pedido #${orderId}`, 'info');
 }
 
@@ -608,7 +575,6 @@ function getStatusText(status) {
 
 // ===== GESTIÓN DE VISTAS Y NAVEGACIÓN =====
 function initializeNavigation() {
-    // Navegación entre vistas
     document.addEventListener('click', function(e) {
         const viewBtn = e.target.closest('[data-view]');
         if (viewBtn) {
@@ -616,16 +582,23 @@ function initializeNavigation() {
             const viewName = viewBtn.getAttribute('data-view');
             switchView(viewName);
         }
+        
+        // Manejar clic en opción admin del menú usuario
+        if (e.target.closest('.admin-option')) {
+            e.preventDefault();
+            showAdminView();
+        }
     });
 }
 
 function switchView(viewName) {
-    // 🔧 Si es admin y quiere ver catálogo, mostrar panel admin
-    if (isAdminMode && viewName === 'catalogo') {
-        showAdminView();
+    // ✅ SOLUCIONADO: Validar permisos para vista admin
+    if (viewName === 'admin' && !isAdminMode) {
+        showNotification('🔐 No tienes permisos de administrador', 'error');
         return;
     }
     
+    // ✅ SOLUCIONADO: No forzar admin al catálogo
     hideAllViews();
     currentView = viewName;
     
@@ -636,7 +609,6 @@ function switchView(viewName) {
     
     updateNavigationState();
     
-    // Cargar datos específicos de la vista
     switch(viewName) {
         case 'historial':
             loadHistorialPedidos();
@@ -645,7 +617,6 @@ function switchView(viewName) {
             showAdminView();
             break;
         case 'catalogo':
-            // Ya se cargan los productos al inicio
             break;
     }
 }
@@ -657,7 +628,6 @@ function hideAllViews() {
 }
 
 function updateNavigationState() {
-    // Actualizar estado activo en navegación si es necesario
     document.querySelectorAll('[data-view]').forEach(btn => {
         btn.classList.remove('active');
     });
@@ -786,7 +756,6 @@ function updateQuantity(productId, change) {
 
 // ===== CONTROL DEL PANEL DEL CARRITO =====
 function toggleCart() {
-    // 🔧 No mostrar carrito en modo admin
     if (isAdminMode && currentView === 'admin') {
         showNotification('🔧 El carrito está deshabilitado en modo administrador', 'info');
         return;
@@ -815,18 +784,15 @@ function closeCart() {
 
 // ===== CONFIGURACIÓN DE EVENT LISTENERS =====
 function setupEventListeners() {
-    // Carrito moderno
     document.getElementById('cartToggle').addEventListener('click', toggleCart);
     document.getElementById('closeCart').addEventListener('click', closeCart);
     document.getElementById('cartOverlay').addEventListener('click', closeCart);
     document.getElementById('btnPedir').addEventListener('click', realizarPedido);
     
-    // Filtros
     document.querySelectorAll('.filter-option input').forEach(radio => {
         radio.addEventListener('change', handleFilterChange);
     });
 
-    // Búsqueda con autocompletado
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', handleSearch);
@@ -835,7 +801,6 @@ function setupEventListeners() {
         searchInput.addEventListener('blur', handleSearchBlur);
     }
 
-    // Cerrar sugerencias al hacer clic fuera
     document.addEventListener('click', function(e) {
         const searchBar = document.querySelector('.search-bar');
         if (!searchBar.contains(e.target)) {
@@ -1093,6 +1058,156 @@ style.textContent = `
         cursor: pointer;
         margin-top: 10px;
     }
+    
+    /* ✅ NUEVO: Estilos para panel admin completo */
+    .admin-container {
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid var(--border-light);
+    }
+    
+    .admin-title-section h2 {
+        color: var(--text-dark);
+        margin-bottom: 5px;
+        font-size: 2rem;
+    }
+    
+    .admin-subtitle {
+        color: var(--text-light);
+        font-size: 1.1rem;
+    }
+    
+    .admin-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+        width: 100%;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-left: 4px solid var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        background: var(--primary-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--primary);
+    }
+    
+    .stat-info h3 {
+        font-size: 2rem;
+        margin-bottom: 5px;
+        color: var(--text-dark);
+    }
+    
+    .stat-info p {
+        color: var(--text-light);
+        margin: 0;
+    }
+    
+    .admin-tabs {
+        display: flex;
+        background: white;
+        border-radius: 12px;
+        padding: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .admin-tab {
+        flex: 1;
+        padding: 12px 20px;
+        text-align: center;
+        background: none;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        color: var(--text-light);
+    }
+    
+    .admin-tab.active {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+    }
+    
+    .tab-pane {
+        display: none;
+    }
+    
+    .tab-pane.active {
+        display: block;
+    }
+    
+    .admin-table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .admin-table th {
+        background: var(--bg-light);
+        padding: 15px 12px;
+        text-align: left;
+        font-weight: 600;
+        color: var(--text-dark);
+        border-bottom: 2px solid var(--border-light);
+    }
+    
+    .admin-table td {
+        padding: 12px;
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .admin-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .admin-table tr:hover {
+        background: var(--bg-light);
+    }
+    
+    .user-info-cell {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .user-info-cell small {
+        color: var(--text-light);
+        font-size: 0.8rem;
+    }
 `;
 document.head.appendChild(style);
 
@@ -1106,7 +1221,7 @@ function initializeProductAnimations() {
 
 setTimeout(initializeProductAnimations, 100);
 
-// ===== FUNCIONES QUE FALTAN (para evitar errores) =====
+// ===== FUNCIONES QUE FALTAN =====
 async function loadProducts() {
     try {
         const response = await fetch(API_URL);
@@ -1121,7 +1236,6 @@ async function loadProducts() {
 }
 
 function renderProducts() {
-    // Implementación básica - puedes expandir esto según tus necesidades
     console.log('Renderizando productos:', products);
 }
 
@@ -1152,6 +1266,7 @@ function addToCart(productId) {
     showNotification('✅ Producto agregado al carrito');
 }
 
+// ✅ SOLUCIONADO: Función realizarPedido con debugging mejorado
 async function realizarPedido() {
     if (cart.length === 0) return;
     
@@ -1169,6 +1284,11 @@ async function realizarPedido() {
             userEmail: currentUser.email
         };
         
+        // ✅ DEBUGGING MEJORADO
+        console.log('📤 Enviando pedido:', pedidoData);
+        console.log('🔑 Token:', authToken);
+        console.log('🌐 URL:', PEDIDOS_API);
+        
         const response = await fetch(PEDIDOS_API, {
             method: 'POST',
             headers: {
@@ -1178,9 +1298,23 @@ async function realizarPedido() {
             body: JSON.stringify(pedidoData)
         });
         
-        if (!response.ok) throw new Error('Error al realizar pedido');
+        // ✅ MANEJO DETALLADO DE ERRORES
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Error del servidor:', response.status, errorText);
+            
+            if (response.status === 401) {
+                throw new Error('No autorizado - token inválido');
+            } else if (response.status === 400) {
+                throw new Error('Datos inválidos: ' + errorText);
+            } else {
+                throw new Error(`Error ${response.status}: ${errorText}`);
+            }
+        }
         
         const result = await response.json();
+        console.log('✅ Pedido exitoso:', result);
+        
         showNotification('✅ Pedido realizado exitosamente');
         
         // Limpiar carrito
@@ -1190,42 +1324,34 @@ async function realizarPedido() {
         closeCart();
         
     } catch (error) {
-        console.error('Error realizando pedido:', error);
-        showNotification('❌ Error al realizar pedido', 'error');
+        console.error('❌ Error completo realizando pedido:', error);
+        showNotification(`❌ Error: ${error.message}`, 'error');
     }
 }
 
 async function loadHistorialPedidos() {
-    // Implementación básica del historial
     console.log('Cargando historial de pedidos...');
 }
 
 function handleFilterChange(e) {
     currentFilter = e.target.value;
-    // Implementar filtrado de productos
 }
 
 function handleSearch() {
-    // Implementar búsqueda
 }
 
 function handleSearchKeydown() {
-    // Implementar navegación con teclado en búsqueda
 }
 
 function handleSearchFocus() {
-    // Mostrar sugerencias
 }
 
 function handleSearchBlur() {
-    // Ocultar sugerencias
 }
 
 function hideSuggestions() {
-    // Ocultar sugerencias de búsqueda
 }
 
 function loadAdminStats() {
-    // Cargar estadísticas del admin
     console.log('Cargando estadísticas del admin...');
 }
