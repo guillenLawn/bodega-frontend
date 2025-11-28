@@ -18,9 +18,6 @@ let isAdminMode = false;
 // ===== INICIALIZACIÓN PRINCIPAL =====
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
-    initializeAuth();
-    initializeNavigation();
-    initializeAdmin();
 });
 
 function initializeApp() {
@@ -28,7 +25,9 @@ function initializeApp() {
     setupEventListeners();
     loadCartFromStorage();
     updateCartUI();
-    checkAdminMode();
+    initializeAuth(); // 🔧 MOVER: Primero auth, luego navigation y admin
+    initializeNavigation();
+    initializeAdmin();
 }
 
 // ===== FUNCIONES DE UTILIDAD =====
@@ -78,14 +77,25 @@ function initializeAdmin() {
     setupAdminModals();
 }
 
+// 🔧 CORREGIDO: Función mejorada para verificar admin
 function checkAdminMode() {
     const userData = localStorage.getItem('bodega_user');
+    console.log('🔍 CheckAdminMode - userData:', userData);
+    
     if (userData) {
         try {
             const user = JSON.parse(userData);
-            if (user.role === 'admin' || user.email === 'admin@bodega.com') {
+            console.log('🔍 CheckAdminMode - User parsed:', user);
+            
+            // ✅ VERIFICACIÓN MEJORADA
+            const isAdmin = user.role === 'admin' || user.email === 'admin@bodega.com';
+            console.log('🔍 CheckAdminMode - Es admin?:', isAdmin);
+            
+            if (isAdmin) {
                 enableAdminMode();
+                console.log('✅ Admin mode enabled desde checkAdminMode');
             } else {
+                console.log('❌ No es admin, disabling admin mode');
                 disableAdminMode();
             }
         } catch (error) {
@@ -93,16 +103,19 @@ function checkAdminMode() {
             disableAdminMode();
         }
     } else {
+        console.log('❌ No user data found');
         disableAdminMode();
     }
 }
 
 function enableAdminMode() {
     isAdminMode = true;
+    console.log('✅ enableAdminMode - isAdminMode establecido a:', true);
     
     const adminMenuItem = document.getElementById('adminMenuItem');
     if (adminMenuItem) {
         adminMenuItem.style.display = 'block';
+        console.log('✅ Admin menu item mostrado');
     }
     
     document.body.classList.add('admin-mode');
@@ -120,6 +133,7 @@ function enableAdminMode() {
 
 function disableAdminMode() {
     isAdminMode = false;
+    console.log('❌ disableAdminMode - isAdminMode establecido a:', false);
     
     const adminMenuItem = document.getElementById('adminMenuItem');
     if (adminMenuItem) {
@@ -198,11 +212,42 @@ function switchAdminTab(tabName) {
 
 // ===== 🔧 MOSTRAR VISTA DE ADMINISTRADOR =====
 function showAdminView() {
-    // ✅ VALIDAR PERMISOS PRIMERO
+    console.log('🎯 showAdminView llamado');
+    console.log('🔍 Estado actual - isAdminMode:', isAdminMode);
+    console.log('🔍 Estado actual - currentUser:', currentUser);
+    
+    // 🔧 VERIFICACIÓN MEJORADA CON FALLBACK
     if (!isAdminMode) {
-        showNotification('🔐 No tienes permisos de administrador', 'error');
-        switchView('catalogo');
-        return;
+        console.log('⚠️ isAdminMode es false, verificando manualmente...');
+        
+        // FALLBACK: Verificar manualmente si es admin
+        const userData = localStorage.getItem('bodega_user');
+        if (userData) {
+            try {
+                const user = JSON.parse(userData);
+                const isAdmin = user.role === 'admin' || user.email === 'admin@bodega.com';
+                
+                if (isAdmin) {
+                    console.log('✅ Fallback: Es admin, forzando modo admin');
+                    enableAdminMode();
+                } else {
+                    console.log('❌ Fallback: No es admin, bloqueando acceso');
+                    showNotification('🔐 No tienes permisos de administrador', 'error');
+                    switchView('catalogo');
+                    return;
+                }
+            } catch (error) {
+                console.error('Error en fallback:', error);
+                showNotification('🔐 No tienes permisos de administrador', 'error');
+                switchView('catalogo');
+                return;
+            }
+        } else {
+            console.log('❌ No hay user data, bloqueando acceso');
+            showNotification('🔐 No tienes permisos de administrador', 'error');
+            switchView('catalogo');
+            return;
+        }
     }
     
     hideAllViews();
@@ -594,6 +639,7 @@ function initializeNavigation() {
 function switchView(viewName) {
     // ✅ SOLUCIONADO: Validar permisos para vista admin
     if (viewName === 'admin' && !isAdminMode) {
+        console.log('❌ SwitchView bloqueando acceso a admin');
         showNotification('🔐 No tienes permisos de administrador', 'error');
         return;
     }
