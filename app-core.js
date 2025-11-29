@@ -25,9 +25,15 @@ function initializeApp() {
     setupEventListeners();
     loadCartFromStorage();
     updateCartUI();
-    initializeAuth(); // 🔧 MOVER: Primero auth, luego navigation y admin
+    initializeAuth();
     initializeNavigation();
     initializeAdmin();
+    
+    // 🔧 NUEVO: Recuperar vista guardada al iniciar
+    const savedView = localStorage.getItem('bodega_current_view');
+    if (savedView) {
+        setTimeout(() => showView(savedView), 100);
+    }
 }
 
 // ===== FUNCIONES DE UTILIDAD =====
@@ -69,6 +75,97 @@ function showNotification(message, type = 'success') {
             notification.remove();
         }, 300);
     }, 3000);
+}
+
+// ===== 🔧 SISTEMA DE VISTAS MEJORADO =====
+function showView(viewName) {
+    console.log('🎯 Cambiando a vista:', viewName);
+    
+    // 🔧 GUARDAR VISTA ACTUAL
+    localStorage.setItem('bodega_current_view', viewName);
+    
+    // 🔧 VALIDAR PERMISOS PARA ADMIN
+    if (viewName === 'admin') {
+        if (!currentUser || currentUser.role !== 'admin') {
+            console.log('❌ Acceso denegado a admin:', currentUser);
+            showNotification('🔐 No tienes permisos de administrador', 'error');
+            viewName = 'catalogo'; // Redirigir al catálogo
+        }
+    }
+    
+    // Ocultar todas las vistas
+    document.querySelectorAll('.view-content').forEach(view => {
+        view.classList.remove('active');
+    });
+    
+    // Mostrar vista seleccionada
+    const targetView = document.getElementById(`view${viewName.charAt(0).toUpperCase() + viewName.slice(1)}`);
+    if (targetView) {
+        targetView.classList.add('active');
+        currentView = viewName;
+        
+        // Acciones específicas por vista
+        switch(viewName) {
+            case 'historial':
+                if (typeof loadHistorialPedidos === 'function') {
+                    loadHistorialPedidos();
+                }
+                break;
+            case 'catalogo':
+                document.getElementById('filtersSidebar').style.display = 'block';
+                break;
+            case 'admin':
+                if (typeof initializeAdminView === 'function') {
+                    initializeAdminView();
+                }
+                break;
+        }
+        
+        // Ajustar layout según la vista
+        adjustLayoutForView(viewName);
+        updateNavigationState();
+    }
+}
+
+function adjustLayoutForView(viewName) {
+    const mainContainer = document.querySelector('.main-container');
+    const filtersSidebar = document.getElementById('filtersSidebar');
+    
+    if (viewName === 'catalogo') {
+        mainContainer.style.gridTemplateColumns = '280px 1fr';
+        if (filtersSidebar) filtersSidebar.style.display = 'block';
+        
+        // Mostrar elementos de usuario normal
+        document.getElementById('searchBar').style.display = 'flex';
+        document.getElementById('cartToggle').style.display = 'flex';
+        
+    } else if (viewName === 'admin') {
+        mainContainer.style.gridTemplateColumns = '1fr';
+        if (filtersSidebar) filtersSidebar.style.display = 'none';
+        
+        // Ocultar elementos de usuario normal en modo admin
+        document.getElementById('searchBar').style.display = 'none';
+        document.getElementById('cartToggle').style.display = 'none';
+        
+    } else {
+        mainContainer.style.gridTemplateColumns = '1fr';
+        if (filtersSidebar) filtersSidebar.style.display = 'none';
+        
+        // Mostrar elementos de usuario normal
+        document.getElementById('searchBar').style.display = 'flex';
+        document.getElementById('cartToggle').style.display = 'flex';
+    }
+}
+
+function updateNavigationState() {
+    document.querySelectorAll('[data-view]').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    const activeBtn = document.querySelector(`[data-view="${currentView}"]`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
 }
 
 // ===== 🔧 FUNCIONES DE ADMINISTRADOR =====
@@ -151,7 +248,7 @@ function disableAdminMode() {
     if (filtersSidebar) filtersSidebar.style.display = 'block';
     
     if (currentView === 'admin') {
-        switchView('catalogo');
+        showView('catalogo');
     }
     
     console.log('🔧 Modo administrador desactivado');
@@ -199,10 +296,10 @@ function switchAdminTab(tabName) {
     
     switch(tabName) {
         case 'gestion-productos':
-            loadAdminProducts();
+            if (typeof loadAdminProducts === 'function') loadAdminProducts();
             break;
         case 'pedidos-sistema':
-            loadAdminOrders();
+            if (typeof loadAdminOrders === 'function') loadAdminOrders();
             break;
         case 'agregar-producto':
             document.getElementById('addProductForm')?.reset();
@@ -216,58 +313,14 @@ function showAdminView() {
     console.log('🔍 Estado actual - isAdminMode:', isAdminMode);
     console.log('🔍 Estado actual - currentUser:', currentUser);
     
-    // 🔧 VERIFICACIÓN MEJORADA CON FALLBACK
-    if (!isAdminMode) {
-        console.log('⚠️ isAdminMode es false, verificando manualmente...');
-        
-        // FALLBACK: Verificar manualmente si es admin
-        const userData = localStorage.getItem('bodega_user');
-        if (userData) {
-            try {
-                const user = JSON.parse(userData);
-                const isAdmin = user.role === 'admin' || user.email === 'admin@bodega.com';
-                
-                if (isAdmin) {
-                    console.log('✅ Fallback: Es admin, forzando modo admin');
-                    enableAdminMode();
-                } else {
-                    console.log('❌ Fallback: No es admin, bloqueando acceso');
-                    showNotification('🔐 No tienes permisos de administrador', 'error');
-                    switchView('catalogo');
-                    return;
-                }
-            } catch (error) {
-                console.error('Error en fallback:', error);
-                showNotification('🔐 No tienes permisos de administrador', 'error');
-                switchView('catalogo');
-                return;
-            }
-        } else {
-            console.log('❌ No hay user data, bloqueando acceso');
-            showNotification('🔐 No tienes permisos de administrador', 'error');
-            switchView('catalogo');
-            return;
-        }
-    }
-    
-    hideAllViews();
-    
-    const adminView = document.getElementById('viewAdmin');
-    if (adminView) {
-        adminView.classList.add('active');
-        currentView = 'admin';
-        
-        loadAdminPanelData();
-        updateNavigationState();
-        
-        console.log('📊 Vista de administrador activada');
-    }
+    // 🔧 USAR LA NUEVA FUNCIÓN showView EN LUGAR DE LÓGICA DUPLICADA
+    showView('admin');
 }
 
 function loadAdminPanelData() {
-    loadAdminProducts();
-    loadAdminOrders();
-    loadAdminStats();
+    if (typeof loadAdminProducts === 'function') loadAdminProducts();
+    if (typeof loadAdminOrders === 'function') loadAdminOrders();
+    if (typeof loadAdminStats === 'function') loadAdminStats();
 }
 
 // ===== 🔧 FUNCIONES DE GESTIÓN DE PRODUCTOS (ADMIN) =====
@@ -625,7 +678,7 @@ function initializeNavigation() {
         if (viewBtn) {
             e.preventDefault();
             const viewName = viewBtn.getAttribute('data-view');
-            switchView(viewName);
+            showView(viewName); // 🔧 USAR showView EN LUGAR DE switchView
         }
         
         // Manejar clic en opción admin del menú usuario
@@ -636,53 +689,7 @@ function initializeNavigation() {
     });
 }
 
-function switchView(viewName) {
-    // ✅ SOLUCIONADO: Validar permisos para vista admin
-    if (viewName === 'admin' && !isAdminMode) {
-        console.log('❌ SwitchView bloqueando acceso a admin');
-        showNotification('🔐 No tienes permisos de administrador', 'error');
-        return;
-    }
-    
-    // ✅ SOLUCIONADO: No forzar admin al catálogo
-    hideAllViews();
-    currentView = viewName;
-    
-    const viewElement = document.getElementById(`view${viewName.charAt(0).toUpperCase() + viewName.slice(1)}`);
-    if (viewElement) {
-        viewElement.classList.add('active');
-    }
-    
-    updateNavigationState();
-    
-    switch(viewName) {
-        case 'historial':
-            loadHistorialPedidos();
-            break;
-        case 'admin':
-            showAdminView();
-            break;
-        case 'catalogo':
-            break;
-    }
-}
-
-function hideAllViews() {
-    document.querySelectorAll('.view-content').forEach(view => {
-        view.classList.remove('active');
-    });
-}
-
-function updateNavigationState() {
-    document.querySelectorAll('[data-view]').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    const activeBtn = document.querySelector(`[data-view="${currentView}"]`);
-    if (activeBtn) {
-        activeBtn.classList.add('active');
-    }
-}
+// 🔧 ELIMINADA: Función switchView duplicada (ahora se usa showView)
 
 // ===== GESTIÓN DEL CARRITO =====
 function loadCartFromStorage() {
@@ -716,55 +723,65 @@ function updateCartUI() {
     console.log('Actualizando UI del carrito. Productos en carrito:', cart.length);
 
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    cartCount.textContent = totalItems;
-    cartCount.style.display = totalItems > 0 ? 'flex' : 'none';
+    if (cartCount) {
+        cartCount.textContent = totalItems;
+        cartCount.style.display = totalItems > 0 ? 'flex' : 'none';
+    }
 
-    if (cart.length === 0) {
-        cartItems.innerHTML = `
-            <div id="emptyCart" class="empty-cart-modern">
-                <i class="fas fa-shopping-bag"></i>
-                <p>Tu carrito está vacío</p>
-                <small>Agrega algunos productos</small>
-            </div>
-        `;
-        btnPedir.disabled = true;
-        btnPedir.classList.add('disabled');
-    } else {
-        let cartHTML = '';
-        
-        cart.forEach(item => {
-            cartHTML += `
-                <div class="cart-item-modern">
-                    <div class="cart-item-image">
-                        <i class="fas fa-${getProductIcon(item.category)}"></i>
-                    </div>
-                    <div class="cart-item-details">
-                        <div class="cart-item-name">${escapeHtml(item.name)}</div>
-                        <div class="cart-item-price">S/ ${item.price.toFixed(2)} c/u</div>
-                    </div>
-                    <div class="cart-item-controls-modern">
-                        <button class="quantity-btn" onclick="updateQuantity(${item.id}, -1)">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                        <span class="cart-item-quantity">${item.quantity}</span>
-                        <button class="quantity-btn" onclick="updateQuantity(${item.id}, 1)">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <button class="remove-item" onclick="removeFromCart(${item.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
+    if (cartItems) {
+        if (cart.length === 0) {
+            cartItems.innerHTML = `
+                <div id="emptyCart" class="empty-cart-modern">
+                    <i class="fas fa-shopping-bag"></i>
+                    <p>Tu carrito está vacío</p>
+                    <small>Agrega algunos productos</small>
                 </div>
             `;
-        });
-        
-        cartItems.innerHTML = cartHTML;
-        btnPedir.disabled = false;
-        btnPedir.classList.remove('disabled');
+            if (btnPedir) {
+                btnPedir.disabled = true;
+                btnPedir.classList.add('disabled');
+            }
+        } else {
+            let cartHTML = '';
+            
+            cart.forEach(item => {
+                cartHTML += `
+                    <div class="cart-item-modern">
+                        <div class="cart-item-image">
+                            <i class="fas fa-${getProductIcon(item.category)}"></i>
+                        </div>
+                        <div class="cart-item-details">
+                            <div class="cart-item-name">${escapeHtml(item.name)}</div>
+                            <div class="cart-item-price">S/ ${item.price.toFixed(2)} c/u</div>
+                        </div>
+                        <div class="cart-item-controls-modern">
+                            <button class="quantity-btn" onclick="updateQuantity(${item.id}, -1)">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <span class="cart-item-quantity">${item.quantity}</span>
+                            <button class="quantity-btn" onclick="updateQuantity(${item.id}, 1)">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="remove-item" onclick="removeFromCart(${item.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            cartItems.innerHTML = cartHTML;
+            if (btnPedir) {
+                btnPedir.disabled = false;
+                btnPedir.classList.remove('disabled');
+            }
+        }
     }
 
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    totalAmount.textContent = `S/ ${total.toFixed(2)}`;
+    if (totalAmount) {
+        totalAmount.textContent = `S/ ${total.toFixed(2)}`;
+    }
 }
 
 function removeFromCart(productId) {
@@ -810,12 +827,14 @@ function toggleCart() {
     const cartPanel = document.getElementById('cartPanel');
     const overlay = document.getElementById('cartOverlay');
     
-    cartPanel.classList.toggle('active');
-    overlay.classList.toggle('active');
-    document.querySelector('.main-container').classList.toggle('blurred');
-    
-    if (cartPanel.classList.contains('active')) {
-        updateCartUI();
+    if (cartPanel && overlay) {
+        cartPanel.classList.toggle('active');
+        overlay.classList.toggle('active');
+        document.querySelector('.main-container').classList.toggle('blurred');
+        
+        if (cartPanel.classList.contains('active')) {
+            updateCartUI();
+        }
     }
 }
 
@@ -823,17 +842,19 @@ function closeCart() {
     const cartPanel = document.getElementById('cartPanel');
     const overlay = document.getElementById('cartOverlay');
     
-    cartPanel.classList.remove('active');
-    overlay.classList.remove('active');
-    document.querySelector('.main-container').classList.remove('blurred');
+    if (cartPanel && overlay) {
+        cartPanel.classList.remove('active');
+        overlay.classList.remove('active');
+        document.querySelector('.main-container').classList.remove('blurred');
+    }
 }
 
 // ===== CONFIGURACIÓN DE EVENT LISTENERS =====
 function setupEventListeners() {
-    document.getElementById('cartToggle').addEventListener('click', toggleCart);
-    document.getElementById('closeCart').addEventListener('click', closeCart);
-    document.getElementById('cartOverlay').addEventListener('click', closeCart);
-    document.getElementById('btnPedir').addEventListener('click', realizarPedido);
+    document.getElementById('cartToggle')?.addEventListener('click', toggleCart);
+    document.getElementById('closeCart')?.addEventListener('click', closeCart);
+    document.getElementById('cartOverlay')?.addEventListener('click', closeCart);
+    document.getElementById('btnPedir')?.addEventListener('click', realizarPedido);
     
     document.querySelectorAll('.filter-option input').forEach(radio => {
         radio.addEventListener('change', handleFilterChange);
@@ -849,7 +870,7 @@ function setupEventListeners() {
 
     document.addEventListener('click', function(e) {
         const searchBar = document.querySelector('.search-bar');
-        if (!searchBar.contains(e.target)) {
+        if (searchBar && !searchBar.contains(e.target)) {
             hideSuggestions();
         }
     });
