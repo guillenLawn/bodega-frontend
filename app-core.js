@@ -21,18 +21,36 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeApp() {
+    console.log('🚀 Inicializando aplicación...');
+    
+    // 🔧 ORDEN CORREGIDO: Primero autenticación y permisos
+    initializeAuth(); // ← PRIMERO: Cargar usuario y verificar si es admin
+    
+    // 🔧 SEGUNDO: Configurar navegación y vistas
+    initializeNavigation();
+    
+    // 🔧 TERCERO: Inicializar admin si corresponde
+    initializeAdmin();
+    
+    // 🔧 CUARTO: Cargar datos de la aplicación
     loadProducts();
     setupEventListeners();
     loadCartFromStorage();
     updateCartUI();
-    initializeAuth();
-    initializeNavigation();
-    initializeAdmin();
     
-    // 🔧 NUEVO: Recuperar vista guardada al iniciar
+    // 🔧 QUINTO: Recuperar vista guardada (DESPUÉS de tener permisos verificados)
     const savedView = localStorage.getItem('bodega_current_view');
+    console.log('🔍 Vista guardada encontrada:', savedView);
+    
     if (savedView) {
-        setTimeout(() => showView(savedView), 100);
+        // Pequeño delay para asegurar que todo esté inicializado
+        setTimeout(() => {
+            console.log('🎯 Mostrando vista guardada:', savedView);
+            showView(savedView);
+        }, 200);
+    } else {
+        // Vista por defecto
+        showView('catalogo');
     }
 }
 
@@ -80,16 +98,20 @@ function showNotification(message, type = 'success') {
 // ===== 🔧 SISTEMA DE VISTAS MEJORADO =====
 function showView(viewName) {
     console.log('🎯 Cambiando a vista:', viewName);
+    console.log('🔍 Usuario actual:', currentUser);
+    console.log('🔍 Modo admin:', isAdminMode);
     
     // 🔧 GUARDAR VISTA ACTUAL
     localStorage.setItem('bodega_current_view', viewName);
     
-    // 🔧 VALIDAR PERMISOS PARA ADMIN
+    // 🔧 VALIDAR PERMISOS PARA ADMIN - MEJORADO
     if (viewName === 'admin') {
         if (!currentUser || currentUser.role !== 'admin') {
-            console.log('❌ Acceso denegado a admin:', currentUser);
+            console.log('❌ Acceso denegado a admin. Usuario:', currentUser);
             showNotification('🔐 No tienes permisos de administrador', 'error');
             viewName = 'catalogo'; // Redirigir al catálogo
+        } else {
+            console.log('✅ Acceso permitido a admin');
         }
     }
     
@@ -170,6 +192,8 @@ function updateNavigationState() {
 
 // ===== 🔧 FUNCIONES DE ADMINISTRADOR =====
 function initializeAdmin() {
+    console.log('🔧 Inicializando sistema admin...');
+    checkAdminMode(); // ← VERIFICAR PERMISOS AL INICIAR
     setupAdminEventListeners();
     setupAdminModals();
 }
@@ -678,7 +702,7 @@ function initializeNavigation() {
         if (viewBtn) {
             e.preventDefault();
             const viewName = viewBtn.getAttribute('data-view');
-            showView(viewName); // 🔧 USAR showView EN LUGAR DE switchView
+            showView(viewName);
         }
         
         // Manejar clic en opción admin del menú usuario
@@ -688,8 +712,6 @@ function initializeNavigation() {
         }
     });
 }
-
-// 🔧 ELIMINADA: Función switchView duplicada (ahora se usa showView)
 
 // ===== GESTIÓN DEL CARRITO =====
 function loadCartFromStorage() {
