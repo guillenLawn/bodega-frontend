@@ -1,7 +1,10 @@
 // ===== SISTEMA DE NAVEGACIÓN =====
 function initializeNavigation() {
     setupNavigationEventListeners();
-    showView('catalogo');
+    
+    // 🔧 RECUPERAR VISTA GUARDADA AL INICIAR
+    const savedView = localStorage.getItem('bodega_current_view') || 'catalogo';
+    showView(savedView);
 }
 
 function setupNavigationEventListeners() {
@@ -43,6 +46,9 @@ function setupNavigationEventListeners() {
 
 function showView(viewName) {
     console.log('Cambiando a vista:', viewName);
+    
+    // 🔧 GUARDAR VISTA ACTUAL EN LOCALSTORAGE
+    localStorage.setItem('bodega_current_view', viewName);
     
     // Ocultar todas las vistas
     document.querySelectorAll('.view-content').forEach(view => {
@@ -105,17 +111,48 @@ function adjustLayoutForView(viewName) {
 
 // ===== 🔧 VISTA DE ADMINISTRADOR =====
 function initializeAdminView() {
-    // Verificar permisos de administrador
-    if (!isAdminMode) {
+    console.log('🔧 Inicializando vista admin...', { currentUser, isAdminMode });
+    
+    // 🔧 CORREGIDO: Verificar permisos usando currentUser en lugar de isAdminMode
+    if (!currentUser || currentUser.role !== 'admin') {
+        console.warn('❌ Usuario no autorizado para panel admin:', currentUser);
         showNotification('🔐 No tienes permisos de administrador', 'error');
         showView('catalogo');
         return;
     }
     
+    console.log('✅ Usuario autorizado, cargando panel admin...');
+    
     // Cargar datos iniciales del admin
     loadAdminProducts();
     loadAdminOrders();
     updateAdminStats();
+    
+    // 🔧 INICIALIZAR PESTAÑAS DEL ADMIN
+    initializeAdminTabs();
+}
+
+// 🔧 FUNCIÓN NUEVA: Inicializar sistema de pestañas del admin
+function initializeAdminTabs() {
+    const adminTabs = document.querySelectorAll('.admin-tab');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    
+    adminTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const targetTab = this.getAttribute('data-tab');
+            
+            // Remover clase active de todas las pestañas
+            adminTabs.forEach(t => t.classList.remove('active'));
+            tabPanes.forEach(p => p.classList.remove('active'));
+            
+            // Agregar clase active a la pestaña y contenido seleccionado
+            this.classList.add('active');
+            const targetPane = document.getElementById(`${targetTab}Tab`);
+            if (targetPane) {
+                targetPane.classList.add('active');
+            }
+        });
+    });
 }
 
 // ===== 🔧 FUNCIONES DE GESTIÓN DE PRODUCTOS (ADMIN) =====
