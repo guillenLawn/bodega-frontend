@@ -41,6 +41,20 @@ function setupAuthEventListeners() {
 async function checkExistingAuth() {
     console.log('🔍 Verificando autenticación existente...');
     
+    // 🔧 NUEVO: VERIFICAR SI HAY REDIRECCIÓN PENDIENTE AL PANEL ADMIN
+    const redirectToAdmin = localStorage.getItem('redirectToAdmin');
+    if (redirectToAdmin === 'true') {
+        console.log('🔄 Redirección pendiente detectada - limpiando y mostrando panel admin');
+        localStorage.removeItem('redirectToAdmin');
+        
+        // Pequeño delay para asegurar que todo esté cargado
+        setTimeout(() => {
+            if (typeof showAdminView === 'function') {
+                showAdminView();
+            }
+        }, 100);
+    }
+    
     if (authToken) {
         try {
             const response = await fetch(`${AUTH_API}/verify`, {
@@ -116,6 +130,7 @@ function isValidAdmin(user) {
 function clearAuthData() {
     localStorage.removeItem('bodega_token');
     localStorage.removeItem('bodega_user');
+    localStorage.removeItem('redirectToAdmin'); // 🔧 NUEVO: Limpiar también la redirección
     authToken = null;
     currentUser = null;
     disableAdminMode();
@@ -204,8 +219,10 @@ async function handleLogin(e) {
             if (currentUser.role === 'admin' && isValidAdmin(currentUser)) {
                 enableAdminMode();
                 
-                // 🔧 SOLUCIÓN: REFRESH AUTOMÁTICO PARA ADMIN
-                console.log('🔄 Admin detectado - recargando vista para corregir diseño...');
+                // 🔧 SOLUCIÓN MEJORADA: GUARDAR REDIRECCIÓN Y LUEGO REFRESH
+                console.log('🔄 Admin detectado - guardando redirección y recargando...');
+                localStorage.setItem('redirectToAdmin', 'true');
+                
                 setTimeout(() => {
                     window.location.reload();
                 }, 300);
@@ -298,8 +315,10 @@ async function handleRegister(e) {
             if (userRole === 'admin' && isValidAdmin(currentUser)) {
                 enableAdminMode();
                 
-                // 🔧 SOLUCIÓN: REFRESH AUTOMÁTICO PARA ADMIN
-                console.log('🔄 Admin detectado - recargando vista para corregir diseño...');
+                // 🔧 SOLUCIÓN MEJORADA: GUARDAR REDIRECCIÓN Y LUEGO REFRESH
+                console.log('🔄 Admin detectado - guardando redirección y recargando...');
+                localStorage.setItem('redirectToAdmin', 'true');
+                
                 setTimeout(() => {
                     window.location.reload();
                 }, 300);
@@ -331,6 +350,7 @@ function handleLogout() {
     currentUser = null;
     localStorage.removeItem('bodega_token');
     localStorage.removeItem('bodega_user');
+    localStorage.removeItem('redirectToAdmin'); // 🔧 NUEVO: Limpiar también la redirección
     
     updateAuthUI();
     hideUserDropdown();
