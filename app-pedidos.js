@@ -113,11 +113,11 @@ function adjustLayoutForView(viewName) {
 function initializeAdminView() {
     console.log('🔧 Inicializando vista admin...', { currentUser, isAdminMode });
     
-    // 🔧 CORREGIDO: Verificar permisos usando currentUser en lugar de isAdminMode
+    // 🔧 CORREGIDO: Solo verificar permisos, NO redirigir automáticamente
     if (!currentUser || currentUser.role !== 'admin') {
         console.warn('❌ Usuario no autorizado para panel admin:', currentUser);
         showNotification('🔐 No tienes permisos de administrador', 'error');
-        showView('catalogo');
+        // 🔧 CAMBIO: NO llamar a showView('catalogo') aquí
         return;
     }
     
