@@ -123,35 +123,13 @@ function initializeAdminView() {
     
     console.log('✅ Usuario autorizado, cargando panel admin...');
     
-    // 🔧 NUEVO: PRIMERO inicializar estructura básica
+    // 🔧 INICIALIZACIÓN SIMPLIFICADA - SIN VACIAR EL HTML
     initializeAdminStructure();
-    
-    // 🔧 SEGUNDO: Forzar re-render del panel admin
-    setTimeout(() => {
-        console.log('🔄 Forzando re-render del panel admin...');
-        
-        const adminContainer = document.getElementById('viewAdmin');
-        if (adminContainer) {
-            // 1. Guardar el HTML actual
-            const currentHTML = adminContainer.innerHTML;
-            
-            // 2. Remover y re-agregar para forzar re-render
-            adminContainer.innerHTML = '';
-            setTimeout(() => {
-                adminContainer.innerHTML = currentHTML;
-                
-                // 3. Aplicar estilos forzados después del re-render
-                applyAdminStyles();
-                
-                // 4. Cargar datos después del re-render
-                loadAdminProducts();
-                loadAdminOrders();
-                updateAdminStats();
-                initializeAdminTabs();
-                
-            }, 50);
-        }
-    }, 100);
+    applyAdminStyles();
+    loadAdminProducts();
+    loadAdminOrders();
+    updateAdminStats();
+    initializeAdminTabs();
 }
 
 // 🔧 FUNCIÓN MEJORADA: Aplicar estilos forzados
