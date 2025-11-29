@@ -123,16 +123,80 @@ function initializeAdminView() {
     
     console.log('✅ Usuario autorizado, cargando panel admin...');
     
-    // 🔧 NUEVO: Inicializar estructura CSS primero
-    initializeAdminStructure();
+    // 🔧 NUEVO: Forzar re-render del panel admin
+    setTimeout(() => {
+        console.log('🔄 Forzando re-render del panel admin...');
+        
+        const adminContainer = document.getElementById('viewAdmin');
+        if (adminContainer) {
+            // 1. Guardar el HTML actual
+            const currentHTML = adminContainer.innerHTML;
+            
+            // 2. Remover y re-agregar para forzar re-render
+            adminContainer.innerHTML = '';
+            setTimeout(() => {
+                adminContainer.innerHTML = currentHTML;
+                
+                // 3. Aplicar estilos forzados después del re-render
+                applyAdminStyles();
+                
+                // 4. Cargar datos después del re-render
+                loadAdminProducts();
+                loadAdminOrders();
+                updateAdminStats();
+                initializeAdminTabs();
+                
+            }, 50);
+        }
+    }, 100);
+}
+
+// 🔧 FUNCIÓN MEJORADA: Aplicar estilos forzados
+function applyAdminStyles() {
+    console.log('🎨 Aplicando estilos CSS forzados...');
     
-    // Cargar datos iniciales del admin
-    loadAdminProducts();
-    loadAdminOrders();
-    updateAdminStats();
+    // Forzar estructura grid en estadísticas
+    const adminStats = document.querySelector('.admin-stats');
+    if (adminStats) {
+        adminStats.style.cssText = `
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+            gap: 20px !important;
+            margin-bottom: 30px !important;
+            width: 100% !important;
+        `;
+        
+        // Aplicar estilos a cada tarjeta de estadística
+        const statCards = adminStats.querySelectorAll('.stat-card');
+        statCards.forEach(card => {
+            card.style.cssText = `
+                background: white !important;
+                padding: 25px !important;
+                border-radius: 12px !important;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+                border-left: 4px solid var(--primary) !important;
+                display: flex !important;
+                align-items: center !important;
+                gap: 15px !important;
+            `;
+        });
+    }
     
-    // 🔧 INICIALIZAR PESTAÑAS DEL ADMIN
-    initializeAdminTabs();
+    // Forzar layout horizontal en pestañas
+    const adminTabs = document.querySelector('.admin-tabs');
+    if (adminTabs) {
+        adminTabs.style.cssText = `
+            display: flex !important;
+            background: white !important;
+            border-radius: 12px !important;
+            padding: 8px !important;
+            margin-bottom: 20px !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+            gap: 10px !important;
+        `;
+    }
+    
+    console.log('✅ Estilos forzados aplicados correctamente');
 }
 
 // 🔧 FUNCIÓN NUEVA: Inicializar estructura del panel admin
