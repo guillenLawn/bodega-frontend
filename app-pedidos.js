@@ -117,71 +117,41 @@ function initializeAdminView() {
     if (!currentUser || currentUser.role !== 'admin') {
         console.warn('❌ Usuario no autorizado para panel admin:', currentUser);
         showNotification('🔐 No tienes permisos de administrador', 'error');
-        // 🔧 CAMBIO: NO llamar a showView('catalogo') aquí
         return;
     }
     
     console.log('✅ Usuario autorizado, cargando panel admin...');
     
-    // 🔧 CORREGIDO: PRIMERO aplicar estilos forzados con centrado
-    applyAdminStyles();
-    
-    // 🔧 LUEGO configurar pantalla de bienvenida
-    setupAdminWelcomeScreen();
+    // 🔧 CAMBIO: MOSTRAR DIRECTAMENTE EL PANEL COMPLETO
+    showAdminPanelDirectly();
     
     // 🔧 FINALMENTE cargar datos
     loadAdminWelcomeStats();
     initializeAdminTabs();
 }
 
-// 🔧 FUNCIÓN NUEVA: Configurar pantalla de bienvenida del admin
-function setupAdminWelcomeScreen() {
-    console.log('🎯 Configurando pantalla de bienvenida admin...');
-    
-    // Mostrar pantalla de bienvenida y ocultar panel completo
-    const adminWelcome = document.getElementById('adminWelcome');
-    const adminPanelFull = document.getElementById('adminPanelFull');
-    
-    if (adminWelcome && adminPanelFull) {
-        adminWelcome.style.display = 'flex';
-        adminPanelFull.style.display = 'none';
-        
-        // 🔧 Configurar evento del botón "Acceder al Panel de Control"
-        const enterAdminBtn = document.getElementById('enterAdminPanel');
-        if (enterAdminBtn) {
-            enterAdminBtn.addEventListener('click', showAdminPanel);
-            console.log('✅ Botón de acceso al panel configurado');
-        }
-    } else {
-        console.warn('❌ No se encontraron elementos de la pantalla de bienvenida');
-    }
-}
-
-// 🔧 FUNCIÓN NUEVA: Mostrar panel completo del admin
-function showAdminPanel() {
-    console.log('🚀 Mostrando panel completo del admin...');
+// 🔧 FUNCIÓN NUEVA: Mostrar panel completo directamente
+function showAdminPanelDirectly() {
+    console.log('🚀 Mostrando panel completo directamente...');
     
     const adminWelcome = document.getElementById('adminWelcome');
     const adminPanelFull = document.getElementById('adminPanelFull');
     
     if (adminWelcome && adminPanelFull) {
-        // Ocultar pantalla de bienvenida
+        // 🔧 OCULTAR pantalla de bienvenida
         adminWelcome.style.display = 'none';
         
-        // Mostrar panel completo con animación
+        // 🔧 MOSTRAR panel completo directamente
         adminPanelFull.style.display = 'block';
-        setTimeout(() => {
-            adminPanelFull.style.opacity = '1';
-            adminPanelFull.style.transform = 'translateY(0)';
-        }, 50);
+        adminPanelFull.style.opacity = '1';
+        adminPanelFull.style.transform = 'translateY(0)';
         
         // Cargar datos del panel completo
         loadAdminProducts();
         loadAdminOrders();
         updateAdminStats();
         
-        console.log('✅ Panel completo del admin mostrado');
-        showNotification('🎛️ Panel de administrador cargado', 'success');
+        console.log('✅ Panel completo mostrado directamente');
     }
 }
 
