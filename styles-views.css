@@ -871,40 +871,76 @@
         width: 100%;
     }
 }
-/* 🔧 SOLUCIÓN DEFINITIVA - CORREGIR ALINEACIÓN DEL BOTÓN */
-.admin-welcome {
+/* 🔧 SOLUCIÓN DEFINITIVA - FORZAR CENTRADO DESDE EL CSS */
+#adminWelcome {
     text-align: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    margin: 0 auto !important;
 }
 
 .welcome-card {
     text-align: center !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    max-width: 500px !important;
 }
 
 .btn-admin-enter {
-    margin: 0 auto !important;
-    float: none !important;
+    text-align: center !important;
+    margin: 20px auto !important;
     display: inline-flex !important;
     justify-content: center !important;
+    align-items: center !important;
+    width: auto !important;
+    min-width: 200px !important;
+    float: none !important;
 }
 
 .welcome-stats {
     text-align: center !important;
+    display: flex !important;
     justify-content: center !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 15px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
 }
 
 .welcome-stat {
     text-align: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
     float: none !important;
 }
 
-/* 🔧 FORZAR CENTrado EN TODOS LOS ELEMENTOS DE BIENVENIDA */
+/* 🔧 RESET COMPLETO PARA FORZAR CENTRADO */
+#viewAdmin .main-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+#viewAdmin .view-content {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+}
+
+/* 🔧 ANULAR CUALQUIER text-align: left */
 #adminWelcome * {
     text-align: center !important;
     float: none !important;
-}
-
-#adminWelcome .welcome-card * {
-    text-align: center !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
 }
