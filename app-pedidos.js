@@ -123,7 +123,10 @@ function initializeAdminView() {
     
     console.log('✅ Usuario autorizado, cargando panel admin...');
     
-    // 🔧 NUEVO: Forzar re-render del panel admin
+    // 🔧 NUEVO: PRIMERO inicializar estructura básica
+    initializeAdminStructure();
+    
+    // 🔧 SEGUNDO: Forzar re-render del panel admin
     setTimeout(() => {
         console.log('🔄 Forzando re-render del panel admin...');
         
