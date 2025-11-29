@@ -123,11 +123,13 @@ function initializeAdminView() {
     
     console.log('✅ Usuario autorizado, cargando panel admin...');
     
-    // 🔧 NUEVO: Configurar pantalla de bienvenida
+    // 🔧 CORREGIDO: PRIMERO aplicar estilos forzados con centrado
+    applyAdminStyles();
+    
+    // 🔧 LUEGO configurar pantalla de bienvenida
     setupAdminWelcomeScreen();
     
-    // 🔧 INICIALIZACIÓN SIMPLIFICADA - SIN VACIAR EL HTML
-    initializeAdminStructure();
+    // 🔧 FINALMENTE cargar datos
     loadAdminWelcomeStats();
     initializeAdminTabs();
 }
@@ -203,52 +205,114 @@ function loadAdminWelcomeStats() {
     console.log('✅ Estadísticas de bienvenida cargadas');
 }
 
-// 🔧 FUNCIÓN MEJORADA: Aplicar estilos forzados
+// 🔧 FUNCIÓN MEJORADA: Aplicar estilos forzados CON CENTRADO
 function applyAdminStyles() {
-    console.log('🎨 Aplicando estilos CSS forzados...');
+    console.log('🎨 Aplicando estilos CSS forzados CON CENTRADO...');
     
-    // Forzar estructura grid en estadísticas
-    const adminStats = document.querySelector('.admin-stats');
-    if (adminStats) {
-        adminStats.style.cssText = `
-            display: grid !important;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
-            gap: 20px !important;
-            margin-bottom: 30px !important;
-            width: 100% !important;
-        `;
-        
-        // Aplicar estilos a cada tarjeta de estadística
-        const statCards = adminStats.querySelectorAll('.stat-card');
-        statCards.forEach(card => {
-            card.style.cssText = `
-                background: white !important;
-                padding: 25px !important;
-                border-radius: 12px !important;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
-                border-left: 4px solid var(--primary) !important;
+    // Pequeño delay para asegurar que el DOM esté listo
+    setTimeout(() => {
+        // 🔧 FORZAR CENTRADO EN PANTALLA DE BIENVENIDA
+        const adminWelcome = document.getElementById('adminWelcome');
+        if (adminWelcome) {
+            adminWelcome.style.cssText = `
+                text-align: center !important;
                 display: flex !important;
+                flex-direction: column !important;
                 align-items: center !important;
+                justify-content: center !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+            `;
+        }
+        
+        // 🔧 FORZAR CENTRADO DEL BOTÓN
+        const enterAdminBtn = document.getElementById('enterAdminPanel');
+        if (enterAdminBtn) {
+            enterAdminBtn.style.cssText = `
+                text-align: center !important;
+                margin: 20px auto !important;
+                display: inline-flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                width: auto !important;
+                min-width: 200px !important;
+            `;
+        }
+        
+        // 🔧 FORZAR CENTRADO DE ESTADÍSTICAS
+        const welcomeStats = document.querySelector('.welcome-stats');
+        if (welcomeStats) {
+            welcomeStats.style.cssText = `
+                text-align: center !important;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                flex-wrap: wrap !important;
                 gap: 15px !important;
+                margin: 0 auto !important;
+            `;
+        }
+        
+        // 🔧 FORZAR CENTRADO DE CADA ESTADÍSTICA
+        const welcomeStatsItems = document.querySelectorAll('.welcome-stat');
+        welcomeStatsItems.forEach(stat => {
+            stat.style.cssText = `
+                text-align: center !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                margin: 0 !important;
             `;
         });
-    }
-    
-    // Forzar layout horizontal en pestañas
-    const adminTabs = document.querySelector('.admin-tabs');
-    if (adminTabs) {
-        adminTabs.style.cssText = `
-            display: flex !important;
-            background: white !important;
-            border-radius: 12px !important;
-            padding: 8px !important;
-            margin-bottom: 20px !important;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
-            gap: 10px !important;
-        `;
-    }
-    
-    console.log('✅ Estilos forzados aplicados correctamente');
+        
+        // Forzar estructura grid en estadísticas del panel completo
+        const adminStats = document.querySelector('.admin-stats');
+        if (adminStats) {
+            adminStats.style.cssText = `
+                display: grid !important;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+                gap: 20px !important;
+                margin-bottom: 30px !important;
+                width: 100% !important;
+                text-align: center !important;
+            `;
+            
+            // Aplicar estilos a cada tarjeta de estadística
+            const statCards = adminStats.querySelectorAll('.stat-card');
+            statCards.forEach(card => {
+                card.style.cssText = `
+                    background: white !important;
+                    padding: 25px !important;
+                    border-radius: 12px !important;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+                    border-left: 4px solid var(--primary) !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    gap: 15px !important;
+                    text-align: center !important;
+                `;
+            });
+        }
+        
+        // Forzar layout horizontal en pestañas
+        const adminTabs = document.querySelector('.admin-tabs');
+        if (adminTabs) {
+            adminTabs.style.cssText = `
+                display: flex !important;
+                background: white !important;
+                border-radius: 12px !important;
+                padding: 8px !important;
+                margin-bottom: 20px !important;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+                gap: 10px !important;
+                justify-content: center !important;
+            `;
+        }
+        
+        console.log('✅ Estilos forzados CON CENTRADO aplicados correctamente');
+    }, 100);
 }
 
 // 🔧 FUNCIÓN NUEVA: Inicializar estructura del panel admin
