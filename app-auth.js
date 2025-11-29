@@ -471,24 +471,3 @@ function showAdminView() {
         }
     }
 }
-
-// 🔧 FUNCIÓN PARA CAMBIAR VISTA
-function switchView(viewName) {
-    // 🔧 BLOQUEAR ACCESO AL PANEL ADMIN SIN PERMISOS
-    if (viewName === 'admin' && (!currentUser || currentUser.role !== 'admin' || !isValidAdmin(currentUser))) {
-        showNotification('🔐 No tienes permisos de administrador', 'error');
-        return;
-    }
-    
-    // Ocultar todas las vistas
-    const allViews = document.querySelectorAll('.view-content');
-    allViews.forEach(view => view.classList.remove('active'));
-    
-    // Mostrar vista seleccionada
-    const viewElement = document.getElementById(`view${viewName.charAt(0).toUpperCase() + viewName.slice(1)}`);
-    if (viewElement) {
-        viewElement.classList.add('active');
-        currentView = viewName;
-        console.log(`🔄 Cambiando a vista: ${viewName}`);
-    }
-}
