@@ -125,21 +125,9 @@ function initializeAdminView() {
     // 🔧 CAMBIO: MOSTRAR DIRECTAMENTE EL PANEL COMPLETO
     showAdminPanelDirectly();
     
-    // 🔧 NUEVO: CARGAR DATOS INMEDIATAMENTE AL INICIALIZAR
-    loadAdminProducts();
-    loadAdminOrders();
-    updateAdminStats();
-    
-    // Configurar event listeners para las pestañas
-    setupAdminTabs();
-    
-    // Configurar formulario de agregar producto
-    setupAddProductForm();
-    
-    // Configurar botones de actualizar
-    setupAdminRefreshButtons();
-    
-    console.log('✅ Vista admin inicializada correctamente con datos cargados');
+    // 🔧 FINALMENTE cargar datos
+    loadAdminWelcomeStats();
+    initializeAdminTabs();
 }
 
 // 🔧 FUNCIÓN NUEVA: Mostrar panel completo directamente
@@ -160,47 +148,17 @@ function showAdminPanelDirectly() {
         adminPanelFull.style.transform = 'translateY(0)';
         adminPanelFull.style.visibility = 'visible';
         
-        // 🔧 CARGAR DATOS INMEDIATAMENTE
+        // Cargar datos del panel completo
         loadAdminProducts();
         loadAdminOrders();
         updateAdminStats();
         
-        console.log('✅ Panel completo mostrado directamente con datos cargados');
+        console.log('✅ Panel completo mostrado directamente');
         
         // 🔧 EJECUTAR TAMBIÉN LA FUNCIÓN DE EMERGENCIA
         setTimeout(forceAdminPanelOnLoad, 100);
     } else {
         console.error('❌ No se encontraron elementos del panel admin');
-    }
-}
-
-// 🔧 FUNCIÓN NUEVA: Configurar botones de actualizar
-function setupAdminRefreshButtons() {
-    const refreshProductsBtn = document.getElementById('refreshProducts');
-    const refreshOrdersBtn = document.getElementById('refreshOrders');
-    
-    if (refreshProductsBtn) {
-        refreshProductsBtn.addEventListener('click', function() {
-            console.log('🔄 Actualizando productos...');
-            loadAdminProducts();
-            showNotification('🔄 Actualizando productos...', 'info');
-        });
-    }
-    
-    if (refreshOrdersBtn) {
-        refreshOrdersBtn.addEventListener('click', function() {
-            console.log('🔄 Actualizando pedidos...');
-            loadAdminOrders();
-            showNotification('🔄 Actualizando pedidos...', 'info');
-        });
-    }
-}
-
-// 🔧 FUNCIÓN NUEVA: Configurar formulario de agregar producto
-function setupAddProductForm() {
-    const addProductForm = document.getElementById('addProductForm');
-    if (addProductForm) {
-        addProductForm.addEventListener('submit', handleAddProduct);
     }
 }
 
@@ -475,9 +433,6 @@ async function loadAdminProducts() {
             tableBody.appendChild(row);
         });
         
-        // 🔧 ACTUALIZAR ESTADÍSTICAS DESPUÉS DE CARGAR PRODUCTOS
-        updateAdminStats();
-        
     } catch (error) {
         console.error('Error cargando productos admin:', error);
         tableBody.innerHTML = `
@@ -594,22 +549,14 @@ async function loadAdminOrders() {
 }
 
 function updateAdminStats() {
-    // 🔧 MEJORADO: Usar datos reales de productos cargados
+    // Actualizar estadísticas en el panel admin
     const totalProducts = products.length;
-    
-    // 🔧 NUEVO: Calcular ingresos totales de pedidos (esto se puede mejorar con datos reales del backend)
     const totalRevenue = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
-    // 🔧 NUEVO: Intentar obtener datos reales de pedidos y usuarios
-    const totalOrders = 0; // Se actualizará cuando carguemos pedidos reales
-    const totalUsers = 0; // Se puede obtener del backend si hay endpoint de usuarios
-    
     document.getElementById('totalProducts').textContent = totalProducts;
-    document.getElementById('totalOrders').textContent = totalOrders;
-    document.getElementById('totalUsers').textContent = totalUsers;
+    document.getElementById('totalOrders').textContent = '0'; // Se actualizará con datos reales
+    document.getElementById('totalUsers').textContent = '0'; // Se actualizará con datos reales
     document.getElementById('revenue').textContent = `S/ ${totalRevenue.toFixed(2)}`;
-    
-    console.log('📊 Estadísticas actualizadas:', { totalProducts, totalOrders, totalUsers, totalRevenue });
 }
 
 // ===== 🔧 FUNCIONES DE CRUD PARA PRODUCTOS =====
@@ -1399,7 +1346,6 @@ function handleFilterChange(e) {
     currentFilter = filterMap[filterText] || 'all';
     renderProductsByCategory();
 }
-
 // 🔧 FUNCIÓN DE EMERGENCIA - FORZAR PANEL COMPLETO AL CARGAR
 function forceAdminPanelOnLoad() {
     console.log('🔧 Forzando panel admin al cargar...');
@@ -1420,29 +1366,12 @@ function forceAdminPanelOnLoad() {
     }
 }
 
-// 🔧 FUNCIÓN DE EMERGENCIA - FORZAR CARGA DE DATOS AL CARGAR LA PÁGINA
-function forceAdminDataLoad() {
-    console.log('🔧 Verificando si es necesario cargar datos admin...');
-    
-    if (currentUser?.role === 'admin' && currentView === 'admin') {
-        console.log('🔄 Usuario admin detectado - forzando carga de datos...');
-        
-        // Pequeño delay para asegurar que el DOM esté listo
-        setTimeout(() => {
-            loadAdminProducts();
-            loadAdminOrders();
-            updateAdminStats();
-        }, 1000);
-    }
-}
-
 // 🔧 EJECUTAR AL CARGAR LA PÁGINA
 document.addEventListener('DOMContentLoaded', function() {
     // Pequeño delay para asegurar que el DOM esté listo
     setTimeout(() => {
         if (currentUser?.role === 'admin' && currentView === 'admin') {
             forceAdminPanelOnLoad();
-            forceAdminDataLoad();
         }
     }, 500);
 });
