@@ -112,6 +112,12 @@ function showView(viewName) {
             viewName = 'catalogo'; // Redirigir al catálogo
         } else {
             console.log('✅ Acceso permitido a admin');
+            
+            // ✅ FORZAR ESTILOS ADMIN INMEDIATAMENTE
+            setTimeout(() => {
+                console.log('🎨 Aplicando estilos forzados para admin...');
+                applyAdminStyles();
+            }, 50);
         }
     }
     
@@ -147,6 +153,74 @@ function showView(viewName) {
         adjustLayoutForView(viewName);
         updateNavigationState();
     }
+}
+
+// ✅ NUEVA FUNCIÓN: Aplicar estilos forzados para admin
+function applyAdminStyles() {
+    console.log('🎨 Aplicando estilos CSS forzados...');
+    
+    const adminContainer = document.querySelector('.admin-container');
+    const adminStats = document.querySelector('.admin-stats');
+    const adminTabs = document.querySelector('.admin-tabs');
+    
+    if (adminContainer) {
+        adminContainer.style.cssText = `
+            width: 100% !important;
+            max-width: 1400px !important;
+            margin: 0 auto !important;
+            padding: 20px !important;
+            display: block !important;
+        `;
+    }
+    
+    if (adminStats) {
+        adminStats.style.cssText = `
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+            gap: 20px !important;
+            margin-bottom: 30px !important;
+            width: 100% !important;
+        `;
+    }
+    
+    if (adminTabs) {
+        adminTabs.style.cssText = `
+            display: flex !important;
+            background: white !important;
+            border-radius: 12px !important;
+            padding: 8px !important;
+            margin-bottom: 20px !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+            gap: 10px !important;
+        `;
+    }
+    
+    // Aplicar estilos a las pestañas individuales
+    document.querySelectorAll('.admin-tab').forEach(tab => {
+        tab.style.cssText = `
+            flex: 1 !important;
+            padding: 12px 20px !important;
+            text-align: center !important;
+            background: none !important;
+            border: none !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            font-weight: 500 !important;
+            color: var(--text-light) !important;
+        `;
+    });
+    
+    // Aplicar estilos a las pestañas activas
+    document.querySelectorAll('.admin-tab.active').forEach(tab => {
+        tab.style.cssText += `
+            background: var(--primary) !important;
+            color: white !important;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3) !important;
+        `;
+    });
+    
+    console.log('✅ Estilos forzados aplicados correctamente');
 }
 
 function adjustLayoutForView(viewName) {
