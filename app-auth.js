@@ -2,7 +2,7 @@
 async function initializeAuth() {
     console.log('🔐 Inicializando autenticación...');
     setupAuthEventListeners();
-    await checkExistingAuth(); // ← Ahora esperamos a que termine
+    await checkExistingAuth();
     console.log('✅ Autenticación inicializada');
 }
 
@@ -40,20 +40,6 @@ function setupAuthEventListeners() {
 // ===== VERIFICAR AUTENTICACIÓN EXISTENTE =====
 async function checkExistingAuth() {
     console.log('🔍 Verificando autenticación existente...');
-    
-    // 🔧 NUEVO: VERIFICAR SI HAY REDIRECCIÓN PENDIENTE AL PANEL ADMIN
-    const redirectToAdmin = localStorage.getItem('redirectToAdmin');
-    if (redirectToAdmin === 'true') {
-        console.log('🔄 Redirección pendiente detectada - limpiando y mostrando panel admin');
-        localStorage.removeItem('redirectToAdmin');
-        
-        // Pequeño delay para asegurar que todo esté cargado
-        setTimeout(() => {
-            if (typeof showAdminView === 'function') {
-                showAdminView();
-            }
-        }, 100);
-    }
     
     if (authToken) {
         try {
@@ -130,7 +116,6 @@ function isValidAdmin(user) {
 function clearAuthData() {
     localStorage.removeItem('bodega_token');
     localStorage.removeItem('bodega_user');
-    localStorage.removeItem('redirectToAdmin'); // 🔧 NUEVO: Limpiar también la redirección
     authToken = null;
     currentUser = null;
     disableAdminMode();
@@ -219,13 +204,25 @@ async function handleLogin(e) {
             if (currentUser.role === 'admin' && isValidAdmin(currentUser)) {
                 enableAdminMode();
                 
-                // 🔧 SOLUCIÓN MEJORADA: GUARDAR REDIRECCIÓN Y LUEGO REFRESH
-                console.log('🔄 Admin detectado - guardando redirección y recargando...');
-                localStorage.setItem('redirectToAdmin', 'true');
+                // 🔧 SOLUCIÓN MEJORADA: FORZAR ESTILOS Y MOSTRAR PANEL SIN REFRESH
+                console.log('🔄 Admin detectado - aplicando solución sin refresh...');
                 
+                // 1. Forzar modo admin inmediatamente
+                enableAdminMode();
+                
+                // 2. Mostrar vista admin
                 setTimeout(() => {
-                    window.location.reload();
-                }, 300);
+                    if (typeof showView === 'function') {
+                        showView('admin');
+                    }
+                    
+                    // 3. Forzar estilos después de un pequeño delay
+                    setTimeout(() => {
+                        if (typeof applyAdminStyles === 'function') {
+                            applyAdminStyles();
+                        }
+                    }, 100);
+                }, 200);
                 
                 showNotification(`👑 ¡Bienvenido Administrador ${currentUser.nombre}!`, 'success');
             } else {
@@ -315,13 +312,25 @@ async function handleRegister(e) {
             if (userRole === 'admin' && isValidAdmin(currentUser)) {
                 enableAdminMode();
                 
-                // 🔧 SOLUCIÓN MEJORADA: GUARDAR REDIRECCIÓN Y LUEGO REFRESH
-                console.log('🔄 Admin detectado - guardando redirección y recargando...');
-                localStorage.setItem('redirectToAdmin', 'true');
+                // 🔧 SOLUCIÓN MEJORADA: FORZAR ESTILOS Y MOSTRAR PANEL SIN REFRESH
+                console.log('🔄 Admin detectado - aplicando solución sin refresh...');
                 
+                // 1. Forzar modo admin inmediatamente
+                enableAdminMode();
+                
+                // 2. Mostrar vista admin
                 setTimeout(() => {
-                    window.location.reload();
-                }, 300);
+                    if (typeof showView === 'function') {
+                        showView('admin');
+                    }
+                    
+                    // 3. Forzar estilos después de un pequeño delay
+                    setTimeout(() => {
+                        if (typeof applyAdminStyles === 'function') {
+                            applyAdminStyles();
+                        }
+                    }, 100);
+                }, 200);
                 
                 showNotification(`👑 ¡Cuenta de Administrador creada exitosamente! Bienvenido, ${currentUser.nombre}`, 'success');
             } else {
@@ -350,7 +359,6 @@ function handleLogout() {
     currentUser = null;
     localStorage.removeItem('bodega_token');
     localStorage.removeItem('bodega_user');
-    localStorage.removeItem('redirectToAdmin'); // 🔧 NUEVO: Limpiar también la redirección
     
     updateAuthUI();
     hideUserDropdown();
