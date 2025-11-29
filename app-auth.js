@@ -203,12 +203,13 @@ async function handleLogin(e) {
             // 🔧 ACTIVAR MODO ADMIN Y MOSTRAR PANEL SOLO SI ES ADMIN VÁLIDO
             if (currentUser.role === 'admin' && isValidAdmin(currentUser)) {
                 enableAdminMode();
-                // Mostrar panel admin automáticamente
-                if (typeof showAdminView === 'function') {
-                    setTimeout(() => {
-                        showAdminView();
-                    }, 100);
-                }
+                
+                // 🔧 SOLUCIÓN: REFRESH AUTOMÁTICO PARA ADMIN
+                console.log('🔄 Admin detectado - recargando vista para corregir diseño...');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 300);
+                
                 showNotification(`👑 ¡Bienvenido Administrador ${currentUser.nombre}!`, 'success');
             } else {
                 // 🔧 ASEGURARSE DE QUE USUARIOS NORMALES NO ESTÉN EN MODO ADMIN
@@ -296,12 +297,13 @@ async function handleRegister(e) {
             // 🔧 NOTIFICACIÓN ESPECIAL Y ACTIVAR MODO ADMIN SOLO SI ES ADMIN VÁLIDO
             if (userRole === 'admin' && isValidAdmin(currentUser)) {
                 enableAdminMode();
-                // Mostrar panel admin automáticamente
-                if (typeof showAdminView === 'function') {
-                    setTimeout(() => {
-                        showAdminView();
-                    }, 100);
-                }
+                
+                // 🔧 SOLUCIÓN: REFRESH AUTOMÁTICO PARA ADMIN
+                console.log('🔄 Admin detectado - recargando vista para corregir diseño...');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 300);
+                
                 showNotification(`👑 ¡Cuenta de Administrador creada exitosamente! Bienvenido, ${currentUser.nombre}`, 'success');
             } else {
                 // 🔧 ASEGURARSE DE QUE USUARIOS NORMALES NO ESTÉN EN MODO ADMIN
