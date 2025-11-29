@@ -138,13 +138,15 @@ function showAdminPanelDirectly() {
     const adminPanelFull = document.getElementById('adminPanelFull');
     
     if (adminWelcome && adminPanelFull) {
-        // 🔧 OCULTAR pantalla de bienvenida
+        // 🔧 FORZAR OCULTAR pantalla de bienvenida
         adminWelcome.style.display = 'none';
+        adminWelcome.style.opacity = '0';
         
-        // 🔧 MOSTRAR panel completo directamente
+        // 🔧 FORZAR MOSTRAR panel completo
         adminPanelFull.style.display = 'block';
         adminPanelFull.style.opacity = '1';
         adminPanelFull.style.transform = 'translateY(0)';
+        adminPanelFull.style.visibility = 'visible';
         
         // Cargar datos del panel completo
         loadAdminProducts();
@@ -152,6 +154,11 @@ function showAdminPanelDirectly() {
         updateAdminStats();
         
         console.log('✅ Panel completo mostrado directamente');
+        
+        // 🔧 EJECUTAR TAMBIÉN LA FUNCIÓN DE EMERGENCIA
+        setTimeout(forceAdminPanelOnLoad, 100);
+    } else {
+        console.error('❌ No se encontraron elementos del panel admin');
     }
 }
 
@@ -1339,3 +1346,32 @@ function handleFilterChange(e) {
     currentFilter = filterMap[filterText] || 'all';
     renderProductsByCategory();
 }
+// 🔧 FUNCIÓN DE EMERGENCIA - FORZAR PANEL COMPLETO AL CARGAR
+function forceAdminPanelOnLoad() {
+    console.log('🔧 Forzando panel admin al cargar...');
+    
+    const adminWelcome = document.getElementById('adminWelcome');
+    const adminPanelFull = document.getElementById('adminPanelFull');
+    
+    if (adminWelcome && adminPanelFull) {
+        // Ocultar pantalla de bienvenida
+        adminWelcome.style.display = 'none';
+        
+        // Mostrar panel completo
+        adminPanelFull.style.display = 'block';
+        adminPanelFull.style.opacity = '1';
+        adminPanelFull.style.transform = 'translateY(0)';
+        
+        console.log('✅ Panel forzado correctamente');
+    }
+}
+
+// 🔧 EJECUTAR AL CARGAR LA PÁGINA
+document.addEventListener('DOMContentLoaded', function() {
+    // Pequeño delay para asegurar que el DOM esté listo
+    setTimeout(() => {
+        if (currentUser?.role === 'admin' && currentView === 'admin') {
+            forceAdminPanelOnLoad();
+        }
+    }, 500);
+});
