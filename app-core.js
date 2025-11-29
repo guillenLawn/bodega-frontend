@@ -105,11 +105,13 @@ function showView(viewName) {
     localStorage.setItem('bodega_current_view', viewName);
     
     // 🔧 VALIDAR PERMISOS PARA ADMIN - MEJORADO
+    // 🔧 CORREGIDO: VALIDAR PERMISOS PARA ADMIN - SOLO MOSTRAR ERROR PERO NO REDIRIGIR
     if (viewName === 'admin') {
         if (!currentUser || currentUser.role !== 'admin') {
             console.log('❌ Acceso denegado a admin. Usuario:', currentUser);
             showNotification('🔐 No tienes permisos de administrador', 'error');
-            viewName = 'catalogo'; // Redirigir al catálogo
+            // 🔧 CAMBIO: NO forzar redirección, dejar que continue el flujo normal
+            return; // ← Agregar este return para evitar que continue
         } else {
             console.log('✅ Acceso permitido a admin');
             
@@ -120,7 +122,7 @@ function showView(viewName) {
             }, 50);
         }
     }
-    
+        
     // Ocultar todas las vistas
     document.querySelectorAll('.view-content').forEach(view => {
         view.classList.remove('active');
