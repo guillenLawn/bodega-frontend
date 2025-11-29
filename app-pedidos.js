@@ -125,9 +125,12 @@ function initializeAdminView() {
     // 🔧 CAMBIO: MOSTRAR DIRECTAMENTE EL PANEL COMPLETO
     showAdminPanelDirectly();
     
-    // 🔧 FINALMENTE cargar datos
-    loadAdminWelcomeStats();
-    initializeAdminTabs();
+    // 🔧 NUEVO: CARGAR DATOS INMEDIATAMENTE AL INICIALIZAR
+    loadAdminProducts();
+    loadAdminOrders();
+    updateAdminStats();
+    
+    console.log('✅ Vista admin inicializada correctamente con datos cargados');
 }
 
 // 🔧 FUNCIÓN NUEVA: Mostrar panel completo directamente
@@ -148,12 +151,12 @@ function showAdminPanelDirectly() {
         adminPanelFull.style.transform = 'translateY(0)';
         adminPanelFull.style.visibility = 'visible';
         
-        // Cargar datos del panel completo
+        // 🔧 CARGAR DATOS INMEDIATAMENTE
         loadAdminProducts();
         loadAdminOrders();
         updateAdminStats();
         
-        console.log('✅ Panel completo mostrado directamente');
+        console.log('✅ Panel completo mostrado directamente con datos cargados');
         
         // 🔧 EJECUTAR TAMBIÉN LA FUNCIÓN DE EMERGENCIA
         setTimeout(forceAdminPanelOnLoad, 100);
@@ -1375,3 +1378,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 500);
 });
+
+// 🔧 FUNCIÓN DE EMERGENCIA - FORZAR CARGA DE DATOS AL CARGAR LA PÁGINA
+function forceAdminDataLoad() {
+    console.log('🔧 Verificando si es necesario cargar datos admin...');
+    
+    if (currentUser?.role === 'admin' && currentView === 'admin') {
+        console.log('🔄 Usuario admin detectado - forzando carga de datos...');
+        
+        // Pequeño delay para asegurar que el DOM esté listo
+        setTimeout(() => {
+            loadAdminProducts();
+            loadAdminOrders();
+            updateAdminStats();
+        }, 1000);
+    }
+}
