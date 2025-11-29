@@ -20,11 +20,11 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
 
-function initializeApp() {
+async function initializeApp() {
     console.log('🚀 Inicializando aplicación...');
     
-    // 🔧 ORDEN CORREGIDO: Primero autenticación y permisos
-    initializeAuth(); // ← PRIMERO: Cargar usuario y verificar si es admin
+    // 🔧 ESPERAR a que la autenticación se complete PRIMERO
+    await initializeAuth(); // ← AGREGAR 'async' y 'await'
     
     // 🔧 SEGUNDO: Configurar navegación y vistas
     initializeNavigation();
