@@ -252,224 +252,256 @@
                 </div>
             </section>
 
-            <!-- 🔧 VISTA PANEL DE ADMINISTRADOR -->
+            <!-- 🔧 VISTA PANEL DE ADMINISTRADOR MEJORADA -->
             <section class="view-content" id="viewAdmin">
-                <div class="admin-container">
-                    <!-- Header del Panel Admin -->
-                    <div class="admin-header">
-                        <div class="admin-title-section">
-                            <h2 class="admin-title">
-                                <i class="fas fa-crown"></i>
-                                Panel de Administrador
-                            </h2>
-                            <p class="admin-subtitle">Gestión completa de productos y pedidos</p>
+                <!-- 🆕 PANTALLA DE BIENVENIDA -->
+                <div class="admin-welcome" id="adminWelcome">
+                    <div class="welcome-card">
+                        <div class="welcome-icon">
+                            <i class="fas fa-crown"></i>
                         </div>
-                        <div class="admin-badge">
-                            <span class="badge-admin">
-                                <i class="fas fa-shield-alt"></i>
-                                Modo Administrador
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Estadísticas Rápidas -->
-                    <div class="admin-stats">
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-box"></i>
+                        <h2>Panel de Administrador</h2>
+                        <p>Bienvenido al centro de control de Bodega Guadalupe</p>
+                        <button class="btn-admin-enter" id="enterAdminPanel">
+                            <i class="fas fa-rocket"></i>
+                            Acceder al Panel de Control
+                        </button>
+                        <div class="welcome-stats">
+                            <div class="welcome-stat">
+                                <span class="stat-number" id="welcomeTotalProducts">0</span>
+                                <span class="stat-label">Productos Totales</span>
                             </div>
-                            <div class="stat-info">
-                                <h3 id="totalProducts">0</h3>
-                                <p>Productos Totales</p>
+                            <div class="welcome-stat">
+                                <span class="stat-number" id="welcomeTotalOrders">0</span>
+                                <span class="stat-label">Pedidos Totales</span>
                             </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-shopping-cart"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3 id="totalOrders">0</h3>
-                                <p>Pedidos Totales</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3 id="totalUsers">0</h3>
-                                <p>Usuarios Registrados</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3 id="revenue">S/ 0.00</h3>
-                                <p>Ingresos Totales</p>
+                            <div class="welcome-stat">
+                                <span class="stat-number" id="welcomeTotalUsers">0</span>
+                                <span class="stat-label">Usuarios Registrados</span>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Navegación por Pestañas -->
-                    <div class="admin-tabs">
-                        <button class="admin-tab active" data-tab="gestion-productos">
-                            <i class="fas fa-boxes"></i>
-                            Gestión de Productos
-                        </button>
-                        <button class="admin-tab" data-tab="agregar-producto">
-                            <i class="fas fa-plus-circle"></i>
-                            Agregar Producto
-                        </button>
-                        <button class="admin-tab" data-tab="pedidos-sistema">
-                            <i class="fas fa-clipboard-list"></i>
-                            Pedidos del Sistema
-                        </button>
-                    </div>
-
-                    <!-- Contenido de las Pestañas -->
-                    <div class="admin-tab-content">
-                        
-                        <!-- 🔧 PESTAÑA: GESTIÓN DE PRODUCTOS -->
-                        <div class="tab-pane active" id="gestion-productos">
-                            <div class="tab-header">
-                                <h3>
-                                    <i class="fas fa-boxes"></i>
-                                    Gestión de Productos
-                                </h3>
-                                <div class="tab-actions">
-                                    <button class="btn-refresh" id="refreshProducts">
-                                        <i class="fas fa-sync-alt"></i>
-                                        Actualizar
-                                    </button>
-                                </div>
+                <!-- 🔧 PANEL COMPLETO (oculto inicialmente) -->
+                <div class="admin-panel-full" id="adminPanelFull" style="display: none;">
+                    <div class="admin-container">
+                        <!-- Header del Panel Admin -->
+                        <div class="admin-header">
+                            <div class="admin-title-section">
+                                <h2 class="admin-title">
+                                    <i class="fas fa-crown"></i>
+                                    Panel de Administrador
+                                </h2>
+                                <p class="admin-subtitle">Gestión completa de productos y pedidos</p>
                             </div>
-                            
-                            <div class="products-table-container">
-                                <table class="admin-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Producto</th>
-                                            <th>Categoría</th>
-                                            <th>Precio</th>
-                                            <th>Stock</th>
-                                            <th>Estado</th>
-                                            <th>Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="adminProductsTable">
-                                        <!-- Los productos se cargarán aquí dinámicamente -->
-                                        <tr class="table-loading">
-                                            <td colspan="6">
-                                                <i class="fas fa-spinner fa-spin"></i>
-                                                Cargando productos...
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            <div class="admin-badge">
+                                <span class="badge-admin">
+                                    <i class="fas fa-shield-alt"></i>
+                                    Modo Administrador
+                                </span>
                             </div>
                         </div>
 
-                        <!-- 🔧 PESTAÑA: AGREGAR PRODUCTO -->
-                        <div class="tab-pane" id="agregar-producto">
-                            <div class="tab-header">
-                                <h3>
-                                    <i class="fas fa-plus-circle"></i>
-                                    Agregar Nuevo Producto
-                                </h3>
+                        <!-- Estadísticas Rápidas -->
+                        <div class="admin-stats">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-box"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="totalProducts">0</h3>
+                                    <p>Productos Totales</p>
+                                </div>
                             </div>
-                            
-                            <form class="admin-product-form" id="addProductForm">
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="productName">Nombre del Producto *</label>
-                                        <input type="text" id="productName" required placeholder="Ej: Arroz Costeño">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="productCategory">Categoría *</label>
-                                        <select id="productCategory" required>
-                                            <option value="">Seleccionar categoría</option>
-                                            <option value="Abarrotes">Abarrotes</option>
-                                            <option value="Lácteos y Carnes">Lácteos y Carnes</option>
-                                            <option value="Bebidas">Bebidas</option>
-                                            <option value="Limpieza">Limpieza</option>
-                                        </select>
-                                    </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-shopping-cart"></i>
                                 </div>
-                                
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="productPrice">Precio (S/) *</label>
-                                        <input type="number" id="productPrice" step="0.01" min="0" required placeholder="0.00">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="productStock">Stock *</label>
-                                        <input type="number" id="productStock" min="0" required placeholder="0">
-                                    </div>
+                                <div class="stat-info">
+                                    <h3 id="totalOrders">0</h3>
+                                    <p>Pedidos Totales</p>
                                 </div>
-                                
-                                <div class="form-group">
-                                    <label for="productDescription">Descripción</label>
-                                    <textarea id="productDescription" rows="3" placeholder="Descripción del producto..."></textarea>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-users"></i>
                                 </div>
-                                
-                                <div class="form-group">
-                                    <label for="productImage">URL de la Imagen</label>
-                                    <input type="url" id="productImage" placeholder="https://ejemplo.com/imagen.jpg">
+                                <div class="stat-info">
+                                    <h3 id="totalUsers">0</h3>
+                                    <p>Usuarios Registrados</p>
                                 </div>
-                                
-                                <div class="form-actions">
-                                    <button type="reset" class="btn-secondary">
-                                        <i class="fas fa-undo"></i>
-                                        Limpiar
-                                    </button>
-                                    <button type="submit" class="btn-primary">
-                                        <i class="fas fa-save"></i>
-                                        Guardar Producto
-                                    </button>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-chart-line"></i>
                                 </div>
-                            </form>
+                                <div class="stat-info">
+                                    <h3 id="revenue">S/ 0.00</h3>
+                                    <p>Ingresos Totales</p>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- 🔧 PESTAÑA: PEDIDOS DEL SISTEMA -->
-                        <div class="tab-pane" id="pedidos-sistema">
-                            <div class="tab-header">
-                                <h3>
-                                    <i class="fas fa-clipboard-list"></i>
-                                    Pedidos del Sistema
-                                </h3>
-                                <div class="tab-actions">
-                                    <button class="btn-refresh" id="refreshOrders">
-                                        <i class="fas fa-sync-alt"></i>
-                                        Actualizar
-                                    </button>
+                        <!-- Navegación por Pestañas -->
+                        <div class="admin-tabs">
+                            <button class="admin-tab active" data-tab="gestion-productos">
+                                <i class="fas fa-boxes"></i>
+                                Gestión de Productos
+                            </button>
+                            <button class="admin-tab" data-tab="agregar-producto">
+                                <i class="fas fa-plus-circle"></i>
+                                Agregar Producto
+                            </button>
+                            <button class="admin-tab" data-tab="pedidos-sistema">
+                                <i class="fas fa-clipboard-list"></i>
+                                Pedidos del Sistema
+                            </button>
+                        </div>
+
+                        <!-- Contenido de las Pestañas -->
+                        <div class="admin-tab-content">
+                            
+                            <!-- 🔧 PESTAÑA: GESTIÓN DE PRODUCTOS -->
+                            <div class="tab-pane active" id="gestion-productos">
+                                <div class="tab-header">
+                                    <h3>
+                                        <i class="fas fa-boxes"></i>
+                                        Gestión de Productos
+                                    </h3>
+                                    <div class="tab-actions">
+                                        <button class="btn-refresh" id="refreshProducts">
+                                            <i class="fas fa-sync-alt"></i>
+                                            Actualizar
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="products-table-container">
+                                    <table class="admin-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Producto</th>
+                                                <th>Categoría</th>
+                                                <th>Precio</th>
+                                                <th>Stock</th>
+                                                <th>Estado</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="adminProductsTable">
+                                            <!-- Los productos se cargarán aquí dinámicamente -->
+                                            <tr class="table-loading">
+                                                <td colspan="6">
+                                                    <i class="fas fa-spinner fa-spin"></i>
+                                                    Cargando productos...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
-                            
-                            <div class="orders-table-container">
-                                <table class="admin-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Pedido ID</th>
-                                            <th>Usuario</th>
-                                            <th>Productos</th>
-                                            <th>Total</th>
-                                            <th>Fecha</th>
-                                            <th>Estado</th>
-                                            <th>Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="adminOrdersTable">
-                                        <!-- Los pedidos se cargarán aquí dinámicamente -->
-                                        <tr class="table-loading">
-                                            <td colspan="7">
-                                                <i class="fas fa-spinner fa-spin"></i>
-                                                Cargando pedidos...
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+
+                            <!-- 🔧 PESTAÑA: AGREGAR PRODUCTO -->
+                            <div class="tab-pane" id="agregar-producto">
+                                <div class="tab-header">
+                                    <h3>
+                                        <i class="fas fa-plus-circle"></i>
+                                        Agregar Nuevo Producto
+                                    </h3>
+                                </div>
+                                
+                                <form class="admin-product-form" id="addProductForm">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="productName">Nombre del Producto *</label>
+                                            <input type="text" id="productName" required placeholder="Ej: Arroz Costeño">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="productCategory">Categoría *</label>
+                                            <select id="productCategory" required>
+                                                <option value="">Seleccionar categoría</option>
+                                                <option value="Abarrotes">Abarrotes</option>
+                                                <option value="Lácteos y Carnes">Lácteos y Carnes</option>
+                                                <option value="Bebidas">Bebidas</option>
+                                                <option value="Limpieza">Limpieza</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="productPrice">Precio (S/) *</label>
+                                            <input type="number" id="productPrice" step="0.01" min="0" required placeholder="0.00">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="productStock">Stock *</label>
+                                            <input type="number" id="productStock" min="0" required placeholder="0">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="productDescription">Descripción</label>
+                                        <textarea id="productDescription" rows="3" placeholder="Descripción del producto..."></textarea>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="productImage">URL de la Imagen</label>
+                                        <input type="url" id="productImage" placeholder="https://ejemplo.com/imagen.jpg">
+                                    </div>
+                                    
+                                    <div class="form-actions">
+                                        <button type="reset" class="btn-secondary">
+                                            <i class="fas fa-undo"></i>
+                                            Limpiar
+                                        </button>
+                                        <button type="submit" class="btn-primary">
+                                            <i class="fas fa-save"></i>
+                                            Guardar Producto
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- 🔧 PESTAÑA: PEDIDOS DEL SISTEMA -->
+                            <div class="tab-pane" id="pedidos-sistema">
+                                <div class="tab-header">
+                                    <h3>
+                                        <i class="fas fa-clipboard-list"></i>
+                                        Pedidos del Sistema
+                                    </h3>
+                                    <div class="tab-actions">
+                                        <button class="btn-refresh" id="refreshOrders">
+                                            <i class="fas fa-sync-alt"></i>
+                                            Actualizar
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="orders-table-container">
+                                    <table class="admin-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Pedido ID</th>
+                                                <th>Usuario</th>
+                                                <th>Productos</th>
+                                                <th>Total</th>
+                                                <th>Fecha</th>
+                                                <th>Estado</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="adminOrdersTable">
+                                            <!-- Los pedidos se cargarán aquí dinámicamente -->
+                                            <tr class="table-loading">
+                                                <td colspan="7">
+                                                    <i class="fas fa-spinner fa-spin"></i>
+                                                    Cargando pedidos...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
