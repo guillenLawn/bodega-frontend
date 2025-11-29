@@ -109,7 +109,7 @@ function adjustLayoutForView(viewName) {
     }
 }
 
-// ===== 🔧 VISTA DE ADMINISTRADOR =====
+// ===== 🔧 VISTA DE ADMINISTRADOR MEJORADA =====
 function initializeAdminView() {
     console.log('🔧 Inicializando vista admin...', { currentUser, isAdminMode });
     
@@ -123,13 +123,84 @@ function initializeAdminView() {
     
     console.log('✅ Usuario autorizado, cargando panel admin...');
     
+    // 🔧 NUEVO: Configurar pantalla de bienvenida
+    setupAdminWelcomeScreen();
+    
     // 🔧 INICIALIZACIÓN SIMPLIFICADA - SIN VACIAR EL HTML
     initializeAdminStructure();
-    applyAdminStyles();
-    loadAdminProducts();
-    loadAdminOrders();
-    updateAdminStats();
+    loadAdminWelcomeStats();
     initializeAdminTabs();
+}
+
+// 🔧 FUNCIÓN NUEVA: Configurar pantalla de bienvenida del admin
+function setupAdminWelcomeScreen() {
+    console.log('🎯 Configurando pantalla de bienvenida admin...');
+    
+    // Mostrar pantalla de bienvenida y ocultar panel completo
+    const adminWelcome = document.getElementById('adminWelcome');
+    const adminPanelFull = document.getElementById('adminPanelFull');
+    
+    if (adminWelcome && adminPanelFull) {
+        adminWelcome.style.display = 'flex';
+        adminPanelFull.style.display = 'none';
+        
+        // 🔧 Configurar evento del botón "Acceder al Panel de Control"
+        const enterAdminBtn = document.getElementById('enterAdminPanel');
+        if (enterAdminBtn) {
+            enterAdminBtn.addEventListener('click', showAdminPanel);
+            console.log('✅ Botón de acceso al panel configurado');
+        }
+    } else {
+        console.warn('❌ No se encontraron elementos de la pantalla de bienvenida');
+    }
+}
+
+// 🔧 FUNCIÓN NUEVA: Mostrar panel completo del admin
+function showAdminPanel() {
+    console.log('🚀 Mostrando panel completo del admin...');
+    
+    const adminWelcome = document.getElementById('adminWelcome');
+    const adminPanelFull = document.getElementById('adminPanelFull');
+    
+    if (adminWelcome && adminPanelFull) {
+        // Ocultar pantalla de bienvenida
+        adminWelcome.style.display = 'none';
+        
+        // Mostrar panel completo con animación
+        adminPanelFull.style.display = 'block';
+        setTimeout(() => {
+            adminPanelFull.style.opacity = '1';
+            adminPanelFull.style.transform = 'translateY(0)';
+        }, 50);
+        
+        // Cargar datos del panel completo
+        loadAdminProducts();
+        loadAdminOrders();
+        updateAdminStats();
+        
+        console.log('✅ Panel completo del admin mostrado');
+        showNotification('🎛️ Panel de administrador cargado', 'success');
+    }
+}
+
+// 🔧 FUNCIÓN NUEVA: Cargar estadísticas en la pantalla de bienvenida
+function loadAdminWelcomeStats() {
+    console.log('📊 Cargando estadísticas de bienvenida...');
+    
+    // Actualizar estadísticas en la pantalla de bienvenida
+    const totalProducts = products.length;
+    const totalRevenue = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    // Actualizar elementos de la pantalla de bienvenida
+    const welcomeTotalProducts = document.getElementById('welcomeTotalProducts');
+    const welcomeTotalOrders = document.getElementById('welcomeTotalOrders');
+    const welcomeTotalUsers = document.getElementById('welcomeTotalUsers');
+    
+    if (welcomeTotalProducts) welcomeTotalProducts.textContent = totalProducts;
+    if (welcomeTotalOrders) welcomeTotalOrders.textContent = '0'; // Se actualizará con datos reales
+    if (welcomeTotalUsers) welcomeTotalUsers.textContent = '0'; // Se actualizará con datos reales
+    
+    console.log('✅ Estadísticas de bienvenida cargadas');
 }
 
 // 🔧 FUNCIÓN MEJORADA: Aplicar estilos forzados
@@ -234,12 +305,14 @@ function initializeAdminTabs() {
             
             // Agregar clase active a la pestaña y contenido seleccionado
             this.classList.add('active');
-            const targetPane = document.getElementById(`${targetTab}Tab`);
+            const targetPane = document.getElementById(targetTab);
             if (targetPane) {
                 targetPane.classList.add('active');
             }
         });
     });
+    
+    console.log('✅ Sistema de pestañas del admin inicializado');
 }
 
 // ===== 🔧 FUNCIONES DE GESTIÓN DE PRODUCTOS (ADMIN) =====
