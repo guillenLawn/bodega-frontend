@@ -123,6 +123,9 @@ function initializeAdminView() {
     
     console.log('✅ Usuario autorizado, cargando panel admin...');
     
+    // 🔧 NUEVO: Inicializar estructura CSS primero
+    initializeAdminStructure();
+    
     // Cargar datos iniciales del admin
     loadAdminProducts();
     loadAdminOrders();
@@ -130,6 +133,45 @@ function initializeAdminView() {
     
     // 🔧 INICIALIZAR PESTAÑAS DEL ADMIN
     initializeAdminTabs();
+}
+
+// 🔧 FUNCIÓN NUEVA: Inicializar estructura del panel admin
+function initializeAdminStructure() {
+    console.log('🎨 Inicializando estructura del panel admin...');
+    
+    // Asegurar que el contenedor principal tenga las clases correctas
+    const adminContainer = document.querySelector('.admin-container');
+    if (adminContainer) {
+        adminContainer.classList.add('admin-container');
+    }
+    
+    // Asegurar que las estadísticas tengan la estructura grid
+    const adminStats = document.querySelector('.admin-stats');
+    if (adminStats) {
+        adminStats.style.cssText = `
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+            gap: 20px !important;
+            margin-bottom: 30px !important;
+            width: 100% !important;
+        `;
+    }
+    
+    // Asegurar que las pestañas tengan el layout horizontal
+    const adminTabs = document.querySelector('.admin-tabs');
+    if (adminTabs) {
+        adminTabs.style.cssText = `
+            display: flex !important;
+            background: white !important;
+            border-radius: 12px !important;
+            padding: 8px !important;
+            margin-bottom: 20px !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+            gap: 10px !important;
+        `;
+    }
+    
+    console.log('✅ Estructura admin inicializada');
 }
 
 // 🔧 FUNCIÓN NUEVA: Inicializar sistema de pestañas del admin
