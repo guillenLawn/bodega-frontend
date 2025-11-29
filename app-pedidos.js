@@ -551,15 +551,51 @@ async function loadAdminOrders() {
     }
 }
 
-function updateAdminStats() {
-    // Actualizar estadísticas en el panel admin
-    const totalProducts = products.length;
-    const totalRevenue = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    
-    document.getElementById('totalProducts').textContent = totalProducts;
-    document.getElementById('totalOrders').textContent = '0'; // Se actualizará con datos reales
-    document.getElementById('totalUsers').textContent = '0'; // Se actualizará con datos reales
-    document.getElementById('revenue').textContent = `S/ ${totalRevenue.toFixed(2)}`;
+async function updateAdminStats() {
+    try {
+        console.log('📊 Actualizando estadísticas del admin...');
+        
+        const response = await fetch('/api/estadisticas', {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            if (data.success && data.estadisticas) {
+                const stats = data.estadisticas;
+                
+                document.getElementById('totalProducts').textContent = stats.totalProductos;
+                document.getElementById('totalOrders').textContent = stats.totalPedidos;
+                document.getElementById('totalUsers').textContent = stats.totalUsuarios;
+                document.getElementById('revenue').textContent = `S/ ${stats.ingresosTotales.toFixed(2)}`;
+                
+                console.log('✅ Estadísticas cargadas:', stats);
+            } else {
+                throw new Error('Formato de respuesta inválido');
+            }
+            
+        } else {
+            throw new Error('Error al cargar estadísticas');
+        }
+        
+    } catch (error) {
+        console.error('❌ Error actualizando estadísticas:', error);
+        
+        // 🔧 FALLBACK: Usar datos locales si falla la conexión
+        const totalProducts = products.length;
+        const totalRevenue = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        
+        document.getElementById('totalProducts').textContent = totalProducts;
+        document.getElementById('totalOrders').textContent = '0';
+        document.getElementById('totalUsers').textContent = '0';
+        document.getElementById('revenue').textContent = `S/ ${totalRevenue.toFixed(2)}`;
+        
+        showNotification('⚠️ Usando datos locales - Algunas estadísticas pueden no estar actualizadas', 'info');
+    }
 }
 
 // ===== 🔧 FUNCIONES DE CRUD PARA PRODUCTOS =====
