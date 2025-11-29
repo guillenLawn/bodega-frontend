@@ -254,28 +254,28 @@
 
             <!-- 🔧 VISTA PANEL DE ADMINISTRADOR MEJORADA -->
             <section class="view-content" id="viewAdmin">
-                <!-- 🆕 PANTALLA DE BIENVENIDA -->
-                <div class="admin-welcome" id="adminWelcome">
-                    <div class="welcome-card">
+                <!-- 🆕 PANTALLA DE BIENVENIDA - VERSIÓN CORREGIDA -->
+                <div class="admin-welcome" id="adminWelcome" style="display: flex; justify-content: center; align-items: center; min-height: 60vh; width: 100%; text-align: center;">
+                    <div class="welcome-card" style="text-align: center; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 500px;">
                         <div class="welcome-icon">
                             <i class="fas fa-crown"></i>
                         </div>
-                        <h2>Panel de Administrador</h2>
-                        <p>Bienvenido al centro de control de Bodega Guadalupe</p>
-                        <button class="btn-admin-enter" id="enterAdminPanel">
+                        <h2 style="text-align: center; width: 100%;">Panel de Administrador</h2>
+                        <p style="text-align: center; width: 100%;">Bienvenido al centro de control de Bodega Guadalupe</p>
+                        <button class="btn-admin-enter" id="enterAdminPanel" style="margin: 20px auto; display: inline-flex; justify-content: center; align-items: center; width: auto; min-width: 200px;">
                             <i class="fas fa-rocket"></i>
                             Acceder al Panel de Control
                         </button>
-                        <div class="welcome-stats">
-                            <div class="welcome-stat">
+                        <div class="welcome-stats" style="text-align: center; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 15px; margin: 0 auto; width: 100%;">
+                            <div class="welcome-stat" style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0;">
                                 <span class="stat-number" id="welcomeTotalProducts">0</span>
                                 <span class="stat-label">Productos Totales</span>
                             </div>
-                            <div class="welcome-stat">
+                            <div class="welcome-stat" style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0;">
                                 <span class="stat-number" id="welcomeTotalOrders">0</span>
                                 <span class="stat-label">Pedidos Totales</span>
                             </div>
-                            <div class="welcome-stat">
+                            <div class="welcome-stat" style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0;">
                                 <span class="stat-number" id="welcomeTotalUsers">0</span>
                                 <span class="stat-label">Usuarios Registrados</span>
                             </div>
