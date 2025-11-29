@@ -355,13 +355,120 @@
     margin-bottom: var(--space-lg);
 }
 
-/* ===== 🔧 PANEL DE ADMINISTRADOR - ESTRUCTURA CORREGIDA ===== */
+/* ===== 🔧 PANTALLA DE BIENVENIDA ADMIN ===== */
+.admin-welcome {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.welcome-card {
+    background: white;
+    border-radius: 20px;
+    padding: 50px 40px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    max-width: 500px;
+    width: 100%;
+    border: 1px solid var(--border-light);
+    animation: fadeInUp 0.6s ease;
+}
+
+.welcome-icon {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 30px;
+    font-size: 2.5rem;
+    color: white;
+    box-shadow: 0 10px 30px rgba(79, 70, 229, 0.3);
+}
+
+.welcome-card h2 {
+    color: var(--text-dark);
+    margin-bottom: 15px;
+    font-size: 2.2rem;
+    font-weight: 700;
+}
+
+.welcome-card p {
+    color: var(--text-light);
+    margin-bottom: 35px;
+    font-size: 1.2rem;
+    line-height: 1.6;
+}
+
+.btn-admin-enter {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    border: none;
+    padding: 18px 40px;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 40px;
+    box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3);
+}
+
+.btn-admin-enter:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(79, 70, 229, 0.4);
+}
+
+.btn-admin-enter:active {
+    transform: translateY(-1px);
+}
+
+.welcome-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 1px solid var(--border-light);
+}
+
+.welcome-stat {
+    text-align: center;
+    padding: 15px;
+}
+
+.stat-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+/* ===== 🔧 PANEL COMPLETO DE ADMIN ===== */
+.admin-panel-full {
+    animation: fadeIn 0.5s ease;
+}
+
 .admin-container {
     width: 100%;
     max-width: 1400px;
     margin: 0 auto;
     padding: 20px;
-    animation: fadeInUp 0.5s ease;
 }
 
 .admin-header {
@@ -384,30 +491,29 @@
     font-size: 1.1rem;
 }
 
-/* 🔧 ESTADÍSTICAS - SOLUCIÓN DEFINITIVA */
+/* 🔧 ESTADÍSTICAS - ESTRUCTURA CORREGIDA */
 .admin-stats {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
-    gap: 20px !important;
-    margin-bottom: 30px !important;
-    width: 100% !important;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
 }
 
 .stat-card {
-    background: white !important;
-    padding: 25px !important;
-    border-radius: 12px !important;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
-    border-left: 4px solid var(--primary) !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 15px !important;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-left: 4px solid var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 15px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .stat-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
 }
 
 .stat-icon {
@@ -435,13 +541,13 @@
 
 /* 🔧 PESTAÑAS DEL ADMIN */
 .admin-tabs {
-    display: flex !important;
-    background: white !important;
-    border-radius: 12px !important;
-    padding: 10px !important;
-    margin-bottom: 30px !important;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
-    gap: 10px !important;
+    display: flex;
+    background: white;
+    border-radius: 12px;
+    padding: 10px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    gap: 10px;
 }
 
 .admin-tab {
@@ -612,27 +718,63 @@
     border: 1px solid var(--border-light);
 }
 
-/* 🔧 SOLUCIÓN DEFINITIVA - FORZAR GRID HORIZONTAL SIEMPRE */
-#viewAdmin .admin-stats,
-#viewAdmin.active .admin-stats,
-#viewAdmin[class*="active"] .admin-stats {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
-    gap: 20px !important;
-    margin-bottom: 30px !important;
+/* ===== ANIMACIONES ===== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
-#viewAdmin .stat-card,
-#viewAdmin.active .stat-card,
-#viewAdmin[class*="active"] .stat-card {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    gap: 15px !important;
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* 🔧 RESPONSIVE */
+/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
+    /* Welcome Admin Responsive */
+    .admin-welcome {
+        padding: 20px 15px;
+    }
+    
+    .welcome-card {
+        padding: 30px 20px;
+    }
+    
+    .welcome-icon {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
+    }
+    
+    .welcome-card h2 {
+        font-size: 1.8rem;
+    }
+    
+    .btn-admin-enter {
+        padding: 15px 30px;
+        font-size: 1rem;
+    }
+    
+    .welcome-stats {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+    }
+    
+    /* Panel Admin Responsive */
     .admin-container {
         padding: 15px;
     }
@@ -644,11 +786,11 @@
     }
     
     .admin-stats {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: 1fr;
     }
     
     .admin-tabs {
-        flex-direction: column !important;
+        flex-direction: column;
     }
     
     .admin-tab-content {
@@ -696,28 +838,7 @@
     }
 }
 
-/* ===== ANIMACIONES ===== */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* ===== RESPONSIVE GENERAL ===== */
+/* Responsive General para otras vistas */
 @media (max-width: 768px) {
     .pedido-header {
         flex-direction: column;
