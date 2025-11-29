@@ -355,7 +355,7 @@
     margin-bottom: var(--space-lg);
 }
 
-/* ===== 🔧 PANEL DE ADMINISTRADOR - ESTRUCTURA COMPLETA ===== */
+/* ===== 🔧 PANEL DE ADMINISTRADOR - ESTRUCTURA CORREGIDA ===== */
 .admin-container {
     width: 100%;
     max-width: 1400px;
@@ -384,15 +384,7 @@
     font-size: 1.1rem;
 }
 
-/* 🔧 ESTADÍSTICAS - FORZAR GRID DESDE PRIMERA CARGA */
-#viewAdmin .admin-stats {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
-    gap: 20px !important;
-    margin-bottom: 30px !important;
-    width: 100% !important;
-}
-
+/* 🔧 ESTADÍSTICAS - SOLUCIÓN DEFINITIVA */
 .admin-stats {
     display: grid !important;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
@@ -441,17 +433,7 @@
     margin: 0;
 }
 
-/* 🔧 PESTAÑAS DEL ADMIN - FORZAR FLEX DESDE PRIMERA CARGA */
-#viewAdmin .admin-tabs {
-    display: flex !important;
-    background: white !important;
-    border-radius: 12px !important;
-    padding: 10px !important;
-    margin-bottom: 30px !important;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
-    gap: 10px !important;
-}
-
+/* 🔧 PESTAÑAS DEL ADMIN */
 .admin-tabs {
     display: flex !important;
     background: white !important;
@@ -504,13 +486,6 @@
 }
 
 /* 🔧 TABLAS DEL ADMIN */
-.admin-table-container {
-    overflow-x: auto;
-    border-radius: 8px;
-    border: 1px solid var(--border-light);
-    margin-bottom: 20px;
-}
-
 .admin-table {
     width: 100%;
     border-collapse: collapse;
@@ -536,14 +511,9 @@
     background: #f8f9fa;
 }
 
-.admin-table tr:last-child td {
-    border-bottom: none;
-}
-
 /* 🔧 FORMULARIOS DEL ADMIN */
-.admin-form {
+.admin-product-form {
     max-width: 600px;
-    margin: 0 auto;
 }
 
 .form-group {
@@ -569,6 +539,20 @@
 .form-control:focus {
     outline: none;
     border-color: var(--primary);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
 }
 
 /* 🔧 BOTONES DE ACCIÓN */
@@ -603,34 +587,8 @@
     background: #ffcdd2;
 }
 
-.btn-save {
-    background: var(--primary);
-    color: white;
-    padding: 10px 20px;
-}
-
-.btn-save:hover {
-    background: var(--primary-dark);
-}
-
-.btn-cancel {
-    background: #f5f5f5;
-    color: var(--text-light);
-    padding: 10px 20px;
-}
-
-.btn-cancel:hover {
-    background: #e0e0e0;
-}
-
 /* 🔧 SECCIONES ESPECÍFICAS DEL ADMIN */
-.products-section,
-.orders-section,
-.users-section {
-    animation: fadeIn 0.5s ease;
-}
-
-.section-header {
+.tab-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -639,7 +597,7 @@
     border-bottom: 1px solid var(--border-light);
 }
 
-.section-header h3 {
+.tab-header h3 {
     color: var(--text-dark);
     margin: 0;
     display: flex;
@@ -647,54 +605,30 @@
     gap: 10px;
 }
 
-/* 🔧 GESTIÓN DE PRODUCTOS */
-.products-management {
-    margin-bottom: 30px;
-}
-
-.add-product-form {
-    background: #f8f9fa;
-    padding: 20px;
+.products-table-container,
+.orders-table-container {
+    overflow-x: auto;
     border-radius: 8px;
-    margin-bottom: 20px;
+    border: 1px solid var(--border-light);
 }
 
-.form-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin-bottom: 15px;
+/* 🔧 SOLUCIÓN DEFINITIVA - FORZAR GRID HORIZONTAL SIEMPRE */
+#viewAdmin .admin-stats,
+#viewAdmin.active .admin-stats,
+#viewAdmin[class*="active"] .admin-stats {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+    gap: 20px !important;
+    margin-bottom: 30px !important;
 }
 
-.form-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-top: 20px;
-}
-
-/* 🔧 GESTIÓN DE PEDIDOS */
-.order-details {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    margin-top: 10px;
-}
-
-.order-items-list {
-    margin-top: 10px;
-}
-
-.order-item-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border-light);
-}
-
-.order-item-row:last-child {
-    border-bottom: none;
+#viewAdmin .stat-card,
+#viewAdmin.active .stat-card,
+#viewAdmin[class*="active"] .stat-card {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 15px !important;
 }
 
 /* 🔧 RESPONSIVE */
@@ -721,7 +655,7 @@
         padding: 20px;
     }
     
-    .section-header {
+    .tab-header {
         flex-direction: column;
         gap: 15px;
         align-items: flex-start;
@@ -733,10 +667,6 @@
     
     .form-actions {
         flex-direction: column;
-    }
-    
-    .admin-table-container {
-        font-size: 0.875rem;
     }
 }
 
@@ -766,114 +696,7 @@
     }
 }
 
-/* ===== ESTADOS Y BADGES ===== */
-.badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-
-.badge-success {
-    background: #D1FAE5;
-    color: #065F46;
-}
-
-.badge-warning {
-    background: #FEF3C7;
-    color: #92400E;
-}
-
-.badge-error {
-    background: #FEE2E2;
-    color: #991B1B;
-}
-
-.badge-info {
-    background: #DBEAFE;
-    color: #1E40AF;
-}
-
-/* ===== RESPONSIVE ESPECÍFICO PARA VISTAS ===== */
-@media (max-width: 768px) {
-    /* Responsive para historial */
-    .pedido-header {
-        flex-direction: column;
-        gap: var(--space-sm);
-        align-items: start;
-    }
-    
-    .pedido-total {
-        text-align: left;
-    }
-    
-    .user-dropdown {
-        position: fixed;
-        top: 80px;
-        left: 1rem;
-        right: 1rem;
-        margin-top: 0;
-    }
-    
-    .products-grid {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: var(--space-md);
-    }
-    
-    .search-input {
-        width: 100%;
-        max-width: 200px;
-    }
-    
-    .search-suggestions {
-        position: fixed;
-        top: 80px;
-        left: 1rem;
-        right: 1rem;
-        z-index: 1002;
-    }
-}
-
-@media (max-width: 480px) {
-    .products-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .product-card-modern {
-        margin: 0 var(--space-xs);
-    }
-    
-    /* Responsive para modales */
-    .modal {
-        width: 95%;
-        max-width: none;
-    }
-    
-    /* Responsive para pedidos */
-    .pedido-item {
-        flex-direction: column;
-        align-items: start;
-        gap: var(--space-sm);
-    }
-    
-    .item-info {
-        width: 100%;
-    }
-    
-    /* Responsive para autenticación */
-    .auth-buttons {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .btn-login, .btn-user {
-        font-size: 0.875rem;
-        padding: 0.4rem 0.8rem;
-    }
-}
-
-/* 🔧 ANIMACIONES ADICIONALES */
+/* ===== ANIMACIONES ===== */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -894,49 +717,36 @@
     }
 }
 
-/* 🔧 CORRECCIÓN DEFINITIVA PARA DISEÑO VERTICAL */
-#viewAdmin .admin-stats,
-.admin-stats {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
-    gap: 20px !important;
-    margin-bottom: 30px !important;
-    width: 100% !important;
+/* ===== RESPONSIVE GENERAL ===== */
+@media (max-width: 768px) {
+    .pedido-header {
+        flex-direction: column;
+        gap: var(--space-sm);
+        align-items: start;
+    }
+    
+    .pedido-total {
+        text-align: left;
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--space-md);
+    }
 }
 
-#viewAdmin .admin-tabs,
-.admin-tabs {
-    display: flex !important;
-    background: white !important;
-    border-radius: 12px !important;
-    padding: 10px !important;
-    margin-bottom: 30px !important;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
-    gap: 10px !important;
-}
-
-#viewAdmin .stat-card,
-.stat-card {
-    background: white !important;
-    padding: 25px !important;
-    border-radius: 12px !important;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
-    border-left: 4px solid var(--primary) !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 15px !important;
-}
-
-/* 🔧 FORZAR ESTILOS EN PRIMERA CARGA */
-#viewAdmin {
-    opacity: 1 !important;
-    visibility: visible !important;
-}
-
-#viewAdmin .admin-container {
-    display: block !important;
-}
-
-#viewAdmin .admin-stats > * {
-    display: flex !important;
+@media (max-width: 480px) {
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .pedido-item {
+        flex-direction: column;
+        align-items: start;
+        gap: var(--space-sm);
+    }
+    
+    .item-info {
+        width: 100%;
+    }
 }
