@@ -528,7 +528,7 @@ function renderPedidosList(pedidos) {
             </div>
         </div>
     `).join('');
-    
+
     pedidosList.innerHTML = pedidosHTML;
 }
 
@@ -829,31 +829,10 @@ async function realizarPedido() {
         const pedidoResult = await response.json();
         
         if (pedidoResult.success) {
-            const updatePromises = cart.map(async (item) => {
-                const product = products.find(p => p.id == item.id);
-                const newQuantity = product.quantity - item.quantity;
-                
-                console.log(`Actualizando producto ${product.name}: ${product.quantity} - ${item.quantity} = ${newQuantity}`);
-                
-                const updateResponse = await fetch(`${API_URL}/${item.id}`, {
-                    method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
-                    },
-                    body: JSON.stringify({
-                        nombre: product.name,
-                        categoria: product.category,
-                        stock: newQuantity,
-                        precio: product.price
-                    })
-                });
-                
-                if (!updateResponse.ok) throw new Error('Error actualizando producto');
-                return updateResponse.json();
-            });
-
-            await Promise.all(updatePromises);
+            console.log('✅ Pedido creado exitosamente, stock actualizado por el backend');
+            
+            // El backend ya actualizó el stock automáticamente
+            // No necesitamos hacer actualizaciones adicionales
             
             const productosResumen = cart.map(item => 
                 `• ${item.name} x${item.quantity} - S/ ${(item.price * item.quantity).toFixed(2)}`
