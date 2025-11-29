@@ -1,7 +1,9 @@
 // ===== INICIALIZAR SISTEMA DE AUTENTICACIÓN =====
-function initializeAuth() {
+async function initializeAuth() {
+    console.log('🔐 Inicializando autenticación...');
     setupAuthEventListeners();
-    checkExistingAuth();
+    await checkExistingAuth(); // ← Ahora esperamos a que termine
+    console.log('✅ Autenticación inicializada');
 }
 
 // ===== CONFIGURAR EVENT LISTENERS PARA AUTENTICACIÓN =====
@@ -37,6 +39,8 @@ function setupAuthEventListeners() {
 
 // ===== VERIFICAR AUTENTICACIÓN EXISTENTE =====
 async function checkExistingAuth() {
+    console.log('🔍 Verificando autenticación existente...');
+    
     if (authToken) {
         try {
             const response = await fetch(`${AUTH_API}/verify`, {
@@ -48,6 +52,7 @@ async function checkExistingAuth() {
             if (response.ok) {
                 const data = await response.json();
                 currentUser = data.user;
+                console.log('✅ Usuario autenticado:', currentUser);
                 
                 // 🔧 CARGAR ROL DESDE LOCALSTORAGE SI EXISTE
                 const savedUser = localStorage.getItem('bodega_user');
@@ -56,6 +61,7 @@ async function checkExistingAuth() {
                         const userData = JSON.parse(savedUser);
                         if (userData.role && userData.email === currentUser.email) {
                             currentUser.role = userData.role;
+                            console.log('🔧 Rol cargado desde localStorage:', userData.role);
                         }
                     } catch (error) {
                         console.error('Error parsing saved user:', error);
@@ -73,8 +79,8 @@ async function checkExistingAuth() {
                     disableAdminMode();
                     if (currentView === 'admin') {
                         // Si no es admin pero está en vista admin, redirigir al catálogo
-                        if (typeof switchView === 'function') {
-                            switchView('catalogo');
+                        if (typeof showView === 'function') {
+                            showView('catalogo');
                         }
                         showNotification('🔐 No tienes permisos de administrador', 'error');
                     }
@@ -84,6 +90,7 @@ async function checkExistingAuth() {
                     loadHistorialPedidos();
                 }
             } else {
+                console.log('❌ Token inválido, limpiando datos...');
                 clearAuthData();
             }
         } catch (error) {
@@ -92,6 +99,7 @@ async function checkExistingAuth() {
         }
     } else {
         // 🔧 NO HAY TOKEN - ASEGURARSE DE QUE NO ESTÉ EN MODO ADMIN
+        console.log('🔍 No hay token de autenticación');
         disableAdminMode();
         localStorage.removeItem('bodega_user');
     }
@@ -111,6 +119,7 @@ function clearAuthData() {
     authToken = null;
     currentUser = null;
     disableAdminMode();
+    updateAuthUI();
 }
 
 // ===== MANEJO DE MODALES =====
@@ -424,8 +433,8 @@ function disableAdminMode() {
     if (filtersSidebar) filtersSidebar.style.display = 'block';
     
     // 🔧 VOLVER A LA VISTA NORMAL DEL CATÁLOGO SI ESTÁ EN ADMIN
-    if (typeof switchView === 'function' && currentView === 'admin') {
-        switchView('catalogo');
+    if (typeof showView === 'function' && currentView === 'admin') {
+        showView('catalogo');
         showNotification('🔐 Modo administrador desactivado', 'info');
     }
     
@@ -437,8 +446,8 @@ function showAdminView() {
     // 🔧 VERIFICAR PERMISOS ANTES DE MOSTRAR EL PANEL
     if (!currentUser || currentUser.role !== 'admin' || !isValidAdmin(currentUser)) {
         showNotification('🔐 No tienes permisos de administrador', 'error');
-        if (typeof switchView === 'function') {
-            switchView('catalogo');
+        if (typeof showView === 'function') {
+            showView('catalogo');
         }
         return;
     }
