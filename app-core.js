@@ -1,8 +1,8 @@
 // ===== CONFIGURACIÓN Y CONSTANTES =====
-const API_URL = 'https://bodega-backend-4md3.onrender.com/api/inventory';
-const AUTH_API = 'https://bodega-backend-4md3.onrender.com/api/auth';
-const PEDIDOS_API = 'https://bodega-backend-4md3.onrender.com/api/pedidos';
-const ADMIN_API = 'https://bodega-backend-4md3.onrender.com/api/admin';
+const API_BASE_URL = 'https://bodega-backend-nuevo.onrender.com';
+const API_URL = `${API_BASE_URL}/api/inventory`;
+const AUTH_API = `${API_BASE_URL}/api/auth`;
+const PEDIDOS_API = `${API_BASE_URL}/api/pedidos`;
 
 // ===== ESTADO GLOBAL =====
 let cart = [];
