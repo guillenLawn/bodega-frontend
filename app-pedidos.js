@@ -568,7 +568,7 @@ async function updateAdminStats() {
         console.log('🔍 Usuario actual:', currentUser);
         
         // 🔧 2. URL DEL ENDPOINT
-        const ESTADISTICAS_URL = 'https://bodega-backend-4md3.onrender.com/api/estadisticas';
+        const ESTADISTICAS_URL = 'https://bodega-backend-nuevo.onrender.com/api/estadisticas';
         console.log('🔍 Endpoint:', ESTADISTICAS_URL);
         
         // 🔧 3. HACER LA PETICIÓN
