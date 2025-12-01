@@ -1291,87 +1291,202 @@
 }
 
 /* ====================== */
-/* AJUSTAR TARJETA COMPLETA PARA VERTICAL */
+/* 🎯 TARJETA COMPLETA VERTICAL (Estilo supermercado) */
 /* ====================== */
 
+/* CONTENEDOR PRINCIPAL DE LA TARJETA - Más vertical */
 .product-card-modern {
-    min-height: 380px !important;
+    min-height: 420px !important;     /* ← Mucho más alto */
+    height: auto !important;
     display: flex !important;
     flex-direction: column !important;
+    border-radius: 16px !important;   /* ← Bordes más redondeados */
+    border: 1px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+    transition: all 0.3s ease !important;
+    overflow: hidden !important;
+    position: relative !important;
 }
 
-/* Asegurar que el contenido se distribuya bien */
+/* Hover en toda la tarjeta */
+.product-card-modern:hover {
+    transform: translateY(-8px) !important;
+    box-shadow: 0 12px 24px rgba(37, 99, 235, 0.15) !important;
+    border-color: var(--primary) !important;
+}
+
+/* Contenedor de imagen dentro de la tarjeta */
+.product-image {
+    height: 200px !important;         /* ← Mantenemos altura razonable */
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #f8fafc !important;   /* ← Fondo gris muy claro */
+    border-radius: 12px 12px 0 0 !important; /* ← Solo redondea arriba */
+    margin-bottom: 0 !important;      /* ← Sin margen inferior */
+    overflow: hidden !important;
+    border-bottom: 1px solid #e2e8f0 !important; /* ← Línea divisoria */
+    padding: 20px !important;
+}
+
+/* Imagen dentro del contenedor */
+.product-real-image {
+    max-width: 90% !important;
+    max-height: 160px !important;     /* ← Altura optimizada */
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Efecto hover solo en imagen */
+.product-card-modern:hover .product-real-image {
+    transform: scale(1.05) !important;
+}
+
+/* CUERPO DE LA TARJETA - Más contenido vertical */
 .product-card-body {
     flex: 1 !important;
     display: flex !important;
     flex-direction: column !important;
-    justify-content: space-between !important;
-    padding: 0 12px 12px 12px !important;
+    padding: 20px !important;         /* ← Más padding interno */
+    gap: 12px !important;             /* ← Espacio entre elementos */
 }
 
-/* Ajustar el espacio del botón */
+/* Nombre del producto */
+.product-card-title {
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+    margin-bottom: 4px !important;
+    line-height: 1.4 !important;
+    min-height: 3em !important;       /* ← Altura fija para 2 líneas */
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+}
+
+/* Descripción */
+.product-card-description {
+    font-size: 0.875rem !important;
+    color: #64748b !important;
+    line-height: 1.5 !important;
+    margin-bottom: 8px !important;
+    flex-grow: 1 !important;
+}
+
+/* Precio - Más destacado */
+.product-card-price {
+    font-size: 1.5rem !important;     /* ← Precio más grande */
+    font-weight: 700 !important;
+    color: var(--primary) !important;
+    margin: 8px 0 !important;
+}
+
+/* Stock */
+.product-card-stock {
+    font-size: 0.85rem !important;
+    color: #10b981 !important;        /* ← Verde para stock */
+    font-weight: 500 !important;
+    margin-bottom: 8px !important;
+}
+
+/* PIE DE TARJETA - Botón centrado */
 .product-card-footer {
     margin-top: auto !important;
-    padding-top: 15px !important;
+    padding: 16px 20px 20px 20px !important;
+    border-top: 1px solid #f1f5f9 !important;
+    background: #f8fafc !important;   /* ← Fondo gris claro */
+    text-align: center !important;
 }
 
-/* Responsive */
+/* Botón Agregar - Más ancho */
+.btn-add-cart {
+    width: 100% !important;           /* ← Ocupa todo el ancho */
+    max-width: 200px !important;      /* ← Pero no demasiado */
+    margin: 0 auto !important;        /* ← Centrado */
+    padding: 12px 24px !important;    /* ← Más grande */
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    border-radius: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+}
+
+/* Responsive - Ajustar proporciones */
 @media (max-width: 1024px) {
+    .product-card-modern {
+        min-height: 380px !important;
+    }
+    
     .product-image {
-        height: 200px !important;
+        height: 180px !important;
+        padding: 15px !important;
     }
     
     .product-real-image {
-        max-height: 170px !important;
+        max-height: 150px !important;
     }
 }
 
 @media (max-width: 768px) {
+    .product-card-modern {
+        min-height: 360px !important;
+        border-radius: 12px !important;
+    }
+    
     .product-image {
-        height: 180px !important;
+        height: 160px !important;
         padding: 12px !important;
     }
     
     .product-real-image {
-        max-height: 155px !important;
+        max-height: 130px !important;
     }
     
-    .product-card-modern {
-        min-height: 350px !important;
+    .product-card-body {
+        padding: 16px !important;
+    }
+    
+    .product-card-price {
+        font-size: 1.3rem !important;
     }
 }
 
 @media (max-width: 480px) {
+    .product-card-modern {
+        min-height: 340px !important;
+    }
+    
     .product-image {
-        height: 160px !important;
+        height: 140px !important;
         padding: 10px !important;
     }
     
     .product-real-image {
-        max-height: 140px !important;
+        max-height: 120px !important;
     }
     
-    .product-card-modern {
-        min-height: 320px !important;
+    .product-card-title {
+        font-size: 1rem !important;
+        min-height: 2.8em !important;
     }
 }
 
-/* ====================== */
-/* ANIMACIONES Y EFECTOS (Si no existen ya) */
-/* ====================== */
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* Para iconos (fallback) */
+.product-image i {
+    font-size: 3.5rem !important;
+    color: #94a3b8 !important;
+    opacity: 0.8 !important;
 }
 
-@keyframes spin {
-    0% { transform: translateY(-50%) rotate(0deg); }
-    100% { transform: translateY(-50%) rotate(360deg); }
+/* Ocultar icono cuando hay imagen */
+.product-real-image[src]:not([src=""]) ~ i.fas {
+    display: none !important;
 }
