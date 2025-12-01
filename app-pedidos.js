@@ -908,7 +908,7 @@ async function loadProducts() {
             price: parseFloat(product.precio),
             quantity: product.stock,
             category: product.categoria,
-            image: product.imagen_url
+            imagen_url: product.imagen_url
         }));
         
         console.log('Productos transformados:', products);
