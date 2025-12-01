@@ -1236,12 +1236,13 @@
 }
 
 /* ====================== */
-/* 🎯 CORRECCIÓN FINAL: IMÁGENES DE PRODUCTOS */
+/* 🎯 CONTENEDOR VERTICAL PARA IMÁGENES VERTICALES */
 /* ====================== */
 
-/* Contenedor optimizado */
+/* Contenedor VERTICAL (más alto que ancho) */
 .product-image {
-    height: 180px !important;
+    height: 220px !important;
+    width: 100% !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -1252,31 +1253,34 @@
     border: 1px solid #e5e7eb !important;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
     position: relative !important;
+    padding: 15px !important;
 }
 
-/* Imágenes - SIN espacios blancos */
+/* Imágenes verticales - Se adaptan al contenedor */
 .product-real-image {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
+    max-width: 100% !important;
+    max-height: 190px !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
     object-position: center !important;
-    border-radius: 8px !important;
+    border-radius: 6px !important;
     transition: all 0.3s ease !important;
 }
 
-/* Efecto hover */
+/* Efecto hover elegante */
 .product-card-modern:hover .product-real-image {
     transform: scale(1.05) !important;
 }
 
 .product-card-modern:hover .product-image {
     border-color: var(--primary) !important;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15) !important;
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.15) !important;
 }
 
 /* Para iconos (fallback) */
 .product-image i {
-    font-size: 3rem !important;
+    font-size: 3.5rem !important;
     color: #6b7280 !important;
     opacity: 0.7 !important;
 }
@@ -1286,15 +1290,88 @@
     display: none !important;
 }
 
+/* ====================== */
+/* AJUSTAR TARJETA COMPLETA PARA VERTICAL */
+/* ====================== */
+
+.product-card-modern {
+    min-height: 380px !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Asegurar que el contenido se distribuya bien */
+.product-card-body {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    padding: 0 12px 12px 12px !important;
+}
+
+/* Ajustar el espacio del botón */
+.product-card-footer {
+    margin-top: auto !important;
+    padding-top: 15px !important;
+}
+
 /* Responsive */
+@media (max-width: 1024px) {
+    .product-image {
+        height: 200px !important;
+    }
+    
+    .product-real-image {
+        max-height: 170px !important;
+    }
+}
+
 @media (max-width: 768px) {
     .product-image {
-        height: 160px !important;
+        height: 180px !important;
+        padding: 12px !important;
+    }
+    
+    .product-real-image {
+        max-height: 155px !important;
+    }
+    
+    .product-card-modern {
+        min-height: 350px !important;
     }
 }
 
 @media (max-width: 480px) {
     .product-image {
-        height: 140px !important;
+        height: 160px !important;
+        padding: 10px !important;
     }
+    
+    .product-real-image {
+        max-height: 140px !important;
+    }
+    
+    .product-card-modern {
+        min-height: 320px !important;
+    }
+}
+
+/* ====================== */
+/* ANIMACIONES Y EFECTOS (Si no existen ya) */
+/* ====================== */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes spin {
+    0% { transform: translateY(-50%) rotate(0deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
 }
