@@ -1030,10 +1030,16 @@ function createProductCardHTML(product) {
     const stockStatus = product.quantity === 0 ? 'out' : product.quantity < 10 ? 'low' : '';
     const stockText = product.quantity === 0 ? 'Sin stock' : `Stock: ${product.quantity}`;
     
+    // ✅ USAR imagen_url si existe, si no icono como fallback
+    const imageHTML = product.imagen_url 
+        ? `<img src="${product.imagen_url}" alt="${escapeHtml(product.name)}" class="product-real-image" 
+             onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fas fa-${getProductIcon(product.category)}\\'></i>';">`
+        : `<i class="fas fa-${getProductIcon(product.category)}"></i>`;
+    
     return `
         <div class="product-card-modern" data-id="${product.id}">
             <div class="product-image">
-                <i class="fas fa-${getProductIcon(product.category)}"></i>
+                ${imageHTML}
             </div>
             <div class="product-info">
                 <div class="product-name">${escapeHtml(product.name)}</div>
