@@ -1472,3 +1472,30 @@ function forceAdminDataLoad() {
         }, 1000);
     }
 }
+// 1. FUNCIÓN PARA ESCAPAR HTML (PROTECCIÓN CONTRA XSS)
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// 2. FUNCIÓN PARA OBTENER ICONOS POR CATEGORÍA
+function getProductIcon(category) {
+    const iconMap = {
+        'Abarrotes': 'shopping-basket',
+        'Lácteos': 'cheese',
+        'Bebidas': 'wine-bottle',
+        'Limpieza': 'broom',
+        'Conservas': 'box',
+        'Pastas': 'utensils',
+        'Aceites': 'oil-can',
+        'Granos': 'seedling',
+        'Carnes': 'drumstick-bite',
+        'default': 'tag'
+    };
+    
+    return iconMap[category] || iconMap.default;
+}
+
+
