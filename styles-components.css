@@ -1105,3 +1105,37 @@
 .welcome-stat {
     text-align: center !important;
 }
+
+/* ==================== 🆕 ESTILOS PARA IMÁGENES REALES ==================== */
+/* Agregar AL FINAL del archivo */
+
+.product-real-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.product-card-modern:hover .product-real-image {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Asegurar que el contenedor tenga altura fija */
+.product-image {
+    height: 160px !important;
+    min-height: 160px !important;
+}
+
+/* Ocultar icono cuando hay imagen real */
+.product-image:has(.product-real-image) i.fas {
+    display: none !important;
+}
+
+/* Asegurar que las imágenes se muestren */
+.product-image img {
+    display: block !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+}
