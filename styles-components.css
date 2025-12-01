@@ -1291,199 +1291,247 @@
 }
 
 /* ====================== */
-/* 🎯 TARJETA COMPLETA VERTICAL (Estilo supermercado) */
+/* 🎯 TARJETA 50/50 - IMAGEN MITAD, CONTENIDO MITAD */
 /* ====================== */
 
-/* CONTENEDOR PRINCIPAL DE LA TARJETA - Más vertical */
+/* TARJETA RECTANGULAR VERTICAL (proporción 3:4) */
 .product-card-modern {
-    min-height: 420px !important;     /* ← Mucho más alto */
-    height: auto !important;
+    height: 480px !important;         /* ← Más alta, más rectangular */
+    min-height: 480px !important;
     display: flex !important;
     flex-direction: column !important;
-    border-radius: 16px !important;   /* ← Bordes más redondeados */
+    border-radius: 16px !important;
     border: 1px solid #e2e8f0 !important;
     background: #ffffff !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-    transition: all 0.3s ease !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     overflow: hidden !important;
     position: relative !important;
 }
 
-/* Hover en toda la tarjeta */
+/* Hover con efecto elevación */
 .product-card-modern:hover {
-    transform: translateY(-8px) !important;
-    box-shadow: 0 12px 24px rgba(37, 99, 235, 0.15) !important;
+    transform: translateY(-10px) scale(1.02) !important;
+    box-shadow: 0 20px 40px rgba(37, 99, 235, 0.15) !important;
     border-color: var(--primary) !important;
 }
 
-/* Contenedor de imagen dentro de la tarjeta */
+/* SECCIÓN DE IMAGEN - OCUPA EXACTAMENTE LA MITAD */
 .product-image {
-    height: 200px !important;         /* ← Mantenemos altura razonable */
+    height: 240px !important;         /* ← Exactamente la mitad de 480px */
     width: 100% !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    background: #f8fafc !important;   /* ← Fondo gris muy claro */
-    border-radius: 12px 12px 0 0 !important; /* ← Solo redondea arriba */
-    margin-bottom: 0 !important;      /* ← Sin margen inferior */
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+    margin: 0 !important;
     overflow: hidden !important;
-    border-bottom: 1px solid #e2e8f0 !important; /* ← Línea divisoria */
-    padding: 20px !important;
+    border-bottom: 2px solid #f1f5f9 !important;
+    padding: 25px !important;
+    flex-shrink: 0 !important;        /* ← No se reduce */
 }
 
-/* Imagen dentro del contenedor */
+/* IMAGEN DENTRO - Ocupa casi todo el espacio */
 .product-real-image {
     max-width: 90% !important;
-    max-height: 160px !important;     /* ← Altura optimizada */
+    max-height: 190px !important;     /* ← 190px de 240px disponible */
     width: auto !important;
     height: auto !important;
     object-fit: contain !important;
     object-position: center !important;
-    transition: all 0.3s ease !important;
+    transition: all 0.4s ease !important;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)) !important;
 }
 
-/* Efecto hover solo en imagen */
+/* Efecto hover en imagen */
 .product-card-modern:hover .product-real-image {
-    transform: scale(1.05) !important;
+    transform: scale(1.1) !important;
+    filter: drop-shadow(0 8px 16px rgba(0,0,0,0.15)) !important;
 }
 
-/* CUERPO DE LA TARJETA - Más contenido vertical */
+/* SECCIÓN DE CONTENIDO - La otra mitad */
 .product-card-body {
-    flex: 1 !important;
+    flex: 1 !important;               /* ← Ocupa el espacio restante */
     display: flex !important;
     flex-direction: column !important;
-    padding: 20px !important;         /* ← Más padding interno */
-    gap: 12px !important;             /* ← Espacio entre elementos */
+    padding: 24px !important;
+    gap: 16px !important;
+    overflow: hidden !important;
 }
 
 /* Nombre del producto */
 .product-card-title {
-    font-size: 1.1rem !important;
-    font-weight: 600 !important;
+    font-size: 1.15rem !important;
+    font-weight: 700 !important;
     color: #1e293b !important;
-    margin-bottom: 4px !important;
     line-height: 1.4 !important;
-    min-height: 3em !important;       /* ← Altura fija para 2 líneas */
+    margin-bottom: 8px !important;
+    min-height: 3.2em !important;      /* ← Para 2 líneas exactas */
     display: -webkit-box !important;
     -webkit-line-clamp: 2 !important;
     -webkit-box-orient: vertical !important;
     overflow: hidden !important;
+    text-overflow: ellipsis !important;
 }
 
 /* Descripción */
 .product-card-description {
-    font-size: 0.875rem !important;
+    font-size: 0.9rem !important;
     color: #64748b !important;
-    line-height: 1.5 !important;
-    margin-bottom: 8px !important;
+    line-height: 1.6 !important;
+    margin-bottom: 12px !important;
     flex-grow: 1 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 3 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
 }
 
-/* Precio - Más destacado */
+/* Precio - Grande y destacado */
 .product-card-price {
-    font-size: 1.5rem !important;     /* ← Precio más grande */
-    font-weight: 700 !important;
+    font-size: 1.8rem !important;     /* ← Más grande */
+    font-weight: 800 !important;
     color: var(--primary) !important;
-    margin: 8px 0 !important;
+    margin: 12px 0 !important;
+    letter-spacing: -0.5px !important;
 }
 
 /* Stock */
 .product-card-stock {
     font-size: 0.85rem !important;
-    color: #10b981 !important;        /* ← Verde para stock */
-    font-weight: 500 !important;
-    margin-bottom: 8px !important;
+    color: #10b981 !important;
+    font-weight: 600 !important;
+    background: #f0fdf4 !important;
+    padding: 6px 12px !important;
+    border-radius: 20px !important;
+    display: inline-block !important;
+    margin-bottom: 16px !important;
+    border: 1px solid #bbf7d0 !important;
 }
 
 /* PIE DE TARJETA - Botón centrado */
 .product-card-footer {
     margin-top: auto !important;
-    padding: 16px 20px 20px 20px !important;
-    border-top: 1px solid #f1f5f9 !important;
-    background: #f8fafc !important;   /* ← Fondo gris claro */
+    padding: 0 24px 24px 24px !important;
     text-align: center !important;
 }
 
-/* Botón Agregar - Más ancho */
+/* Botón Agregar - Ancho completo */
 .btn-add-cart {
-    width: 100% !important;           /* ← Ocupa todo el ancho */
-    max-width: 200px !important;      /* ← Pero no demasiado */
-    margin: 0 auto !important;        /* ← Centrado */
-    padding: 12px 24px !important;    /* ← Más grande */
-    font-size: 1rem !important;
-    font-weight: 600 !important;
-    border-radius: 10px !important;
+    width: 100% !important;
+    padding: 14px 28px !important;
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    border-radius: 12px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 10px !important;
+    gap: 12px !important;
+    transition: all 0.3s ease !important;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+    border: none !important;
+    color: white !important;
 }
 
-/* Responsive - Ajustar proporciones */
+.btn-add-cart:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3) !important;
+}
+
+/* RESPONSIVE */
+
+/* Tablet */
 @media (max-width: 1024px) {
     .product-card-modern {
+        height: 440px !important;
+        min-height: 440px !important;
+    }
+    
+    .product-image {
+        height: 220px !important;     /* ← Mantiene mitad: 220px de 440px */
+        padding: 20px !important;
+    }
+    
+    .product-real-image {
+        max-height: 180px !important;
+    }
+    
+    .product-card-body {
+        padding: 20px !important;
+    }
+    
+    .product-card-price {
+        font-size: 1.6rem !important;
+    }
+}
+
+/* Móvil grande */
+@media (max-width: 768px) {
+    .product-card-modern {
+        height: 400px !important;
+        min-height: 400px !important;
+        border-radius: 14px !important;
+    }
+    
+    .product-image {
+        height: 200px !important;     /* ← Mantiene mitad: 200px de 400px */
+        padding: 18px !important;
+    }
+    
+    .product-real-image {
+        max-height: 165px !important;
+    }
+    
+    .product-card-title {
+        font-size: 1.05rem !important;
+    }
+    
+    .product-card-price {
+        font-size: 1.5rem !important;
+    }
+    
+    .btn-add-cart {
+        padding: 12px 24px !important;
+        font-size: 1rem !important;
+    }
+}
+
+/* Móvil pequeño */
+@media (max-width: 480px) {
+    .product-card-modern {
+        height: 380px !important;
         min-height: 380px !important;
     }
     
     .product-image {
-        height: 180px !important;
+        height: 190px !important;     /* ← Mantiene mitad: 190px de 380px */
         padding: 15px !important;
     }
     
     .product-real-image {
-        max-height: 150px !important;
-    }
-}
-
-@media (max-width: 768px) {
-    .product-card-modern {
-        min-height: 360px !important;
-        border-radius: 12px !important;
-    }
-    
-    .product-image {
-        height: 160px !important;
-        padding: 12px !important;
-    }
-    
-    .product-real-image {
-        max-height: 130px !important;
+        max-height: 160px !important;
     }
     
     .product-card-body {
         padding: 16px !important;
-    }
-    
-    .product-card-price {
-        font-size: 1.3rem !important;
-    }
-}
-
-@media (max-width: 480px) {
-    .product-card-modern {
-        min-height: 340px !important;
-    }
-    
-    .product-image {
-        height: 140px !important;
-        padding: 10px !important;
-    }
-    
-    .product-real-image {
-        max-height: 120px !important;
+        gap: 12px !important;
     }
     
     .product-card-title {
         font-size: 1rem !important;
         min-height: 2.8em !important;
     }
+    
+    .product-card-price {
+        font-size: 1.4rem !important;
+    }
 }
 
 /* Para iconos (fallback) */
 .product-image i {
-    font-size: 3.5rem !important;
-    color: #94a3b8 !important;
-    opacity: 0.8 !important;
+    font-size: 4rem !important;
+    color: #cbd5e1 !important;
+    opacity: 0.7 !important;
 }
 
 /* Ocultar icono cuando hay imagen */
