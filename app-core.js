@@ -1670,29 +1670,4 @@ function toggleCart() {
     }
 }
 
-// 🔧 ACTUALIZAR setupEventListeners (línea ~915):
-function setupEventListeners() {
-    document.getElementById('cartToggle')?.addEventListener('click', toggleCart);
-    document.getElementById('closeCart')?.addEventListener('click', hideCartPanel);
-    document.getElementById('cartOverlay')?.addEventListener('click', hideCartPanel);
-    document.getElementById('btnPedir')?.addEventListener('click', realizarPedido);
-    
-    document.querySelectorAll('.filter-option input').forEach(radio => {
-        radio.addEventListener('change', handleFilterChange);
-    });
 
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', handleSearch);
-        searchInput.addEventListener('keydown', handleSearchKeydown);
-        searchInput.addEventListener('focus', handleSearchFocus);
-        searchInput.addEventListener('blur', handleSearchBlur);
-    }
-
-    document.addEventListener('click', function(e) {
-        const searchBar = document.querySelector('.search-bar');
-        if (searchBar && !searchBar.contains(e.target)) {
-            hideSuggestions();
-        }
-    });
-}
