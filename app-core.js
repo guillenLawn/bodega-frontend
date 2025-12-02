@@ -1543,8 +1543,25 @@ async function realizarPedido() {
     if (cart.length === 0) return;
     
     if (!currentUser) {
-        showNotification('🔐 Inicia sesión para realizar pedidos', 'error');
-        return;
+    console.log('🔐 Usuario no logueado - Mostrando opciones de login');
+    showNotification('🔐 Inicia sesión para realizar pedidos', 'info');
+    
+    // Intentar mostrar modal de login si existe
+    if (typeof showAuthModal === 'function') {
+        showAuthModal('login');
+    } 
+    // Si no existe esa función, intentar con showLoginModal
+    else if (typeof showLoginModal === 'function') {
+        showLoginModal();
+    }
+    // Si no hay ninguna función, al menos mostrar dónde está el login
+    else {
+        console.log('⚠️ Funciones de modal no encontradas');
+        // Mostrar mensaje más descriptivo
+        showNotification('👤 Ve a "Mi Cuenta" para iniciar sesión', 'info');
+    }
+    
+    return;
     }
     
     try {
