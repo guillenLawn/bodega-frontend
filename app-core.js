@@ -5,15 +5,15 @@ const AUTH_API = `${API_BASE_URL}/api/auth`;
 const PEDIDOS_API = `${API_BASE_URL}/api/pedidos`;
 
 // ===== ESTADO GLOBAL =====
-let cart = [];
-let products = [];
-let currentFilter = 'all';
-let currentSuggestions = [];
-let selectedSuggestionIndex = -1;
-let currentUser = null;
-let authToken = localStorage.getItem('bodega_token');
-let currentView = 'catalogo';
-let isAdminMode = false;
+window.cart = []; // ← AGREGAR 'window.'
+window.products = []; // ← AGREGAR 'window.'
+window.currentFilter = 'all';
+window.currentSuggestions = [];
+window.selectedSuggestionIndex = -1;
+window.currentUser = null;
+window.authToken = localStorage.getItem('bodega_token');
+window.currentView = 'catalogo';
+window.isAdminMode = false;
 
 // ===== INICIALIZACIÓN PRINCIPAL =====
 document.addEventListener('DOMContentLoaded', function() {
