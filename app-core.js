@@ -550,9 +550,16 @@ async function loadAdminOrders() {
             throw new Error('Error al cargar pedidos');
         }
         
-        const orders = await response.json();
+        const data = await response.json();
         
-        if (!orders || orders.length === 0) {
+        // ✅ VERIFICAR SI DATA TIENE PROPIEDAD 'orders' O ES EL ARRAY DIRECTAMENTE
+        const orders = data.orders || data || [];
+        
+        console.log('📊 Datos recibidos del backend:', data);
+        console.log('📦 Orders procesados:', orders);
+        console.log('🔍 ¿Es array?:', Array.isArray(orders));
+        
+        if (!Array.isArray(orders) || orders.length === 0) {
             tableBody.innerHTML = `
                 <tr>
                     <td colspan="7" class="text-center">
@@ -566,13 +573,14 @@ async function loadAdminOrders() {
         
         tableBody.innerHTML = '';
         orders.forEach(order => {
-            const total = order.items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
+            const total = order.items?.reduce((sum, item) => 
+                sum + ((item.precio || item.price || 0) * (item.cantidad || item.quantity || 0)), 0) || 0;
             const productCount = order.items?.length || 0;
             
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>
-                    <strong>#${order.id || order._id}</strong>
+                    <strong>#${order.id || order._id || 'N/A'}</strong>
                 </td>
                 <td>
                     <div class="user-info-cell">
@@ -587,7 +595,8 @@ async function loadAdminOrders() {
                     <strong class="price">S/ ${total.toFixed(2)}</strong>
                 </td>
                 <td>
-                    ${new Date(order.fecha || order.createdAt).toLocaleDateString()}
+                    ${order.fecha ? new Date(order.fecha).toLocaleDateString() : 
+                      order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}
                 </td>
                 <td>
                     <span class="status-badge estado-${order.estado || 'pendiente'}">
@@ -595,7 +604,7 @@ async function loadAdminOrders() {
                     </span>
                 </td>
                 <td>
-                    <button class="btn-view" onclick="viewOrderDetails('${order.id || order._id}')" title="Ver detalles">
+                    <button class="btn-view" onclick="viewOrderDetails('${order.id || order._id || ''}')" title="Ver detalles">
                         <i class="fas fa-eye"></i>
                     </button>
                 </td>
@@ -610,6 +619,7 @@ async function loadAdminOrders() {
                 <td colspan="7" class="text-center error">
                     <i class="fas fa-exclamation-triangle"></i>
                     <p>Error al cargar pedidos</p>
+                    <small>${error.message}</small>
                     <button class="btn-retry" onclick="loadAdminOrders()">
                         Reintentar
                     </button>
