@@ -1543,38 +1543,41 @@ async function realizarPedido() {
     if (cart.length === 0) return;
     
     if (!currentUser) {
-    console.log('🔐 Usuario no logueado - Mostrando opciones de login');
-    showNotification('🔐 Inicia sesión para realizar pedidos', 'info');
-    
-    // Intentar mostrar modal de login si existe
-    if (typeof showAuthModal === 'function') {
-        showAuthModal('login');
-    } 
-    // Si no existe esa función, intentar con showLoginModal
-    else if (typeof showLoginModal === 'function') {
-        showLoginModal();
-    }
-    // Si no hay ninguna función, al menos mostrar dónde está el login
-    else {
-        console.log('⚠️ Funciones de modal no encontradas');
-        // Mostrar mensaje más descriptivo
-        showNotification('👤 Ve a "Mi Cuenta" para iniciar sesión', 'info');
-    }
-    
-    return;
+        console.log('🔐 Usuario no logueado - Mostrando opciones de login');
+        showNotification('🔐 Inicia sesión para realizar pedidos', 'info');
+        
+        if (typeof showAuthModal === 'function') {
+            showAuthModal('login');
+        } else if (typeof showLoginModal === 'function') {
+            showLoginModal();
+        } else {
+            console.log('⚠️ Funciones de modal no encontradas');
+            showNotification('👤 Ve a "Mi Cuenta" para iniciar sesión', 'info');
+        }
+        
+        return;
     }
     
     try {
+        // ✅ CORRECCIÓN DEFINITIVA: Estructura que el backend espera
         const pedidoData = {
-            items: cart,
-            total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+            items: cart.map(item => ({
+                productoId: item.id,           // ← backend espera 'productoId'
+                nombre: item.nombre,
+                precio: item.precio,           // ← usar 'precio' directo
+                cantidad: item.quantity,       // ← backend espera 'cantidad'
+                categoria: item.categoria
+            })),
+            total: cart.reduce((sum, item) => sum + (item.precio * item.quantity), 0),
             userId: currentUser.id,
             userName: currentUser.nombre,
             userEmail: currentUser.email
         };
         
         // ✅ DEBUGGING MEJORADO
-        console.log('📤 Enviando pedido:', pedidoData);
+        console.log('📤 Enviando pedido CORREGIDO:', pedidoData);
+        console.log('🔍 Verificando total:', pedidoData.total);
+        console.log('🔍 Primer item:', pedidoData.items[0]);
         console.log('🔑 Token:', authToken);
         console.log('🌐 URL:', PEDIDOS_API);
         
