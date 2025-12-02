@@ -677,3 +677,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Exponer funciones globales necesarias
 window.renderProductsByCategory = renderProductsByCategory;
 window.currentCategory = currentCategory;
+
+// AL FINAL de app-pedidos.js, agrega:
+window.currentCategory = currentCategory;
+window.renderProductsByCategory = renderProductsByCategory;
