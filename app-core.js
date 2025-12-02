@@ -1822,3 +1822,98 @@ setTimeout(() => {
         setupCartOverlayFix();
     }
 }, 2000);
+
+// ===== 🔧 SOLUCIÓN FINAL PARA EL BOTÓN DEL CARRITO =====
+// AGREGAR AL FINAL DEL ARCHIVO - NO MODIFICAR NADA MÁS
+
+function arreglarBotonCarrito() {
+    console.log('🔧 Iniciando arreglo del botón del carrito...');
+    
+    // 1. Buscar el botón
+    const botonCarrito = document.getElementById('cartToggle');
+    if (!botonCarrito) {
+        console.error('❌ No se encontró el botón del carrito');
+        return;
+    }
+    
+    console.log('✅ Botón encontrado:', botonCarrito);
+    
+    // 2. Crear nuevo botón IDÉNTICO
+    const nuevoBoton = botonCarrito.cloneNode(true);
+    
+    // 3. Reemplazar el botón viejo
+    botonCarrito.parentNode.replaceChild(nuevoBoton, botonCarrito);
+    
+    // 4. Agregar evento CLICK que SIEMPRE funciona
+    nuevoBoton.addEventListener('click', function(evento) {
+        console.log('🎯 CLICK en carrito registrado!');
+        evento.preventDefault();
+        evento.stopPropagation();
+        
+        // Llamar a toggleCart que YA EXISTE en tu código
+        if (typeof toggleCart === 'function') {
+            toggleCart();
+        } else {
+            console.error('❌ toggleCart no existe, usando lógica manual');
+            
+            const panel = document.getElementById('cartPanel');
+            const overlay = document.getElementById('cartOverlay');
+            
+            if (panel && overlay) {
+                if (panel.classList.contains('active')) {
+                    // CERRAR
+                    panel.classList.remove('active');
+                    overlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                } else {
+                    // ABRIR
+                    overlay.style.display = 'block';
+                    setTimeout(() => {
+                        panel.classList.add('active');
+                        overlay.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                        if (typeof updateCartUI === 'function') {
+                            updateCartUI();
+                        }
+                    }, 10);
+                }
+            }
+        }
+    });
+    
+    console.log('✅ Botón del carrito ARREGLADO definitivamente');
+}
+
+// Ejecutar después de que todo cargue
+setTimeout(function() {
+    console.log('⏰ Iniciando arreglo automático...');
+    arreglarBotonCarrito();
+    
+    // También arreglar el botón de cerrar (X) por si acaso
+    const botonCerrar = document.getElementById('closeCart');
+    if (botonCerrar) {
+        botonCerrar.addEventListener('click', function() {
+            console.log('❌ Click en botón cerrar carrito');
+            if (typeof hideCartPanel === 'function') {
+                hideCartPanel();
+            } else if (typeof toggleCart === 'function') {
+                toggleCart();
+            }
+        });
+    }
+    
+    // Arreglar overlay
+    const overlay = document.getElementById('cartOverlay');
+    if (overlay) {
+        overlay.addEventListener('click', function() {
+            console.log('🎯 Click en overlay');
+            if (typeof hideCartPanel === 'function') {
+                hideCartPanel();
+            } else if (typeof toggleCart === 'function') {
+                toggleCart();
+            }
+        });
+    }
+    
+    console.log('🎉 Sistema de carrito COMPLETAMENTE ARREGLADO');
+}, 2000);
