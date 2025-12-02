@@ -4,6 +4,9 @@ const API_URL = `${API_BASE_URL}/api/inventory`;
 const AUTH_API = `${API_BASE_URL}/api/auth`;
 const PEDIDOS_API = `${API_BASE_URL}/api/pedidos`;
 
+// ===== FLAGS PARA CONTROLAR INICIALIZACIÓN =====
+let eventListenersInitialized = false;
+
 // ===== ESTADO GLOBAL =====
 window.cart = []; // ← AGREGAR 'window.'
 window.products = []; // ← AGREGAR 'window.'
@@ -952,15 +955,76 @@ function closeCart() {
 
 // ===== CONFIGURACIÓN DE EVENT LISTENERS =====
 function setupEventListeners() {
-    document.getElementById('cartToggle')?.addEventListener('click', toggleCart);
-    document.getElementById('closeCart')?.addEventListener('click', closeCart);
-    document.getElementById('cartOverlay')?.addEventListener('click', closeCart);
-    document.getElementById('btnPedir')?.addEventListener('click', realizarPedido);
+    // ✅ PREVENIR DUPLICACIÓN
+    if (eventListenersInitialized) {
+        console.log('⚠️ Event listeners ya inicializados, saltando...');
+        return;
+    }
     
+    console.log('🎯 Configurando event listeners...');
+    
+    // 🔧 CARRITO - Remover listeners antiguos primero
+    const cartToggle = document.getElementById('cartToggle');
+    const closeCartBtn = document.getElementById('closeCart');
+    const cartOverlay = document.getElementById('cartOverlay');
+    const btnPedir = document.getElementById('btnPedir');
+    
+    if (cartToggle) {
+        // Clonar y reemplazar para remover listeners antiguos
+        const newCartToggle = cartToggle.cloneNode(true);
+        cartToggle.parentNode.replaceChild(newCartToggle, cartToggle);
+        
+        // Agregar nuevo listener
+        newCartToggle.addEventListener('click', function(e) {
+            console.log('🛒 Click en icono del carrito');
+            e.stopPropagation();
+            if (typeof toggleCart === 'function') {
+                toggleCart();
+            }
+        });
+        
+        // Actualizar referencia
+        window.cartToggleElement = newCartToggle;
+    }
+    
+    if (closeCartBtn) {
+        closeCartBtn.addEventListener('click', function() {
+            console.log('❌ Click en cerrar carrito');
+            if (typeof hideCartPanel === 'function') {
+                hideCartPanel();
+            }
+        });
+    }
+    
+    if (cartOverlay) {
+        cartOverlay.addEventListener('click', function() {
+            console.log('🎯 Click en overlay del carrito');
+            if (typeof hideCartPanel === 'function') {
+                hideCartPanel();
+            }
+        });
+    }
+    
+    if (btnPedir) {
+        btnPedir.addEventListener('click', function() {
+            console.log('💰 Click en "Realizar Pedido"');
+            if (typeof realizarPedido === 'function') {
+                realizarPedido();
+            }
+        });
+    }
+    
+    // 🔧 FILTROS - Solo si existen
     document.querySelectorAll('.filter-option input').forEach(radio => {
-        radio.addEventListener('change', handleFilterChange);
+        radio.addEventListener('change', function(e) {
+            console.log('🎯 Cambio de filtro:', e.target.value);
+            if (typeof handleFilterChange === 'function') {
+                handleFilterChange(e);
+            }
+        });
     });
 
+    // 🔧 BÚSQUEDA
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', handleSearch);
@@ -975,6 +1039,10 @@ function setupEventListeners() {
             hideSuggestions();
         }
     });
+    
+    // ✅ MARCAR COMO INICIALIZADO
+    eventListenersInitialized = true;
+    console.log('✅ Event listeners configurados correctamente');
 }
 
 // ===== FUNCIONES DE PRODUCTOS =====
