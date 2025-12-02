@@ -1656,16 +1656,29 @@ function hideCartPanel() {
 
 // 🔧 REEMPLAZAR LA FUNCIÓN toggleCart (línea ~860):
 function toggleCart() {
+    console.log('🎯 toggleCart() llamado');
+    
     if (isAdminMode && currentView === 'admin') {
         showNotification('🔧 El carrito está deshabilitado en modo administrador', 'info');
         return;
     }
     
     const cartPanel = document.getElementById('cartPanel');
+    const overlay = document.getElementById('cartOverlay');
     
-    if (cartPanel && cartPanel.classList.contains('active')) {
+    if (!cartPanel || !overlay) {
+        console.error('❌ Elementos del carrito no encontrados');
+        return;
+    }
+    
+    console.log('🔍 Estado actual - Panel activo?:', cartPanel.classList.contains('active'));
+    
+    // ✅ CORREGIDO: Verificar correctamente si está abierto
+    if (cartPanel.classList.contains('active')) {
+        console.log('🔒 Cerrando carrito...');
         hideCartPanel();
     } else {
+        console.log('🔓 Abriendo carrito...');
         showCartPanel();
     }
 }
