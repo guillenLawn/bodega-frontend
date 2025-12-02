@@ -541,25 +541,26 @@ async function realizarPedido() {
     }
     
     try {
-        // Preparar datos del pedido
+        // Preparar datos del pedido (igual que antes)
         const pedidoData = {
             items: window.cart.map(item => ({
-                productoId: item.id,
+                id: item.id,
                 nombre: item.nombre,
                 precio: item.precio,
-                cantidad: item.quantity,
-                categoria: item.categoria
+                cantidad: item.quantity
             })),
             total: window.cart.reduce((sum, item) => sum + (item.precio * item.quantity), 0),
             userId: window.currentUser.id,
             userName: window.currentUser.nombre,
-            userEmail: window.currentUser.email
+            userEmail: window.currentUser.email,
+            direccion: 'Delivery a domicilio', // Puedes cambiar esto
+            metodoPago: 'efectivo'
         };
         
-        console.log('📤 Enviando pedido:', pedidoData);
+        console.log('📤 Enviando pedido al backend:', pedidoData);
         
         // Enviar pedido al backend
-        const response = await fetch(PEDIDOS_API, {
+        const response = await fetch('https://bodega-backend-nuevo.onrender.com/api/pedidos', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -570,19 +571,22 @@ async function realizarPedido() {
         
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ Error del servidor:', response.status, errorText);
+            console.error('❌ Error del backend:', response.status, errorText);
             throw new Error(`Error ${response.status}: ${errorText}`);
         }
         
         const result = await response.json();
-        console.log('✅ Pedido exitoso:', result);
+        console.log('✅ Pedido creado en backend:', result);
         
-        // ✅ ACTUALIZAR STOCK LOCALMENTE DESPUÉS DEL PEDIDO EXITOSO
+        // El backend YA actualizó el stock automáticamente
+        // Solo necesitamos actualizar localmente para reflejar los cambios
+        
+        // Actualizar stock localmente basado en el carrito
         window.cart.forEach(item => {
             const product = window.products.find(p => p.id == item.id);
             if (product) {
-                product.quantity = Math.max(0, product.quantity - item.quantity);
-                console.log(`📉 Stock actualizado: ${product.nombre} - Nuevo stock: ${product.quantity}`);
+                product.stock = Math.max(0, product.stock - item.quantity);
+                console.log(`📉 Stock actualizado localmente: ${product.nombre} - Nuevo: ${product.stock}`);
             }
         });
         
@@ -594,19 +598,21 @@ async function realizarPedido() {
         
         // Actualizar vistas
         if (window.currentView === 'catalogo') {
-            if (typeof window.renderProductsByCategory === 'function') {
-                setTimeout(() => window.renderProductsByCategory(), 300);
-            }
+            setTimeout(() => {
+                if (typeof window.renderProductsByCategory === 'function') {
+                    window.renderProductsByCategory();
+                }
+            }, 500);
         }
         
         if (window.currentView === 'admin' && typeof loadAdminProducts === 'function') {
-            setTimeout(loadAdminProducts, 300);
+            setTimeout(loadAdminProducts, 500);
         }
         
-        showNotification('✅ Pedido realizado exitosamente');
+        showNotification('✅ Pedido realizado exitosamente - Stock actualizado');
         
     } catch (error) {
-        console.error('❌ Error realizando pedido:', error);
+        console.error('❌ Error completo realizando pedido:', error);
         showNotification(`❌ Error: ${error.message}`, 'error');
     }
 }
