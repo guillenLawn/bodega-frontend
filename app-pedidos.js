@@ -340,6 +340,9 @@ function renderProductsByCategory() {
     container.innerHTML = catalogHTML;
     
     console.log('✅ Renderizado completado. Tarjetas creadas:', document.querySelectorAll('.product-card-modern').length);
+    if (typeof syncSidebarWithCategory === 'function') {
+        syncSidebarWithCategory();
+    }
 }
 
 // AGREGAR esta función auxiliar si no existe:
@@ -678,22 +681,85 @@ function renderSearchResults(filteredProducts) {
 // ======================
 function handleFilterChange(e) {
     const filterText = e.target.nextElementSibling.textContent.toLowerCase();
+    console.log('🎯 Filtro seleccionado:', filterText);
     
+    // Mapear texto del filtro a categorías REALES
+    const filterMap = {
+        'todos los productos': 'todos',
+        'abarrotes': 'Abarrotes',
+        'lácteos': 'Lácteos',               // ← Cambié de "Lácteos y carnes" a "Lácteos"
+        'bebidas': 'Bebidas',
+        'limpieza': 'Limpieza',
+        'aceites': 'Aceites',
+        'conservas': 'Conservas',
+        'pastas': 'Pastas'
+    };
+    
+    // Actualizar currentCategory
+    const newCategory = filterMap[filterText] || 'todos';
+    currentCategory = newCategory;
+    window.currentCategory = newCategory;
+    
+    console.log('✅ Categoría cambiada a:', newCategory);
+    
+    // 🔧 **CORREGIR: Actualizar UI de la sidebar**
+    // 1. Remover 'active' de todos los filtros
     document.querySelectorAll('.filter-option').forEach(option => {
         option.classList.remove('active');
     });
-    e.target.closest('.filter-option').classList.add('active');
     
-    const filterMap = {
-        'todos los productos': 'all',
-        'abarrotes': 'abarrotes',
-        'lácteos y carnes': 'lacteos',
-        'bebidas': 'bebidas',
-        'limpieza': 'limpieza'
+    // 2. Agregar 'active' al filtro seleccionado
+    const selectedOption = e.target.closest('.filter-option');
+    if (selectedOption) {
+        selectedOption.classList.add('active');
+    }
+    
+    // 3. Marcar el radio button como checked
+    const radioInput = e.target;
+    if (radioInput && radioInput.type === 'radio') {
+        radioInput.checked = true;
+    }
+    
+    // Renderizar productos con la nueva categoría
+    if (window.renderProductsByCategory) {
+        window.renderProductsByCategory();
+    }
+}
+// Función para sincronizar la sidebar con la categoría actual
+function syncSidebarWithCategory() {
+    console.log('🔄 Sincronizando sidebar con categoría:', window.currentCategory);
+    
+    // Mapeo inverso: de categoría a texto del filtro
+    const categoryToFilterMap = {
+        'todos': 'todos los productos',
+        'Abarrotes': 'abarrotes',
+        'Lácteos': 'lácteos',
+        'Bebidas': 'bebidas',
+        'Limpieza': 'limpieza',
+        'Aceites': 'aceites',
+        'Conservas': 'conservas',
+        'Pastas': 'pastas'
     };
     
-    currentFilter = filterMap[filterText] || 'all';
-    renderProductsByCategory();
+    const currentFilterText = categoryToFilterMap[window.currentCategory] || 'todos los productos';
+    
+    // Buscar y activar el filtro correspondiente
+    const allFilterOptions = document.querySelectorAll('.filter-option');
+    allFilterOptions.forEach(option => {
+        const filterText = option.querySelector('span')?.textContent.toLowerCase() || '';
+        
+        if (filterText === currentFilterText) {
+            option.classList.add('active');
+            const radioInput = option.querySelector('input[type="radio"]');
+            if (radioInput) {
+                radioInput.checked = true;
+            }
+        } else {
+            option.classList.remove('active');
+        }
+    });
+    
+    console.log('✅ Sidebar sincronizada con categoría:', window.currentCategory);
 }
 
 // ======================
