@@ -554,12 +554,25 @@ function showAdminPanelDirectly() {
 async function loadHistorialPedidos() {
     console.log('📋 Cargando historial de pedidos...');
     console.log('👤 Usuario ID:', window.currentUser?.id);
+    console.log('🔑 Token presente?:', window.authToken ? '✅ Sí' : '❌ No');
     
     const historialContainer = document.getElementById('historialContainer');
-    if (!historialContainer) return;
+    
+    // ✅ MEJORADO: Más información si no existe
+    if (!historialContainer) {
+        console.error('❌ historialContainer no encontrado en el DOM');
+        console.log('🔍 Buscando elementos similares...');
+        const elementos = document.querySelectorAll('[id*="historial"], [class*="historial"]');
+        console.log('Elementos encontrados:', elementos.length);
+        elementos.forEach(el => console.log(`- ${el.tagName}#${el.id}`));
+        return;
+    }
+    
+    console.log('✅ historialContainer encontrado');
     
     // Verificar si el usuario está logueado
     if (!window.currentUser) {
+        console.log('👤 Usuario no logueado, mostrando mensaje...');
         historialContainer.innerHTML = `
             <div class="historial-empty">
                 <i class="fas fa-user-lock"></i>
@@ -574,7 +587,10 @@ async function loadHistorialPedidos() {
     }
     
     try {
+        console.log('🔄 Mostrando spinner de carga...');
         historialContainer.innerHTML = '<div class="loading-spinner">Cargando tu historial...</div>';
+        
+        console.log('🌐 Haciendo request a:', 'https://bodega-backend-nuevo.onrender.com/api/pedidos/usuario');
         
         // ✅ CORREGIDO: usuario en lugar de user
         const response = await fetch('https://bodega-backend-nuevo.onrender.com/api/pedidos/usuario', {
@@ -585,18 +601,24 @@ async function loadHistorialPedidos() {
         });
         
         console.log('📊 Response status:', response.status);
+        console.log('📊 Response ok?:', response.ok);
         
         if (!response.ok) {
-            throw new Error(`Error ${response.status}: No se pudieron cargar los pedidos`);
+            const errorText = await response.text();
+            console.error('❌ Error del servidor:', errorText);
+            throw new Error(`Error ${response.status}: ${errorText.substring(0, 100)}`);
         }
         
         const data = await response.json();
         console.log('📊 Datos recibidos del backend:', data);
+        console.log('📊 ¿Tiene propiedad "pedidos"?:', 'pedidos' in data);
+        console.log('📊 ¿Tiene propiedad "success"?:', 'success' in data);
         
         const pedidos = data.pedidos || [];
         console.log('📦 Número de pedidos encontrados:', pedidos.length);
         
         if (pedidos.length === 0) {
+            console.log('📭 No hay pedidos, mostrando mensaje...');
             historialContainer.innerHTML = `
                 <div class="historial-empty">
                     <i class="fas fa-clipboard-list"></i>
@@ -611,8 +633,10 @@ async function loadHistorialPedidos() {
         }
         
         // Ordenar por fecha (más reciente primero)
+        console.log('📅 Ordenando pedidos por fecha...');
         pedidos.sort((a, b) => new Date(b.fecha_creacion) - new Date(a.fecha_creacion));
         
+        console.log('🎨 Generando HTML del historial...');
         let historialHTML = `
             <div class="historial-header">
                 <h2>Mis Pedidos</h2>
@@ -620,7 +644,10 @@ async function loadHistorialPedidos() {
             </div>
         `;
         
-        pedidos.forEach(pedido => {
+        // Procesar cada pedido
+        pedidos.forEach((pedido, index) => {
+            console.log(`📝 Procesando pedido ${index + 1}/${pedidos.length}: ID ${pedido.id}`);
+            
             const total = parseFloat(pedido.total) || 0;
             const fecha = new Date(pedido.fecha_creacion).toLocaleDateString('es-PE', {
                 day: '2-digit',
@@ -629,6 +656,10 @@ async function loadHistorialPedidos() {
                 hour: '2-digit',
                 minute: '2-digit'
             });
+            
+            // Verificar items
+            const items = pedido.items || [];
+            console.log(`   - Items: ${items.length}`);
             
             historialHTML += `
                 <div class="pedido-card">
@@ -648,13 +679,13 @@ async function loadHistorialPedidos() {
                     </div>
                     
                     <div class="pedido-items">
-                        ${(pedido.items || []).map(item => `
+                        ${items.map(item => `
                             <div class="pedido-item">
                                 <div class="pedido-item-info">
-                                    <span class="pedido-item-nombre">${item.producto_nombre}</span>
-                                    <span class="pedido-item-cantidad">${item.cantidad} x S/ ${parseFloat(item.precio_unitario).toFixed(2)}</span>
+                                    <span class="pedido-item-nombre">${item.producto_nombre || 'Producto'}</span>
+                                    <span class="pedido-item-cantidad">${item.cantidad || 0} x S/ ${parseFloat(item.precio_unitario || 0).toFixed(2)}</span>
                                 </div>
-                                <span class="pedido-item-subtotal">S/ ${parseFloat(item.subtotal).toFixed(2)}</span>
+                                <span class="pedido-item-subtotal">S/ ${parseFloat(item.subtotal || 0).toFixed(2)}</span>
                             </div>
                         `).join('')}
                     </div>
@@ -679,24 +710,48 @@ async function loadHistorialPedidos() {
             `;
         });
         
+        console.log('✅ HTML generado, insertando en el DOM...');
+        console.log('📏 Longitud del HTML:', historialHTML.length, 'caracteres');
+        
         historialContainer.innerHTML = historialHTML;
-        console.log('✅ Historial cargado correctamente');
+        console.log('✅ Historial cargado correctamente en el DOM');
+        
+        // Verificar que se insertó correctamente
+        setTimeout(() => {
+            const pedidosEnDOM = historialContainer.querySelectorAll('.pedido-card');
+            console.log('🔍 Verificación final:');
+            console.log('- Pedidos en DOM:', pedidosEnDOM.length);
+            console.log('- Primer pedido visible?:', pedidosEnDOM[0]?.offsetParent !== null);
+            
+            if (pedidosEnDOM.length === 0) {
+                console.error('❌ ¡Los pedidos no se insertaron en el DOM!');
+                console.log('HTML actual:', historialContainer.innerHTML.substring(0, 300));
+            }
+        }, 100);
         
     } catch (error) {
-        console.error('Error cargando historial:', error);
+        console.error('❌ Error cargando historial:', error);
+        console.error('Stack trace:', error.stack);
         
+        // Mostrar error detallado
         historialContainer.innerHTML = `
             <div class="historial-empty">
                 <i class="fas fa-exclamation-triangle"></i>
                 <h3>Error al cargar el historial</h3>
-                <p>${error.message}</p>
-                <p>Los pedidos se han guardado correctamente en el sistema.</p>
+                <p><strong>Error:</strong> ${error.message}</p>
+                <p><strong>Detalles:</strong> ${error.toString()}</p>
+                <p>Intenta recargar la página o verifica tu conexión.</p>
                 <button class="btn-primary" onclick="showView('catalogo')">
-                    <i class="fas fa-store"></i> Continuar Comprando
+                    <i class="fas fa-store"></i> Volver al Catálogo
+                </button>
+                <button class="btn-secondary" onclick="loadHistorialPedidos()" style="margin-top: 10px;">
+                    <i class="fas fa-redo"></i> Reintentar
                 </button>
             </div>
         `;
     }
+    
+    console.log('🏁 loadHistorialPedidos() finalizado');
 }
 
 // ===== FUNCIONES AUXILIARES =====
