@@ -1,4 +1,73 @@
-// ===== SISTEMA DE NAVEGACIÓN =====
+// ======================
+// CONFIGURACIONES
+// ======================
+const API_URL = 'https://bodega-backend-nuevo.onrender.com/api/productos';
+const PEDIDOS_API = 'https://bodega-backend-nuevo.onrender.com/api/pedidos';
+
+// ======================
+// VARIABLES GLOBALES
+// ======================
+let products = [];
+let currentCategory = 'todos'; // ← ¡CORRECCIÓN: AGREGADA ESTA LÍNEA!
+let currentFilter = 'all';
+let currentView = 'catalogo';
+let currentSuggestions = [];
+let selectedSuggestionIndex = -1;
+
+// ======================
+// FUNCIONES DE INICIALIZACIÓN
+// ======================
+
+// Inicializar aplicación de pedidos
+function initializePedidos() {
+    console.log('🛒 Inicializando módulo de pedidos...');
+    
+    // Cargar productos inicialmente
+    loadProducts();
+    
+    // Configurar event listeners
+    setupEventListeners();
+    
+    // Inicializar búsqueda y filtros
+    initializeSearch();
+    initializeFilters();
+    
+    console.log('✅ Módulo de pedidos inicializado');
+}
+
+function setupEventListeners() {
+    // Buscador
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', handleSearch);
+        searchInput.addEventListener('keydown', handleSearchKeydown);
+        searchInput.addEventListener('focus', handleSearchFocus);
+        searchInput.addEventListener('blur', handleSearchBlur);
+    }
+    
+    // Filtros
+    document.querySelectorAll('.filter-option input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', handleFilterChange);
+    });
+    
+    // Botón realizar pedido
+    const btnPedir = document.getElementById('btnPedir');
+    if (btnPedir) {
+        btnPedir.addEventListener('click', realizarPedido);
+    }
+}
+
+function initializeSearch() {
+    console.log('🔍 Inicializando sistema de búsqueda...');
+}
+
+function initializeFilters() {
+    console.log('🎯 Inicializando filtros...');
+}
+
+// ======================
+// SISTEMA DE NAVEGACIÓN
+// ======================
 function initializeNavigation() {
     setupNavigationEventListeners();
     
@@ -109,7 +178,9 @@ function adjustLayoutForView(viewName) {
     }
 }
 
-// ===== 🔧 VISTA DE ADMINISTRADOR MEJORADA =====
+// ======================
+// 🔧 VISTA DE ADMINISTRADOR MEJORADA
+// ======================
 function initializeAdminView() {
     console.log('🔧 Inicializando vista admin...', { currentUser, isAdminMode });
     
@@ -359,7 +430,9 @@ function initializeAdminTabs() {
     console.log('✅ Sistema de pestañas del admin inicializado');
 }
 
-// ===== 🔧 FUNCIONES DE GESTIÓN DE PRODUCTOS (ADMIN) =====
+// ======================
+// 🔧 FUNCIONES DE GESTIÓN DE PRODUCTOS (ADMIN)
+// ======================
 async function loadAdminProducts() {
     const tableBody = document.getElementById('adminProductsTable');
     if (!tableBody) return;
@@ -634,7 +707,9 @@ async function updateAdminStats() {
     }
 }
 
-// ===== 🔧 FUNCIONES DE CRUD PARA PRODUCTOS =====
+// ======================
+// 🔧 FUNCIONES DE CRUD PARA PRODUCTOS
+// ======================
 async function handleAddProduct(e) {
     e.preventDefault();
     
@@ -744,7 +819,9 @@ function viewOrderDetails(orderId) {
     // Aquí puedes implementar un modal con detalles completos del pedido
 }
 
-// ===== HISTORIAL DE PEDIDOS =====
+// ======================
+// HISTORIAL DE PEDIDOS
+// ======================
 async function loadHistorialPedidos() {
     const historialContent = document.getElementById('historialContent');
     const loadingElement = document.getElementById('historialLoading');
@@ -892,7 +969,9 @@ function getMetodoPagoDisplay(metodo) {
     return metodos[metodo] || metodo;
 }
 
-// ===== GESTIÓN DE PRODUCTOS =====
+// ======================
+// GESTIÓN DE PRODUCTOS - CORREGIDO
+// ======================
 async function loadProducts() {
     try {
         showLoadingState(true);
@@ -911,11 +990,11 @@ async function loadProducts() {
             imagen_url: product.imagen_url
         }));
         
-        console.log('Productos transformados:', products);
-        renderProductsByCategory();
+        console.log('✅ Productos transformados:', products.length);
+        renderProductsByCategory(); // ← CORREGIDO: Llama a la función corregida
         
     } catch (error) {
-        console.error('Error cargando productos:', error);
+        console.error('❌ Error cargando productos:', error);
         showNotification('❌ Error al cargar productos', 'error');
     } finally {
         showLoadingState(false);
@@ -936,104 +1015,74 @@ function showLoadingState(show) {
     }
 }
 
+// ======================
+// 🎯 FUNCIÓN CORREGIDA: RENDERIZAR PRODUCTOS POR CATEGORÍA
+// ======================
 function renderProductsByCategory() {
-    console.log('Renderizando productos por categoría...');
-    console.log('Total de productos:', products.length);
+    console.log('🔄 Renderizando productos por categoría...');
+    console.log('📊 Total de productos:', products.length);
+    console.log('🎯 Categoría actual:', currentCategory);
     
-    const catalogMain = document.querySelector('.catalog-main');
-    
-    let filteredProducts = products;
-    if (currentFilter !== 'all') {
-        filteredProducts = filterProductsByCategory(products, currentFilter);
+    // CORREGIDO: Buscar el contenedor principal del catálogo
+    const container = document.querySelector('.catalog-main');
+    if (!container) {
+        console.error('❌ ERROR: No se encontró .catalog-main en el DOM');
+        return;
     }
     
-    const groupedProducts = groupProductsByCategory(filteredProducts);
+    // Filtrar productos por categoría
+    let filteredProducts = products;
+    if (currentCategory && currentCategory !== 'todos') {
+        filteredProducts = products.filter(product => product.category === currentCategory);
+    }
     
+    console.log('✅ Productos a renderizar:', filteredProducts.length);
+    
+    if (filteredProducts.length === 0) {
+        container.innerHTML = '<p class="no-products">No hay productos en esta categoría</p>';
+        return;
+    }
+    
+    // Agrupar productos por categoría para mostrar secciones
+    const groupedProducts = {};
+    filteredProducts.forEach(product => {
+        if (!groupedProducts[product.category]) {
+            groupedProducts[product.category] = [];
+        }
+        groupedProducts[product.category].push(product);
+    });
+    
+    // Generar HTML con secciones por categoría
     let catalogHTML = '';
     
     Object.keys(groupedProducts).forEach(category => {
-        if (groupedProducts[category].length > 0) {
-            catalogHTML += `
-                <div class="category-section">
-                    <div class="category-header">
-                        <h2 class="category-title">${getCategoryDisplayName(category)}</h2>
-                        <p class="category-description">${getCategoryDescription(category)}</p>
-                    </div>
-                    <div class="products-grid" id="${category}Grid">
-                        ${groupedProducts[category].slice(0, 8).map(product => createProductCardHTML(product)).join('')}
-                    </div>
+        const categoryProducts = groupedProducts[category];
+        
+        catalogHTML += `
+            <div class="category-section">
+                <div class="category-header">
+                    <h2 class="category-title">${category}</h2>
                 </div>
-            `;
-        }
+                <div class="products-grid">
+                    ${categoryProducts.map(product => createProductCardHTML(product)).join('')}
+                </div>
+            </div>
+        `;
     });
     
-    catalogMain.innerHTML = catalogHTML;
-    attachEventListenersToProducts();
-}
-
-function filterProductsByCategory(products, filter) {
-    const filterMap = {
-        'abarrotes': ['Granos', 'Pastas', 'Aceites'],
-        'lacteos': ['Lácteos', 'Carnes'],
-        'bebidas': ['Bebidas'],
-        'limpieza': ['Limpieza', 'Conservas']
-    };
+    container.innerHTML = catalogHTML;
     
-    const categories = filterMap[filter] || [];
-    return products.filter(product => categories.includes(product.category));
+    console.log('✅ Renderizado completado. Tarjetas creadas:', 
+                document.querySelectorAll('.product-card-modern').length);
 }
 
-function groupProductsByCategory(products) {
-    const grouped = {
-        'abarrotes': [],
-        'lacteos': [],
-        'bebidas': [],
-        'limpieza': []
-    };
-    
-    products.forEach(product => {
-        if (['Granos', 'Pastas', 'Aceites'].includes(product.category)) {
-            grouped.abarrotes.push(product);
-        } else if (['Lácteos', 'Carnes'].includes(product.category)) {
-            grouped.lacteos.push(product);
-        } else if (product.category === 'Bebidas') {
-            grouped.bebidas.push(product);
-        } else if (['Limpieza', 'Conservas'].includes(product.category)) {
-            grouped.limpieza.push(product);
-        }
-    });
-    
-    return grouped;
-}
-
-function getCategoryDisplayName(categoryKey) {
-    const names = {
-        'abarrotes': 'Abarrotes Esenciales',
-        'lacteos': 'Lácteos y Carnes Frescas',
-        'bebidas': 'Bebidas y Refrescos',
-        'limpieza': 'Limpieza y Hogar'
-    };
-    return names[categoryKey] || categoryKey;
-}
-
-function getCategoryDescription(categoryKey) {
-    const descriptions = {
-        'abarrotes': 'Productos básicos de la más alta calidad',
-        'lacteos': 'Frescura y calidad garantizada',
-        'bebidas': 'Para todos los momentos',
-        'limpieza': 'Cuidado y limpieza para tu familia'
-    };
-    return descriptions[categoryKey] || '';
-}
-
+// ======================
+// 🎯 FUNCIÓN CORREGIDA: CREAR TARJETA DE PRODUCTO
+// ======================
 function createProductCardHTML(product) {
-    const stockStatus = product.quantity === 0 ? 'out' : product.quantity < 10 ? 'low' : '';
-    const stockText = product.quantity === 0 ? 'Sin stock' : `Stock: ${product.quantity}`;
-    
     // ✅ USAR imagen_url si existe, si no icono como fallback
     const imageHTML = product.imagen_url 
-        ? `<img src="${product.imagen_url}" alt="${escapeHtml(product.name)}" class="product-real-image" 
-             onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fas fa-${getProductIcon(product.category)}\\'></i>';">`
+        ? `<img src="${product.imagen_url}" alt="${escapeHtml(product.name)}" class="product-real-image">`
         : `<i class="fas fa-${getProductIcon(product.category)}"></i>`;
     
     return `
@@ -1048,9 +1097,9 @@ function createProductCardHTML(product) {
                 <p class="product-card-description">${escapeHtml(product.description)}</p>
                 <div class="product-card-footer">
                     <div class="product-card-price">S/ ${product.price.toFixed(2)}</div>
-                    <div class="product-card-stock">Stock: ${product.quantity}</div>
-                    <button class="btn-add-cart" onclick="addToCart(${product.id})">
-                        <i class="fas fa-cart-plus"></i> Agregar
+                    <div class="product-card-stock">${product.quantity > 0 ? `Stock: ${product.quantity}` : 'Sin stock'}</div>
+                    <button class="btn-add-cart" onclick="addToCart(${product.id})" ${product.quantity === 0 ? 'disabled' : ''}>
+                        <i class="fas fa-cart-plus"></i> ${product.quantity === 0 ? 'Sin stock' : 'Agregar'}
                     </button>
                 </div>
             </div>
@@ -1058,7 +1107,9 @@ function createProductCardHTML(product) {
     `;
 }
 
-// ===== FUNCIONES DEL CARRITO =====
+// ======================
+// FUNCIONES DEL CARRITO
+// ======================
 function addToCart(productId) {
     console.log('Agregando producto ID:', productId);
     
@@ -1098,7 +1149,9 @@ function addToCart(productId) {
     showNotification(`✅ ${product.name} agregado al carrito`);
 }
 
-// ===== REALIZAR PEDIDO =====
+// ======================
+// REALIZAR PEDIDO
+// ======================
 async function realizarPedido() {
     if (!currentUser) {
         showNotification('🔐 Por favor inicia sesión para realizar tu pedido', 'info');
@@ -1190,7 +1243,9 @@ async function realizarPedido() {
     }
 }
 
-// ===== BÚSQUEDA Y AUTOCOMPLETADO =====
+// ======================
+// BÚSQUEDA Y AUTOCOMPLETADO
+// ======================
 function handleSearch(e) {
     const searchTerm = e.target.value.toLowerCase().trim();
     const suggestionsContainer = document.getElementById('searchSuggestions');
@@ -1406,7 +1461,9 @@ function renderSearchResults(filteredProducts) {
     attachEventListenersToProducts();
 }
 
-// ===== FILTROS =====
+// ======================
+// FILTROS
+// ======================
 function handleFilterChange(e) {
     const filterText = e.target.nextElementSibling.textContent.toLowerCase();
     
@@ -1426,51 +1483,69 @@ function handleFilterChange(e) {
     currentFilter = filterMap[filterText] || 'all';
     renderProductsByCategory();
 }
-// 🔧 FUNCIÓN DE EMERGENCIA - FORZAR PANEL COMPLETO AL CARGAR
-function forceAdminPanelOnLoad() {
-    console.log('🔧 Forzando panel admin al cargar...');
+
+// ======================
+// FUNCIONES AUXILIARES
+// ======================
+function filterProductsByCategory(products, filter) {
+    const filterMap = {
+        'abarrotes': ['Granos', 'Pastas', 'Aceites'],
+        'lacteos': ['Lácteos', 'Carnes'],
+        'bebidas': ['Bebidas'],
+        'limpieza': ['Limpieza', 'Conservas']
+    };
     
-    const adminWelcome = document.getElementById('adminWelcome');
-    const adminPanelFull = document.getElementById('adminPanelFull');
-    
-    if (adminWelcome && adminPanelFull) {
-        // Ocultar pantalla de bienvenida
-        adminWelcome.style.display = 'none';
-        
-        // Mostrar panel completo
-        adminPanelFull.style.display = 'block';
-        adminPanelFull.style.opacity = '1';
-        adminPanelFull.style.transform = 'translateY(0)';
-        
-        console.log('✅ Panel forzado correctamente');
-    }
+    const categories = filterMap[filter] || [];
+    return products.filter(product => categories.includes(product.category));
 }
 
-// 🔧 EJECUTAR AL CARGAR LA PÁGINA
-document.addEventListener('DOMContentLoaded', function() {
-    // Pequeño delay para asegurar que el DOM esté listo
-    setTimeout(() => {
-        if (currentUser?.role === 'admin' && currentView === 'admin') {
-            forceAdminPanelOnLoad();
+function groupProductsByCategory(products) {
+    const grouped = {
+        'abarrotes': [],
+        'lacteos': [],
+        'bebidas': [],
+        'limpieza': []
+    };
+    
+    products.forEach(product => {
+        if (['Granos', 'Pastas', 'Aceites'].includes(product.category)) {
+            grouped.abarrotes.push(product);
+        } else if (['Lácteos', 'Carnes'].includes(product.category)) {
+            grouped.lacteos.push(product);
+        } else if (product.category === 'Bebidas') {
+            grouped.bebidas.push(product);
+        } else if (['Limpieza', 'Conservas'].includes(product.category)) {
+            grouped.limpieza.push(product);
         }
-    }, 500);
-});
-
-// 🔧 FUNCIÓN DE EMERGENCIA - FORZAR CARGA DE DATOS AL CARGAR LA PÁGINA
-function forceAdminDataLoad() {
-    console.log('🔧 Verificando si es necesario cargar datos admin...');
+    });
     
-    if (currentUser?.role === 'admin' && currentView === 'admin') {
-        console.log('🔄 Usuario admin detectado - forzando carga de datos...');
-        
-        // Pequeño delay para asegurar que el DOM esté listo
-        setTimeout(() => {
-            loadAdminProducts();
-            loadAdminOrders();
-            updateAdminStats();
-        }, 1000);
-    }
+    return grouped;
 }
+
+function getCategoryDisplayName(categoryKey) {
+    const names = {
+        'abarrotes': 'Abarrotes Esenciales',
+        'lacteos': 'Lácteos y Carnes Frescas',
+        'bebidas': 'Bebidas y Refrescos',
+        'limpieza': 'Limpieza y Hogar'
+    };
+    return names[categoryKey] || categoryKey;
+}
+
+function getCategoryDescription(categoryKey) {
+    const descriptions = {
+        'abarrotes': 'Productos básicos de la más alta calidad',
+        'lacteos': 'Frescura y calidad garantizada',
+        'bebidas': 'Para todos los momentos',
+        'limpieza': 'Cuidado y limpieza para tu familia'
+    };
+    return descriptions[categoryKey] || '';
+}
+
+// ======================
+// FUNCIONES DE UTILIDAD
+// ======================
+
 // 1. FUNCIÓN PARA ESCAPAR HTML (PROTECCIÓN CONTRA XSS)
 function escapeHtml(text) {
     if (!text) return '';
@@ -1497,4 +1572,68 @@ function getProductIcon(category) {
     return iconMap[category] || iconMap.default;
 }
 
+// 3. FUNCIÓN PARA ATACHAR EVENT LISTENERS A PRODUCTOS
+function attachEventListenersToProducts() {
+    // Botones "Agregar al carrito"
+    document.querySelectorAll('.btn-add-cart').forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.closest('.product-card-modern').getAttribute('data-id');
+            addToCart(productId);
+        });
+    });
+}
 
+// ======================
+// FUNCIONES DE EMERGENCIA
+// ======================
+
+// 🔧 FUNCIÓN DE EMERGENCIA - FORZAR PANEL COMPLETO AL CARGAR
+function forceAdminPanelOnLoad() {
+    console.log('🔧 Forzando panel admin al cargar...');
+    
+    const adminWelcome = document.getElementById('adminWelcome');
+    const adminPanelFull = document.getElementById('adminPanelFull');
+    
+    if (adminWelcome && adminPanelFull) {
+        // Ocultar pantalla de bienvenida
+        adminWelcome.style.display = 'none';
+        
+        // Mostrar panel completo
+        adminPanelFull.style.display = 'block';
+        adminPanelFull.style.opacity = '1';
+        adminPanelFull.style.transform = 'translateY(0)';
+        
+        console.log('✅ Panel forzado correctamente');
+    }
+}
+
+// 🔧 FUNCIÓN DE EMERGENCIA - FORZAR CARGA DE DATOS AL CARGAR LA PÁGINA
+function forceAdminDataLoad() {
+    console.log('🔧 Verificando si es necesario cargar datos admin...');
+    
+    if (currentUser?.role === 'admin' && currentView === 'admin') {
+        console.log('🔄 Usuario admin detectado - forzando carga de datos...');
+        
+        // Pequeño delay para asegurar que el DOM esté listo
+        setTimeout(() => {
+            loadAdminProducts();
+            loadAdminOrders();
+            updateAdminStats();
+        }, 1000);
+    }
+}
+
+// ======================
+// INICIALIZACIÓN AUTOMÁTICA
+// ======================
+// Ejecutar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🛒 DOM listo, inicializando módulo de pedidos...');
+    initializePedidos();
+});
+
+// Exponer funciones globales necesarias
+window.loadProducts = loadProducts;
+window.renderProductsByCategory = renderProductsByCategory;
+window.currentCategory = currentCategory;
+window.products = products;
