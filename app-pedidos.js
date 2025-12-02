@@ -308,28 +308,37 @@ function renderProductsByCategory() {
                 document.querySelectorAll('.product-card-modern').length);
 }
 
-// ✅ Función para crear tarjeta de producto
+
+// ✅ Función para crear tarjeta de producto - CORREGIDA
 function createProductCardHTML(product) {
-    // ✅ USAR imagen_url si existe, si no icono como fallback
-    const imageHTML = product.imagen_url 
-        ? `<img src="${product.imagen_url}" alt="${escapeHtml(product.name)}" class="product-real-image">`
-        : `<i class="fas fa-${getProductIcon(product.category)}"></i>`;
+    // ✅ CORREGIDO: Usar las propiedades REALES del backend
+    const productName = product.nombre || product.name || 'Producto sin nombre';
+    const productDescription = product.descripcion || product.description || '';
+    const productPrice = parseFloat(product.precio || product.price || 0);
+    const productStock = product.stock || product.quantity || 0;
+    const productCategory = product.categoria || product.category || 'Sin categoría';
+    const productImage = product.imagen_url || product.image_url || null;
+    
+    // ✅ USAR imagen_url si existe
+    const imageHTML = productImage 
+        ? `<img src="${productImage}" alt="${escapeHtml(productName)}" class="product-real-image">`
+        : `<i class="fas fa-${getProductIcon(productCategory)}"></i>`;
     
     return `
         <div class="product-card-modern" data-id="${product.id}">
             <div class="product-image">
-                <div class="category-badge">${product.category || 'Sin categoría'}</div>
+                <div class="category-badge">${productCategory}</div>
                 ${imageHTML}
-                <i class="fas fa-${getProductIcon(product.category)}"></i>
+                <i class="fas fa-${getProductIcon(productCategory)}"></i>
             </div>
             <div class="product-card-body">
-                <h3 class="product-card-title">${escapeHtml(product.name)}</h3>
-                <p class="product-card-description">${escapeHtml(product.description || '')}</p>
+                <h3 class="product-card-title">${escapeHtml(productName)}</h3>
+                <p class="product-card-description">${escapeHtml(productDescription)}</p>
                 <div class="product-card-footer">
-                    <div class="product-card-price">S/ ${parseFloat(product.price).toFixed(2)}</div>
-                    <div class="product-card-stock">${product.quantity > 0 ? `Stock: ${product.quantity}` : 'Sin stock'}</div>
-                    <button class="btn-add-cart" onclick="addToCart(${product.id})" ${product.quantity === 0 ? 'disabled' : ''}>
-                        <i class="fas fa-cart-plus"></i> ${product.quantity === 0 ? 'Sin stock' : 'Agregar'}
+                    <div class="product-card-price">S/ ${productPrice.toFixed(2)}</div>
+                    <div class="product-card-stock">${productStock > 0 ? `Stock: ${productStock}` : 'Sin stock'}</div>
+                    <button class="btn-add-cart" onclick="addToCart(${product.id})" ${productStock === 0 ? 'disabled' : ''}>
+                        <i class="fas fa-cart-plus"></i> ${productStock === 0 ? 'Sin stock' : 'Agregar'}
                     </button>
                 </div>
             </div>
