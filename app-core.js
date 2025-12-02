@@ -395,23 +395,89 @@ async function loadAdminOrders() {
     }
 }
 
-function updateAdminStats() {
-    // Las estadísticas reales vienen del backend
-    // Por ahora actualizamos solo lo básico
+async function updateAdminStats() {
+    console.log('📊 Actualizando estadísticas del admin...');
     
-    const totalProducts = window.products?.length || 0;
-    const totalRevenue = window.cart?.reduce((sum, item) => sum + (item.precio * item.quantity), 0) || 0;
+    // Valores por defecto (por si falla el backend)
+    let stats = {
+        totalProductos: window.products?.length || 0,
+        totalPedidos: 0,
+        totalUsuarios: 0,
+        ingresosTotales: 0
+    };
     
-    if (document.getElementById('totalProducts')) {
-        document.getElementById('totalProducts').textContent = totalProducts;
+    try {
+        // ✅ Obtener estadísticas REALES del backend (solo admin)
+        if (window.currentUser && window.currentUser.role === 'admin' && window.authToken) {
+            console.log('🌐 Solicitando estadísticas al backend...');
+            
+            const response = await fetch('https://bodega-backend-nuevo.onrender.com/api/estadisticas', {
+                headers: {
+                    'Authorization': `Bearer ${window.authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            console.log('📊 Response status:', response.status);
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✅ Estadísticas recibidas del backend:', data);
+                
+                // Extraer estadísticas (dependiendo del formato)
+                if (data.estadisticas) {
+                    stats = {
+                        totalProductos: data.estadisticas.totalProductos || window.products?.length || 0,
+                        totalPedidos: data.estadisticas.totalPedidos || 0,
+                        totalUsuarios: data.estadisticas.totalUsuarios || 0,
+                        ingresosTotales: parseFloat(data.estadisticas.ingresosTotales) || 0
+                    };
+                } else if (data.totalProductos) {
+                    // Si el backend devuelve las estadísticas directamente
+                    stats = {
+                        totalProductos: data.totalProductos || window.products?.length || 0,
+                        totalPedidos: data.totalPedidos || 0,
+                        totalUsuarios: data.totalUsuarios || 0,
+                        ingresosTotales: parseFloat(data.ingresosTotales) || 0
+                    };
+                }
+            } else {
+                console.warn('⚠️ No se pudieron obtener estadísticas del backend, usando valores por defecto');
+            }
+        }
+    } catch (error) {
+        console.warn('⚠️ Error obteniendo estadísticas:', error.message);
     }
     
-    if (document.getElementById('revenue')) {
-        document.getElementById('revenue').textContent = `S/ ${totalRevenue.toFixed(2)}`;
+    // ✅ Actualizar la UI con los datos REALES
+    console.log('🎯 Estadísticas a mostrar:', stats);
+    
+    const totalProductsEl = document.getElementById('totalProducts');
+    const totalOrdersEl = document.getElementById('totalOrders');
+    const totalUsersEl = document.getElementById('totalUsers');
+    const revenueEl = document.getElementById('revenue');
+    
+    if (totalProductsEl) {
+        totalProductsEl.textContent = stats.totalProductos;
+        console.log(`✅ Productos: ${stats.totalProductos}`);
     }
     
-    // Para pedidos y usuarios, necesitaríamos llamar al backend
-    // Pero por ahora dejamos los placeholders
+    if (totalOrdersEl) {
+        totalOrdersEl.textContent = stats.totalPedidos;
+        console.log(`✅ Pedidos: ${stats.totalPedidos}`);
+    }
+    
+    if (totalUsersEl) {
+        totalUsersEl.textContent = stats.totalUsuarios;
+        console.log(`✅ Usuarios: ${stats.totalUsuarios}`);
+    }
+    
+    if (revenueEl) {
+        revenueEl.textContent = `S/ ${stats.ingresosTotales.toFixed(2)}`;
+        console.log(`✅ Ingresos: S/ ${stats.ingresosTotales.toFixed(2)}`);
+    }
+    
+    console.log('✅ Estadísticas del admin actualizadas correctamente');
 }
 
 function getStatusText(status) {
