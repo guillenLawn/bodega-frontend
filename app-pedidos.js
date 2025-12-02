@@ -247,8 +247,11 @@ function showAdminPanelDirectly() {
 
 function renderProductsByCategory() {
     console.log('🔄 Renderizando productos por categoría...');
-    console.log('📊 Total de productos:', window.products.length);
-    console.log('🎯 Categoría actual:', currentCategory);
+    console.log('📊 Total de productos:', window.products ? window.products.length : 0);
+    
+    // ✅ CORREGIDO: Usar window.currentCategory como prioridad
+    const activeCategory = window.currentCategory || currentCategory || 'todos';
+    console.log('🎯 Categoría activa:', activeCategory);
     
     // Buscar el contenedor principal del catálogo
     const container = document.querySelector('.catalog-main');
@@ -262,14 +265,14 @@ function renderProductsByCategory() {
     
     // 1. Filtrar productos por categoría (si no es 'todos')
     let filteredProducts = products;
-    if (currentCategory && currentCategory !== 'todos') {
+    
+    if (activeCategory && activeCategory !== 'todos') {
         filteredProducts = products.filter(product => {
             const productCategory = product.categoria || product.category;
-            return productCategory === currentCategory;
+            return productCategory === activeCategory;
         });
+        console.log(`✅ Filtrados ${filteredProducts.length} productos de categoría "${activeCategory}"`);
     }
-    
-    console.log('✅ Productos a renderizar:', filteredProducts.length);
     
     if (filteredProducts.length === 0) {
         container.innerHTML = '<p class="no-products">No hay productos en esta categoría</p>';
@@ -277,45 +280,66 @@ function renderProductsByCategory() {
     }
     
     // 2. AGRUPAR por categoría para mostrar secciones
-    const groupedByCategory = {};
-    
-    filteredProducts.forEach(product => {
-        const category = product.categoria || product.category || 'Sin categoría';
-        
-        if (!groupedByCategory[category]) {
-            groupedByCategory[category] = [];
-        }
-        groupedByCategory[category].push(product);
-    });
-    
-    // 3. Generar HTML con SECCIONES por categoría
+    // (Si estamos en 'todos', agrupar por categoría. Si estamos en una categoría específica, mostrar solo esa)
     let catalogHTML = '';
     
-    Object.keys(groupedByCategory).forEach(category => {
-        const categoryProducts = groupedByCategory[category];
+    if (activeCategory === 'todos') {
+        // Agrupar por categoría
+        const groupedByCategory = {};
         
-        if (categoryProducts.length > 0) {
-            // Nombre amigable para la categoría
-            const categoryDisplayName = getCategoryDisplayName(category);
+        filteredProducts.forEach(product => {
+            const category = product.categoria || product.category || 'Sin categoría';
             
-            catalogHTML += `
-                <div class="category-section">
-                    <div class="category-header">
-                        <h2 class="category-title">${categoryDisplayName}</h2>
-                        <p class="category-description">${categoryProducts.length} producto(s)</p>
+            if (!groupedByCategory[category]) {
+                groupedByCategory[category] = [];
+            }
+            groupedByCategory[category].push(product);
+        });
+        
+        // Generar HTML con SECCIONES por categoría
+        Object.keys(groupedByCategory).forEach(category => {
+            const categoryProducts = groupedByCategory[category];
+            
+            if (categoryProducts.length > 0) {
+                const categoryDisplayName = getCategoryDisplayName(category);
+                
+                catalogHTML += `
+                    <div class="category-section">
+                        <div class="category-header">
+                            <h2 class="category-title">${categoryDisplayName}</h2>
+                            <p class="category-description">${categoryProducts.length} producto(s)</p>
+                        </div>
+                        <div class="products-grid">
+                            ${categoryProducts.map(product => createProductCardHTML(product)).join('')}
+                        </div>
                     </div>
-                    <div class="products-grid">
-                        ${categoryProducts.map(product => createProductCardHTML(product)).join('')}
-                    </div>
+                `;
+            }
+        });
+        
+        console.log('✅ Renderizado por categorías. Secciones:', Object.keys(groupedByCategory).length);
+    } else {
+        // Mostrar solo productos de una categoría específica
+        const categoryDisplayName = getCategoryDisplayName(activeCategory);
+        
+        catalogHTML = `
+            <div class="category-section">
+                <div class="category-header">
+                    <h2 class="category-title">${categoryDisplayName}</h2>
+                    <p class="category-description">${filteredProducts.length} producto(s)</p>
                 </div>
-            `;
-        }
-    });
+                <div class="products-grid">
+                    ${filteredProducts.map(product => createProductCardHTML(product)).join('')}
+                </div>
+            </div>
+        `;
+        
+        console.log(`✅ Renderizado de categoría específica: "${activeCategory}"`);
+    }
     
     container.innerHTML = catalogHTML;
     
-    console.log('✅ Renderizado completado. Categorías:', Object.keys(groupedByCategory).length);
-    console.log('✅ Tarjetas creadas:', document.querySelectorAll('.product-card-modern').length);
+    console.log('✅ Renderizado completado. Tarjetas creadas:', document.querySelectorAll('.product-card-modern').length);
 }
 
 // AGREGAR esta función auxiliar si no existe:
