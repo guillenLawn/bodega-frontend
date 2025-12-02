@@ -1628,17 +1628,28 @@ function loadAdminStats() {
     console.log('Cargando estadísticas del admin...');
 }
 
-// 🔧 FUNCIONES PARA EL PANEL DEL CARRITO
 function showCartPanel() {
     console.log('🛒 Mostrando panel del carrito...');
     const cartPanel = document.getElementById('cartPanel');
     const cartOverlay = document.getElementById('cartOverlay');
     
     if (cartPanel && cartOverlay) {
-        cartPanel.classList.add('active');
-        cartOverlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
-        updateCartUI(); // Actualizar siempre al abrir
+        // 1. Primero mostrar el overlay (con pointer-events)
+        cartOverlay.style.display = 'block';
+        cartOverlay.style.pointerEvents = 'auto';
+        
+        // 2. Pequeño delay para que el DOM procese el display change
+        setTimeout(() => {
+            // 3. Agregar clase active para animación
+            cartOverlay.classList.add('active');
+            cartPanel.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // 4. Actualizar contenido
+            updateCartUI(); // Actualizar siempre al abrir
+            
+            console.log('✅ Carrito completamente abierto');
+        }, 10);
     }
 }
 
@@ -1782,10 +1793,32 @@ function initializeCartSystem() {
     }
 }
 
-// ===== INICIALIZAR AUTOMÁTICAMENTE =====
-// Esperar a que todo cargue y luego arreglar el carrito
+// ===== 🚨 SOLUCIÓN DE EMERGENCIA - OVERLAY COMPLETAMENTE FUNCIONAL =====
+function setupCartOverlayFix() {
+    console.log('🚨 Configurando overlay del carrito...');
+    
+    const overlay = document.getElementById('cartOverlay');
+    if (!overlay) return;
+    
+    // Asegurar que overlay esté inicialmente oculto
+    overlay.style.display = 'none';
+    overlay.style.pointerEvents = 'none';
+    overlay.classList.remove('active');
+    
+    // Agregar event listener DIRECTO para cerrar al hacer click
+    overlay.addEventListener('click', function(e) {
+        console.log('🎯 Click en overlay para cerrar carrito');
+        if (typeof hideCartPanel === 'function') {
+            hideCartPanel();
+        }
+    });
+    
+    console.log('✅ Overlay configurado correctamente');
+}
+
+// Ejecutar después de que todo cargue
 setTimeout(() => {
-    if (typeof initializeCartSystem === 'function') {
-        initializeCartSystem();
+    if (typeof setupCartOverlayFix === 'function') {
+        setupCartOverlayFix();
     }
-}, 1000);
+}, 2000);
