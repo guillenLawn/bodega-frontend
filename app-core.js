@@ -820,7 +820,7 @@ function updateCartUI() {
 
     console.log('Actualizando UI del carrito. Productos en carrito:', cart.length);
 
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
     if (cartCount) {
         cartCount.textContent = totalItems;
         cartCount.style.display = totalItems > 0 ? 'flex' : 'none';
@@ -843,14 +843,15 @@ function updateCartUI() {
             let cartHTML = '';
             
             cart.forEach(item => {
+                // ✅ CORREGIDO: Usar 'nombre' y 'precio'
                 cartHTML += `
                     <div class="cart-item-modern">
                         <div class="cart-item-image">
-                            <i class="fas fa-${getProductIcon(item.category)}"></i>
+                            <i class="fas fa-${getProductIcon(item.categoria)}"></i>
                         </div>
                         <div class="cart-item-details">
-                            <div class="cart-item-name">${escapeHtml(item.name)}</div>
-                            <div class="cart-item-price">S/ ${item.price.toFixed(2)} c/u</div>
+                            <div class="cart-item-name">${escapeHtml(item.nombre)}</div>
+                            <div class="cart-item-price">S/ ${item.precio.toFixed(2)} c/u</div>
                         </div>
                         <div class="cart-item-controls-modern">
                             <button class="quantity-btn" onclick="updateQuantity(${item.id}, -1)">
@@ -876,7 +877,8 @@ function updateCartUI() {
         }
     }
 
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    // ✅ CORREGIDO: Usar 'precio' en lugar de 'price'
+    const total = cart.reduce((sum, item) => sum + ((item.precio || 0) * (item.quantity || 0)), 0);
     if (totalAmount) {
         totalAmount.textContent = `S/ ${total.toFixed(2)}`;
     }
@@ -896,6 +898,7 @@ function updateQuantity(productId, change) {
     const item = cart.find(item => item.id == productId);
     if (!item) return;
 
+    // ✅ BUSCAR producto ORIGINAL con propiedades correctas
     const originalProduct = products.find(p => p.id == productId);
     
     if (change > 0) {
@@ -1452,12 +1455,13 @@ function addToCart(productId) {
         }
         existingItem.quantity++;
     } else {
+        // ✅ CORREGIDO: Usar propiedades correctas
         cart.push({
             id: product.id,
-            name: product.name,
-            price: product.price,
+            nombre: product.nombre,        // ← ¡CORREGIDO! Antes era 'name'
+            precio: parseFloat(product.precio), // ← ¡CORREGIDO! Antes era 'price'
             quantity: 1,
-            category: product.category
+            categoria: product.categoria    // ← ¡CORREGIDO! Antes era 'category'
         });
     }
     
@@ -1554,4 +1558,73 @@ function hideSuggestions() {
 
 function loadAdminStats() {
     console.log('Cargando estadísticas del admin...');
+}
+
+// 🔧 FUNCIONES PARA EL PANEL DEL CARRITO
+function showCartPanel() {
+    console.log('🛒 Mostrando panel del carrito...');
+    const cartPanel = document.getElementById('cartPanel');
+    const cartOverlay = document.getElementById('cartOverlay');
+    
+    if (cartPanel && cartOverlay) {
+        cartPanel.classList.add('active');
+        cartOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        updateCartUI(); // Actualizar siempre al abrir
+    }
+}
+
+function hideCartPanel() {
+    console.log('🛒 Ocultando panel del carrito...');
+    const cartPanel = document.getElementById('cartPanel');
+    const cartOverlay = document.getElementById('cartOverlay');
+    
+    if (cartPanel && cartOverlay) {
+        cartPanel.classList.remove('active');
+        cartOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+// 🔧 REEMPLAZAR LA FUNCIÓN toggleCart (línea ~860):
+function toggleCart() {
+    if (isAdminMode && currentView === 'admin') {
+        showNotification('🔧 El carrito está deshabilitado en modo administrador', 'info');
+        return;
+    }
+    
+    const cartPanel = document.getElementById('cartPanel');
+    
+    if (cartPanel && cartPanel.classList.contains('active')) {
+        hideCartPanel();
+    } else {
+        showCartPanel();
+    }
+}
+
+// 🔧 ACTUALIZAR setupEventListeners (línea ~915):
+function setupEventListeners() {
+    document.getElementById('cartToggle')?.addEventListener('click', toggleCart);
+    document.getElementById('closeCart')?.addEventListener('click', hideCartPanel);
+    document.getElementById('cartOverlay')?.addEventListener('click', hideCartPanel);
+    document.getElementById('btnPedir')?.addEventListener('click', realizarPedido);
+    
+    document.querySelectorAll('.filter-option input').forEach(radio => {
+        radio.addEventListener('change', handleFilterChange);
+    });
+
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', handleSearch);
+        searchInput.addEventListener('keydown', handleSearchKeydown);
+        searchInput.addEventListener('focus', handleSearchFocus);
+        searchInput.addEventListener('blur', handleSearchBlur);
+    }
+
+    document.addEventListener('click', function(e) {
+        const searchBar = document.querySelector('.search-bar');
+        if (searchBar && !searchBar.contains(e.target)) {
+            hideSuggestions();
+        }
+    });
 }
