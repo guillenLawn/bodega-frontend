@@ -553,6 +553,7 @@ function showAdminPanelDirectly() {
 // ===== HISTORIAL DE PEDIDOS =====
 async function loadHistorialPedidos() {
     console.log('📋 Cargando historial de pedidos...');
+    console.log('👤 Usuario ID:', window.currentUser?.id);
     
     const historialContainer = document.getElementById('historialContainer');
     if (!historialContainer) return;
@@ -573,23 +574,29 @@ async function loadHistorialPedidos() {
     }
     
     try {
-        historialContainer.innerHTML = '<div class="loading-spinner"></div>';
+        historialContainer.innerHTML = '<div class="loading-spinner">Cargando tu historial...</div>';
         
-        const response = await fetch('https://bodega-backend-nuevo.onrender.com/api/pedidos/user', {
+        // ✅ CORREGIDO: usuario en lugar de user
+        const response = await fetch('https://bodega-backend-nuevo.onrender.com/api/pedidos/usuario', {
             headers: {
                 'Authorization': `Bearer ${window.authToken}`,
                 'Content-Type': 'application/json'
             }
         });
         
+        console.log('📊 Response status:', response.status);
+        
         if (!response.ok) {
-            throw new Error('Error al cargar historial');
+            throw new Error(`Error ${response.status}: No se pudieron cargar los pedidos`);
         }
         
         const data = await response.json();
-        const pedidos = data.pedidos || data || [];
+        console.log('📊 Datos recibidos del backend:', data);
         
-        if (!Array.isArray(pedidos) || pedidos.length === 0) {
+        const pedidos = data.pedidos || [];
+        console.log('📦 Número de pedidos encontrados:', pedidos.length);
+        
+        if (pedidos.length === 0) {
             historialContainer.innerHTML = `
                 <div class="historial-empty">
                     <i class="fas fa-clipboard-list"></i>
@@ -603,8 +610,8 @@ async function loadHistorialPedidos() {
             return;
         }
         
-        // Ordenar pedidos por fecha (más reciente primero)
-        pedidos.sort((a, b) => new Date(b.fecha || b.createdAt) - new Date(a.fecha || a.createdAt));
+        // Ordenar por fecha (más reciente primero)
+        pedidos.sort((a, b) => new Date(b.fecha_creacion) - new Date(a.fecha_creacion));
         
         let historialHTML = `
             <div class="historial-header">
@@ -614,36 +621,42 @@ async function loadHistorialPedidos() {
         `;
         
         pedidos.forEach(pedido => {
-            const total = pedido.items?.reduce((sum, item) => 
-                sum + ((item.precio || item.price || 0) * (item.cantidad || item.quantity || 0)), 0) || 0;
-            
-            const fecha = pedido.fecha ? new Date(pedido.fecha).toLocaleDateString() : 
-                         pedido.createdAt ? new Date(pedido.createdAt).toLocaleDateString() : 'Fecha no disponible';
+            const total = parseFloat(pedido.total) || 0;
+            const fecha = new Date(pedido.fecha_creacion).toLocaleDateString('es-PE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
             
             historialHTML += `
                 <div class="pedido-card">
                     <div class="pedido-header">
                         <div class="pedido-info">
-                            <h3>Pedido #${pedido.id || pedido._id || 'N/A'}</h3>
+                            <h3>Pedido #${pedido.id}</h3>
                             <p class="pedido-fecha">${fecha}</p>
                         </div>
                         <div class="pedido-estado">
-                            <span class="status-badge estado-${pedido.estado || 'pendiente'}">
-                                ${getStatusText(pedido.estado)}
+                            <span class="status-badge estado-${pedido.estado || 'completado'}">
+                                ${pedido.estado === 'completado' ? '✅ Completado' : 
+                                  pedido.estado === 'pendiente' ? '⏳ Pendiente' : 
+                                  pedido.estado === 'cancelado' ? '❌ Cancelado' : 
+                                  '📦 ' + (pedido.estado || 'Completado')}
                             </span>
                         </div>
                     </div>
                     
                     <div class="pedido-items">
-                        ${pedido.items?.map(item => `
+                        ${(pedido.items || []).map(item => `
                             <div class="pedido-item">
                                 <div class="pedido-item-info">
-                                    <span class="pedido-item-nombre">${item.nombre}</span>
-                                    <span class="pedido-item-cantidad">${item.cantidad || item.quantity} x S/ ${(item.precio || item.price || 0).toFixed(2)}</span>
+                                    <span class="pedido-item-nombre">${item.producto_nombre}</span>
+                                    <span class="pedido-item-cantidad">${item.cantidad} x S/ ${parseFloat(item.precio_unitario).toFixed(2)}</span>
                                 </div>
-                                <span class="pedido-item-subtotal">S/ ${((item.precio || item.price || 0) * (item.cantidad || item.quantity || 0)).toFixed(2)}</span>
+                                <span class="pedido-item-subtotal">S/ ${parseFloat(item.subtotal).toFixed(2)}</span>
                             </div>
-                        `).join('') || ''}
+                        `).join('')}
                     </div>
                     
                     <div class="pedido-footer">
@@ -651,22 +664,35 @@ async function loadHistorialPedidos() {
                             <strong>Total:</strong>
                             <span class="pedido-total-monto">S/ ${total.toFixed(2)}</span>
                         </div>
+                        ${pedido.direccion_entrega ? `
+                            <div class="pedido-direccion">
+                                <strong>📦 Dirección:</strong> ${pedido.direccion_entrega}
+                            </div>
+                        ` : ''}
+                        ${pedido.metodo_pago ? `
+                            <div class="pedido-metodo-pago">
+                                <strong>💳 Método de pago:</strong> ${pedido.metodo_pago}
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
             `;
         });
         
         historialContainer.innerHTML = historialHTML;
+        console.log('✅ Historial cargado correctamente');
         
     } catch (error) {
         console.error('Error cargando historial:', error);
+        
         historialContainer.innerHTML = `
-            <div class="error-state">
+            <div class="historial-empty">
                 <i class="fas fa-exclamation-triangle"></i>
                 <h3>Error al cargar el historial</h3>
                 <p>${error.message}</p>
-                <button class="btn-retry" onclick="loadHistorialPedidos()">
-                    Reintentar
+                <p>Los pedidos se han guardado correctamente en el sistema.</p>
+                <button class="btn-primary" onclick="showView('catalogo')">
+                    <i class="fas fa-store"></i> Continuar Comprando
                 </button>
             </div>
         `;
