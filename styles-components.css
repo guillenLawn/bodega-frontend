@@ -1274,12 +1274,13 @@
 /* Stock */
 .product-card-stock {
     font-size: 0.8rem !important;
-    color: #10b981 !important;
+    color: #0d966d !important; /* ← VERDE MÁS OSCURO */
     font-weight: 600 !important;
-    background: rgba(16, 185, 129, 0.25) !important; /* ← Un poco más opaco */
+    background: rgba(13, 150, 109, 0.2) !important; /* ← FONDO OSCURO */
     padding: 4px 12px !important;
     border-radius: 16px !important;
-    border: 1px solid rgba(16, 185, 129, 0.5) !important;
+    border: 1px solid rgba(13, 150, 109, 0.4) !important;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2) !important; /* ← Sombra de texto */
 }
 
 /* Botón Agregar - Blanco sobre azul */
