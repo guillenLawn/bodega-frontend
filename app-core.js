@@ -265,39 +265,74 @@ async function loadAdminProducts() {
         }
         
         tableBody.innerHTML = '';
+        
+        // ✅ CORREGIDO: Usar las propiedades CORRECTAS del backend
         products.forEach(product => {
             const row = document.createElement('tr');
+            
+            // Convertir precio de string a number para formatear
+            const precioNumero = parseFloat(product.precio) || 0;
+            const stockNumero = parseInt(product.stock) || 0;
+            const categoria = product.categoria || 'Sin categoría';
+            
             row.innerHTML = `
                 <td>
                     <div class="product-info-cell">
                         <div class="product-avatar">
-                            <i class="fas fa-${getProductIcon(product.category)}"></i>
+                            <i class="fas fa-${getProductIcon(categoria)}"></i>
                         </div>
                         <div class="product-details">
-                            <strong>${escapeHtml(product.name)}</strong>
-                            ${product.description ? `<small>${escapeHtml(product.description)}</small>` : ''}
+                            <strong>${escapeHtml(product.nombre)}</strong>
+                            ${product.descripcion ? `<small>${escapeHtml(product.descripcion)}</small>` : ''}
                         </div>
                     </div>
                 </td>
-                <td><span class="category-badge">${escapeHtml(product.category)}</span></td>
-                <td><strong class="price">S/ ${parseFloat(product.price).toFixed(2)}</strong></td>
-                <td><span class="stock ${product.quantity > 0 ? 'in-stock' : 'out-of-stock'}">${product.quantity}</span></td>
-                <td><span class="status-badge ${product.quantity > 0 ? 'active' : 'inactive'}">${product.quantity > 0 ? 'Activo' : 'Sin Stock'}</span></td>
+                <td>
+                    <span class="category-badge">${escapeHtml(categoria)}</span>
+                </td>
+                <td>
+                    <strong class="price">S/ ${precioNumero.toFixed(2)}</strong>
+                </td>
+                <td>
+                    <span class="stock ${stockNumero > 0 ? 'in-stock' : 'out-of-stock'}">
+                        ${stockNumero}
+                    </span>
+                </td>
+                <td>
+                    <span class="status-badge ${stockNumero > 0 ? 'active' : 'inactive'}">
+                        ${stockNumero > 0 ? 'Activo' : 'Sin Stock'}
+                    </span>
+                </td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn-edit" onclick="openEditProductModal('${product.id || product._id}')"><i class="fas fa-edit"></i></button>
-                        <button class="btn-delete" onclick="openDeleteProductModal('${product.id || product._id}')"><i class="fas fa-trash"></i></button>
+                        <button class="btn-edit" onclick="openEditProductModal('${product.id}')" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-delete" onclick="openDeleteProductModal('${product.id}')" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 </td>
             `;
             tableBody.appendChild(row);
         });
         
+        // ✅ Actualizar estadísticas con datos REALES
         updateAdminStats();
         
     } catch (error) {
         console.error('Error cargando productos admin:', error);
-        tableBody.innerHTML = '<tr><td colspan="6" class="text-center error">Error al cargar productos</td></tr>';
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error al cargar productos</p>
+                    <button class="btn-retry" onclick="loadAdminProducts()">
+                        Reintentar
+                    </button>
+                </td>
+            </tr>
+        `;
     }
 }
 
@@ -361,13 +396,22 @@ async function loadAdminOrders() {
 }
 
 function updateAdminStats() {
-    const totalProducts = window.products.length;
-    const totalRevenue = window.cart.reduce((sum, item) => sum + (item.precio * item.quantity), 0);
+    // Las estadísticas reales vienen del backend
+    // Por ahora actualizamos solo lo básico
     
-    document.getElementById('totalProducts').textContent = totalProducts;
-    document.getElementById('totalOrders').textContent = '0';
-    document.getElementById('totalUsers').textContent = '0';
-    document.getElementById('revenue').textContent = `S/ ${totalRevenue.toFixed(2)}`;
+    const totalProducts = window.products?.length || 0;
+    const totalRevenue = window.cart?.reduce((sum, item) => sum + (item.precio * item.quantity), 0) || 0;
+    
+    if (document.getElementById('totalProducts')) {
+        document.getElementById('totalProducts').textContent = totalProducts;
+    }
+    
+    if (document.getElementById('revenue')) {
+        document.getElementById('revenue').textContent = `S/ ${totalRevenue.toFixed(2)}`;
+    }
+    
+    // Para pedidos y usuarios, necesitaríamos llamar al backend
+    // Pero por ahora dejamos los placeholders
 }
 
 function getStatusText(status) {
