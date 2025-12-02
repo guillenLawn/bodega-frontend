@@ -1401,7 +1401,42 @@ async function loadProducts() {
 }
 
 function renderProducts() {
-    console.log('Renderizando productos:', products);
+    console.log('🔄 app-core: Renderizando productos:', window.products ? window.products.length : 0);
+    
+    // ✅ LLAMAR a la función CORRECTA de app-pedidos.js
+    if (typeof window.renderProductsByCategory === 'function') {
+        console.log('🎯 Llamando a renderProductsByCategory()...');
+        window.renderProductsByCategory();
+    } else {
+        console.error('❌ renderProductsByCategory no disponible');
+        
+        // Fallback: renderizado básico
+        const container = document.querySelector('.catalog-main');
+        if (container && window.products && window.products.length > 0) {
+            console.log('🔄 Usando fallback básico...');
+            container.innerHTML = `
+                <div class="category-section">
+                    <div class="category-header">
+                        <h2 class="category-title">Todos los productos</h2>
+                    </div>
+                    <div class="products-grid">
+                        ${window.products.map(p => `
+                            <div class="product-card-modern" data-id="${p.id}">
+                                <div class="product-image">
+                                    <div class="category-badge">${p.categoria || 'Sin categoría'}</div>
+                                    ${p.imagen_url ? `<img src="${p.imagen_url}" alt="${p.nombre}" class="product-real-image">` : '<i class="fas fa-box"></i>'}
+                                </div>
+                                <div class="product-card-body">
+                                    <h3>${p.nombre}</h3>
+                                    <p>S/ ${parseFloat(p.precio).toFixed(2)}</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+    }
 }
 
 function addToCart(productId) {
