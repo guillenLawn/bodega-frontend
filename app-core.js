@@ -1648,9 +1648,19 @@ function hideCartPanel() {
     const cartOverlay = document.getElementById('cartOverlay');
     
     if (cartPanel && cartOverlay) {
+        // 1. Remover clase active del panel
         cartPanel.classList.remove('active');
+        
+        // 2. IMPORTANTE: También remover pointer-events del overlay
         cartOverlay.classList.remove('active');
-        document.body.style.overflow = '';
+        cartOverlay.style.pointerEvents = 'none'; // ← ¡ESTO ES CLAVE!
+        
+        // 3. Esperar a que termine la animación (300ms) y luego deshabilitar completamente
+        setTimeout(() => {
+            cartOverlay.style.display = 'none';
+            document.body.style.overflow = '';
+            console.log('✅ Carrito completamente cerrado y overlay deshabilitado');
+        }, 300); // Mismo tiempo que la transición CSS
     }
 }
 
