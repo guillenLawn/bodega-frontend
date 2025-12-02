@@ -553,46 +553,68 @@ function showAdminPanelDirectly() {
 // ===== HISTORIAL DE PEDIDOS =====
 async function loadHistorialPedidos() {
     console.log('📋 Cargando historial de pedidos...');
-    console.log('👤 Usuario ID:', window.currentUser?.id);
-    console.log('🔑 Token presente?:', window.authToken ? '✅ Sí' : '❌ No');
     
-    const historialContainer = document.getElementById('historialContainer');
+    // ✅ USAR LOS IDs CORRECTOS del HTML
+    const historialContent = document.getElementById('historialContent');
+    const historialLoading = document.getElementById('historialLoading');
+    const historialNotLogged = document.getElementById('historialNotLogged');
+    const historialEmpty = document.getElementById('historialEmpty');
+    const pedidosList = document.getElementById('pedidosList');
     
-    // ✅ MEJORADO: Más información si no existe
-    if (!historialContainer) {
-        console.error('❌ historialContainer no encontrado en el DOM');
-        console.log('🔍 Buscando elementos similares...');
-        const elementos = document.querySelectorAll('[id*="historial"], [class*="historial"]');
-        console.log('Elementos encontrados:', elementos.length);
-        elementos.forEach(el => console.log(`- ${el.tagName}#${el.id}`));
+    console.log('🔍 Elementos encontrados:');
+    console.log('- historialContent:', historialContent ? '✅' : '❌');
+    console.log('- historialLoading:', historialLoading ? '✅' : '❌');
+    console.log('- historialNotLogged:', historialNotLogged ? '✅' : '❌');
+    console.log('- historialEmpty:', historialEmpty ? '✅' : '❌');
+    console.log('- pedidosList:', pedidosList ? '✅' : '❌');
+    
+    if (!historialContent) {
+        console.error('❌ No se encontró historialContent');
         return;
     }
-    
-    console.log('✅ historialContainer encontrado');
     
     // Verificar si el usuario está logueado
     if (!window.currentUser) {
         console.log('👤 Usuario no logueado, mostrando mensaje...');
-        historialContainer.innerHTML = `
-            <div class="historial-empty">
-                <i class="fas fa-user-lock"></i>
-                <h3>Inicia sesión para ver tu historial</h3>
-                <p>Necesitas estar logueado para ver tus pedidos anteriores</p>
-                <button class="btn-primary" onclick="showAuthModal('login')">
-                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
-                </button>
-            </div>
-        `;
+        
+        // Ocultar todos los demás estados
+        if (historialLoading) historialLoading.style.display = 'none';
+        if (historialEmpty) historialEmpty.style.display = 'none';
+        if (pedidosList) pedidosList.style.display = 'none';
+        
+        // Mostrar mensaje de no logueado
+        if (historialNotLogged) {
+            historialNotLogged.style.display = 'block';
+        } else {
+            historialContent.innerHTML = `
+                <div class="historial-not-logged">
+                    <i class="fas fa-user-lock"></i>
+                    <h3>Inicia sesión para ver tu historial</h3>
+                    <p>Necesitas estar logueado para ver tus pedidos anteriores</p>
+                    <button class="btn-primary" onclick="showAuthModal('login')">
+                        <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                    </button>
+                </div>
+            `;
+        }
         return;
     }
     
+    // ✅ Ocultar estados no necesarios
+    if (historialNotLogged) historialNotLogged.style.display = 'none';
+    if (historialEmpty) historialEmpty.style.display = 'none';
+    if (pedidosList) pedidosList.style.display = 'none';
+    
+    // ✅ Mostrar loading
+    if (historialLoading) {
+        historialLoading.style.display = 'block';
+    } else {
+        historialContent.innerHTML = '<div class="loading-spinner">Cargando tu historial...</div>';
+    }
+    
     try {
-        console.log('🔄 Mostrando spinner de carga...');
-        historialContainer.innerHTML = '<div class="loading-spinner">Cargando tu historial...</div>';
+        console.log('🌐 Solicitando historial al backend...');
         
-        console.log('🌐 Haciendo request a:', 'https://bodega-backend-nuevo.onrender.com/api/pedidos/usuario');
-        
-        // ✅ CORREGIDO: usuario en lugar de user
         const response = await fetch('https://bodega-backend-nuevo.onrender.com/api/pedidos/usuario', {
             headers: {
                 'Authorization': `Bearer ${window.authToken}`,
@@ -601,42 +623,47 @@ async function loadHistorialPedidos() {
         });
         
         console.log('📊 Response status:', response.status);
-        console.log('📊 Response ok?:', response.ok);
         
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Error del servidor:', errorText);
-            throw new Error(`Error ${response.status}: ${errorText.substring(0, 100)}`);
+            throw new Error(`Error ${response.status}: No se pudieron cargar los pedidos`);
         }
         
         const data = await response.json();
-        console.log('📊 Datos recibidos del backend:', data);
-        console.log('📊 ¿Tiene propiedad "pedidos"?:', 'pedidos' in data);
-        console.log('📊 ¿Tiene propiedad "success"?:', 'success' in data);
+        console.log('📊 Datos recibidos:', data);
         
         const pedidos = data.pedidos || [];
-        console.log('📦 Número de pedidos encontrados:', pedidos.length);
+        console.log('📦 Pedidos encontrados:', pedidos.length);
+        
+        // ✅ Ocultar loading
+        if (historialLoading) historialLoading.style.display = 'none';
         
         if (pedidos.length === 0) {
             console.log('📭 No hay pedidos, mostrando mensaje...');
-            historialContainer.innerHTML = `
-                <div class="historial-empty">
-                    <i class="fas fa-clipboard-list"></i>
-                    <h3>No tienes pedidos aún</h3>
-                    <p>Realiza tu primer pedido en el catálogo</p>
-                    <button class="btn-primary" onclick="showView('catalogo')">
-                        <i class="fas fa-store"></i> Ir al Catálogo
-                    </button>
-                </div>
-            `;
+            if (historialEmpty) {
+                historialEmpty.style.display = 'block';
+            } else {
+                historialContent.innerHTML = `
+                    <div class="historial-empty">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h3>No tienes pedidos aún</h3>
+                        <p>Realiza tu primer pedido en el catálogo</p>
+                        <button class="btn-primary" onclick="showView('catalogo')">
+                            <i class="fas fa-store"></i> Ir al Catálogo
+                        </button>
+                    </div>
+                `;
+            }
             return;
         }
         
         // Ordenar por fecha (más reciente primero)
-        console.log('📅 Ordenando pedidos por fecha...');
         pedidos.sort((a, b) => new Date(b.fecha_creacion) - new Date(a.fecha_creacion));
         
-        console.log('🎨 Generando HTML del historial...');
+        console.log('🎨 Generando HTML para', pedidos.length, 'pedidos...');
+        
+        // ✅ Usar pedidosList si existe, sino crear uno
+        const containerParaPedidos = pedidosList || historialContent;
+        
         let historialHTML = `
             <div class="historial-header">
                 <h2>Mis Pedidos</h2>
@@ -644,10 +671,7 @@ async function loadHistorialPedidos() {
             </div>
         `;
         
-        // Procesar cada pedido
-        pedidos.forEach((pedido, index) => {
-            console.log(`📝 Procesando pedido ${index + 1}/${pedidos.length}: ID ${pedido.id}`);
-            
+        pedidos.forEach(pedido => {
             const total = parseFloat(pedido.total) || 0;
             const fecha = new Date(pedido.fecha_creacion).toLocaleDateString('es-PE', {
                 day: '2-digit',
@@ -656,10 +680,6 @@ async function loadHistorialPedidos() {
                 hour: '2-digit',
                 minute: '2-digit'
             });
-            
-            // Verificar items
-            const items = pedido.items || [];
-            console.log(`   - Items: ${items.length}`);
             
             historialHTML += `
                 <div class="pedido-card">
@@ -679,13 +699,13 @@ async function loadHistorialPedidos() {
                     </div>
                     
                     <div class="pedido-items">
-                        ${items.map(item => `
+                        ${(pedido.items || []).map(item => `
                             <div class="pedido-item">
                                 <div class="pedido-item-info">
-                                    <span class="pedido-item-nombre">${item.producto_nombre || 'Producto'}</span>
-                                    <span class="pedido-item-cantidad">${item.cantidad || 0} x S/ ${parseFloat(item.precio_unitario || 0).toFixed(2)}</span>
+                                    <span class="pedido-item-nombre">${item.producto_nombre}</span>
+                                    <span class="pedido-item-cantidad">${item.cantidad} x S/ ${parseFloat(item.precio_unitario).toFixed(2)}</span>
                                 </div>
-                                <span class="pedido-item-subtotal">S/ ${parseFloat(item.subtotal || 0).toFixed(2)}</span>
+                                <span class="pedido-item-subtotal">S/ ${parseFloat(item.subtotal).toFixed(2)}</span>
                             </div>
                         `).join('')}
                     </div>
@@ -710,48 +730,35 @@ async function loadHistorialPedidos() {
             `;
         });
         
-        console.log('✅ HTML generado, insertando en el DOM...');
-        console.log('📏 Longitud del HTML:', historialHTML.length, 'caracteres');
+        // ✅ Insertar en el contenedor correcto
+        if (pedidosList) {
+            pedidosList.innerHTML = historialHTML;
+            pedidosList.style.display = 'block';
+        } else {
+            historialContent.innerHTML = historialHTML;
+        }
         
-        historialContainer.innerHTML = historialHTML;
-        console.log('✅ Historial cargado correctamente en el DOM');
-        
-        // Verificar que se insertó correctamente
-        setTimeout(() => {
-            const pedidosEnDOM = historialContainer.querySelectorAll('.pedido-card');
-            console.log('🔍 Verificación final:');
-            console.log('- Pedidos en DOM:', pedidosEnDOM.length);
-            console.log('- Primer pedido visible?:', pedidosEnDOM[0]?.offsetParent !== null);
-            
-            if (pedidosEnDOM.length === 0) {
-                console.error('❌ ¡Los pedidos no se insertaron en el DOM!');
-                console.log('HTML actual:', historialContainer.innerHTML.substring(0, 300));
-            }
-        }, 100);
+        console.log('✅ Historial cargado correctamente');
         
     } catch (error) {
-        console.error('❌ Error cargando historial:', error);
-        console.error('Stack trace:', error.stack);
+        console.error('Error cargando historial:', error);
         
-        // Mostrar error detallado
-        historialContainer.innerHTML = `
+        // ✅ Ocultar loading
+        if (historialLoading) historialLoading.style.display = 'none';
+        
+        // Mostrar error
+        historialContent.innerHTML = `
             <div class="historial-empty">
                 <i class="fas fa-exclamation-triangle"></i>
                 <h3>Error al cargar el historial</h3>
-                <p><strong>Error:</strong> ${error.message}</p>
-                <p><strong>Detalles:</strong> ${error.toString()}</p>
-                <p>Intenta recargar la página o verifica tu conexión.</p>
+                <p>${error.message}</p>
+                <p>Los pedidos se han guardado correctamente en el sistema.</p>
                 <button class="btn-primary" onclick="showView('catalogo')">
-                    <i class="fas fa-store"></i> Volver al Catálogo
-                </button>
-                <button class="btn-secondary" onclick="loadHistorialPedidos()" style="margin-top: 10px;">
-                    <i class="fas fa-redo"></i> Reintentar
+                    <i class="fas fa-store"></i> Continuar Comprando
                 </button>
             </div>
         `;
     }
-    
-    console.log('🏁 loadHistorialPedidos() finalizado');
 }
 
 // ===== FUNCIONES AUXILIARES =====
