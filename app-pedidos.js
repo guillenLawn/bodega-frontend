@@ -1039,21 +1039,20 @@ function createProductCardHTML(product) {
     return `
         <div class="product-card-modern" data-id="${product.id}">
             <div class="product-image">
+                <div class="category-badge">${product.category}</div>
                 ${imageHTML}
+                <i class="fas fa-${getProductIcon(product.category)}"></i>
             </div>
-            <div class="product-info">
-                <div class="product-name">${escapeHtml(product.name)}</div>
-                <div class="product-category">${product.category}</div>
-                <div class="product-footer-modern">
-                    <div class="product-price">S/ ${product.price.toFixed(2)}</div>
-                    <div class="product-stock ${stockStatus}">${stockText}</div>
+            <div class="product-card-body">
+                <h3 class="product-card-title">${escapeHtml(product.name)}</h3>
+                <p class="product-card-description">${escapeHtml(product.description)}</p>
+                <div class="product-card-footer">
+                    <div class="product-card-price">S/ ${product.price.toFixed(2)}</div>
+                    <div class="product-card-stock">Stock: ${product.quantity}</div>
+                    <button class="btn-add-cart" onclick="addToCart(${product.id})">
+                        <i class="fas fa-cart-plus"></i> Agregar
+                    </button>
                 </div>
-                <button class="btn-add-cart ${product.quantity === 0 ? 'disabled' : ''}" 
-                        ${product.quantity === 0 ? 'disabled' : ''}
-                        data-id="${product.id}">
-                    <i class="fas fa-cart-plus"></i>
-                    Agregar
-                </button>
             </div>
         </div>
     `;
