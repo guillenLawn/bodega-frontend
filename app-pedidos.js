@@ -678,6 +678,14 @@ document.addEventListener('DOMContentLoaded', function() {
 window.renderProductsByCategory = renderProductsByCategory;
 window.currentCategory = currentCategory;
 
-// AL FINAL de app-pedidos.js, agrega:
+// ======================
+// EXPONER VARIABLES GLOBALES
+// ======================
 window.currentCategory = currentCategory;
 window.renderProductsByCategory = renderProductsByCategory;
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🛒 DOM listo, inicializando módulo de pedidos...');
+    initializePedidos();
+});
