@@ -1670,4 +1670,99 @@ function toggleCart() {
     }
 }
 
+// ===== 🔧 SOLUCIÓN DEFINITIVA - REEMPLAZAR BOTÓN COMPLETAMENTE =====
+function fixCartButton() {
+    console.log('🔧 Aplicando solución definitiva al botón del carrito...');
+    
+    const cartToggle = document.getElementById('cartToggle');
+    if (!cartToggle) {
+        console.error('❌ Botón del carrito no encontrado');
+        return;
+    }
+    
+    // 1. Crear NUEVO botón idéntico
+    const newButton = document.createElement('div');
+    newButton.id = 'cartToggle';
+    newButton.className = cartToggle.className;
+    newButton.innerHTML = cartToggle.innerHTML;
+    
+    // 2. Copiar todos los atributos
+    Array.from(cartToggle.attributes).forEach(attr => {
+        newButton.setAttribute(attr.name, attr.value);
+    });
+    
+    // 3. Agregar estilos y comportamiento
+    newButton.style.cursor = 'pointer';
+    newButton.title = 'Abrir carrito de compras';
+    newButton.setAttribute('role', 'button');
+    newButton.setAttribute('tabindex', '0');
+    
+    // 4. Reemplazar el botón viejo
+    cartToggle.parentNode.replaceChild(newButton, cartToggle);
+    
+    console.log('✅ Botón reemplazado con versión nueva y limpia');
+    
+    return newButton;
+}
 
+// ===== FUNCIÓN PARA INICIALIZAR CARRITO =====
+function initializeCartSystem() {
+    console.log('🛒 Inicializando sistema del carrito...');
+    
+    // 1. Arreglar el botón
+    const cartButton = fixCartButton();
+    
+    // 2. Agregar event listener DIRECTO y ROBUSTO
+    if (cartButton) {
+        cartButton.addEventListener('click', function(e) {
+            console.log('🎯 CLICK REGISTRADO en carrito');
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Prevenir clics rápidos múltiples
+            if (this.dataset.processing) return;
+            this.dataset.processing = 'true';
+            
+            setTimeout(() => {
+                delete this.dataset.processing;
+            }, 500);
+            
+            // Usar toggleCart existente
+            if (typeof toggleCart === 'function') {
+                toggleCart();
+            } else {
+                // Fallback manual
+                const panel = document.getElementById('cartPanel');
+                const overlay = document.getElementById('cartOverlay');
+                
+                if (panel && overlay) {
+                    const isOpen = panel.classList.contains('active');
+                    
+                    if (isOpen) {
+                        hideCartPanel();
+                    } else {
+                        showCartPanel();
+                    }
+                }
+            }
+        });
+        
+        // 3. También agregar para tecla Enter (accesibilidad)
+        cartButton.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.click();
+            }
+        });
+        
+        console.log('✅ Sistema del carrito inicializado correctamente');
+    }
+}
+
+// ===== INICIALIZAR AUTOMÁTICAMENTE =====
+// Esperar a que todo cargue y luego arreglar el carrito
+setTimeout(() => {
+    if (typeof initializeCartSystem === 'function') {
+        initializeCartSystem();
+    }
+}, 1000);
