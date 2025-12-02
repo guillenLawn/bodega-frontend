@@ -670,6 +670,18 @@ async function loadHistorialPedidos() {
                 <p>Total: ${pedidos.length} pedido(s)</p>
             </div>
         `;
+        let historialHTML = `
+            <div class="historial-header">
+                <div class="historial-header-top">
+                    <h2>Mis Pedidos</h2>
+                    <button class="btn-volver-catalogo" onclick="showView('catalogo')">
+                        <i class="fas fa-arrow-left"></i>
+                        Volver al Catálogo
+                    </button>
+                </div>
+                <p class="historial-count">Total: ${pedidos.length} pedido(s)</p>
+            </div>
+        `;
         
         pedidos.forEach(pedido => {
             const total = parseFloat(pedido.total) || 0;
