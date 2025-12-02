@@ -245,10 +245,9 @@ function showAdminPanelDirectly() {
 // 🎯 FUNCIONES PRINCIPALES DEL CATÁLOGO - CORREGIDAS
 // ======================
 
-// ✅ Función para renderizar productos (compatible con app-core.js)
 function renderProductsByCategory() {
     console.log('🔄 Renderizando productos por categoría...');
-    console.log('📊 Total de productos:', window.products ? window.products.length : 0);
+    console.log('📊 Total de productos:', window.products.length);
     console.log('🎯 Categoría actual:', currentCategory);
     
     // Buscar el contenedor principal del catálogo
@@ -261,10 +260,13 @@ function renderProductsByCategory() {
     // Usar window.products (definido en app-core.js)
     const products = window.products || [];
     
-    // Filtrar productos por categoría
+    // 1. Filtrar productos por categoría (si no es 'todos')
     let filteredProducts = products;
     if (currentCategory && currentCategory !== 'todos') {
-        filteredProducts = products.filter(product => product.category === currentCategory);
+        filteredProducts = products.filter(product => {
+            const productCategory = product.categoria || product.category;
+            return productCategory === currentCategory;
+        });
     }
     
     console.log('✅ Productos a renderizar:', filteredProducts.length);
@@ -274,38 +276,64 @@ function renderProductsByCategory() {
         return;
     }
     
-    // Agrupar productos por categoría para mostrar secciones
-    const groupedProducts = {};
+    // 2. AGRUPAR por categoría para mostrar secciones
+    const groupedByCategory = {};
+    
     filteredProducts.forEach(product => {
-        const category = product.category || 'Sin categoría';
-        if (!groupedProducts[category]) {
-            groupedProducts[category] = [];
+        const category = product.categoria || product.category || 'Sin categoría';
+        
+        if (!groupedByCategory[category]) {
+            groupedByCategory[category] = [];
         }
-        groupedProducts[category].push(product);
+        groupedByCategory[category].push(product);
     });
     
-    // Generar HTML con secciones por categoría
+    // 3. Generar HTML con SECCIONES por categoría
     let catalogHTML = '';
     
-    Object.keys(groupedProducts).forEach(category => {
-        const categoryProducts = groupedProducts[category];
+    Object.keys(groupedByCategory).forEach(category => {
+        const categoryProducts = groupedByCategory[category];
         
-        catalogHTML += `
-            <div class="category-section">
-                <div class="category-header">
-                    <h2 class="category-title">${category}</h2>
+        if (categoryProducts.length > 0) {
+            // Nombre amigable para la categoría
+            const categoryDisplayName = getCategoryDisplayName(category);
+            
+            catalogHTML += `
+                <div class="category-section">
+                    <div class="category-header">
+                        <h2 class="category-title">${categoryDisplayName}</h2>
+                        <p class="category-description">${categoryProducts.length} producto(s)</p>
+                    </div>
+                    <div class="products-grid">
+                        ${categoryProducts.map(product => createProductCardHTML(product)).join('')}
+                    </div>
                 </div>
-                <div class="products-grid">
-                    ${categoryProducts.map(product => createProductCardHTML(product)).join('')}
-                </div>
-            </div>
-        `;
+            `;
+        }
     });
     
     container.innerHTML = catalogHTML;
     
-    console.log('✅ Renderizado completado. Tarjetas creadas:', 
-                document.querySelectorAll('.product-card-modern').length);
+    console.log('✅ Renderizado completado. Categorías:', Object.keys(groupedByCategory).length);
+    console.log('✅ Tarjetas creadas:', document.querySelectorAll('.product-card-modern').length);
+}
+
+// AGREGAR esta función auxiliar si no existe:
+function getCategoryDisplayName(categoryKey) {
+    const displayNames = {
+        'Abarrotes': 'Abarrotes Esenciales',
+        'Granos': 'Granos y Cereales',
+        'Pastas': 'Pastas y Fideos',
+        'Aceites': 'Aceites y Vinagres',
+        'Lácteos': 'Lácteos Frescos',
+        'Carnes': 'Carnes y Embutidos',
+        'Bebidas': 'Bebidas y Refrescos',
+        'Limpieza': 'Limpieza del Hogar',
+        'Conservas': 'Conservas y Enlatados',
+        'default': categoryKey
+    };
+    
+    return displayNames[categoryKey] || displayNames.default;
 }
 
 
