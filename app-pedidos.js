@@ -664,12 +664,7 @@ async function loadHistorialPedidos() {
         // ✅ Usar pedidosList si existe, sino crear uno
         const containerParaPedidos = pedidosList || historialContent;
         
-        let historialHTML = `
-            <div class="historial-header">
-                <h2>Mis Pedidos</h2>
-                <p>Total: ${pedidos.length} pedido(s)</p>
-            </div>
-        `;
+        
         let historialHTML = `
             <div class="historial-header">
                 <div class="historial-header-top">
