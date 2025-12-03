@@ -7,7 +7,7 @@ let authInitialized = false;
 async function initializeAuth() {
     if (authInitialized) return;
     
-    console.log('🔐 Inicializando autenticación...');
+    console.log(' Inicializando autenticación...');
     
     try {
         // Configurar listeners
@@ -17,9 +17,9 @@ async function initializeAuth() {
         await checkExistingAuth();
         
         authInitialized = true;
-        console.log('✅ Autenticación inicializada');
+        console.log(' Autenticación inicializada');
     } catch (error) {
-        console.error('❌ Error inicializando autenticación:', error);
+        console.error(' Error inicializando autenticación:', error);
     }
 }
 
@@ -70,11 +70,11 @@ function setupAuthEventListeners() {
 
 // ===== VERIFICAR SESIÓN EXISTENTE =====
 async function checkExistingAuth() {
-    console.log('🔍 Verificando autenticación existente...');
+    console.log(' Verificando autenticación existente...');
     
     const token = localStorage.getItem('bodega_token');
     if (!token) {
-        console.log('🔍 No hay token de autenticación');
+        console.log(' No hay token de autenticación');
         clearAuthData();
         return;
     }
@@ -91,7 +91,7 @@ async function checkExistingAuth() {
             window.currentUser = data.user;
             window.authToken = token;
             
-            console.log('✅ Usuario autenticado:', window.currentUser);
+            console.log(' Usuario autenticado:', window.currentUser);
             
             // Cargar rol desde localStorage
             const savedUser = localStorage.getItem('bodega_user');
@@ -118,7 +118,7 @@ async function checkExistingAuth() {
             }
             
         } else {
-            console.log('❌ Token inválido, limpiando datos...');
+            console.log(' Token inválido, limpiando datos...');
             clearAuthData();
         }
     } catch (error) {
@@ -190,7 +190,7 @@ async function handleLogin(e) {
     const submitBtn = e.target.querySelector('button[type="submit"]');
     
     if (!email || !password) {
-        showNotification('❌ Por favor completa todos los campos', 'error');
+        showNotification(' Por favor completa todos los campos', 'error');
         return;
     }
     
@@ -227,7 +227,7 @@ async function handleLogin(e) {
             // Validar rol de admin
             if (window.currentUser.role === 'admin' && !isValidAdmin(window.currentUser)) {
                 window.currentUser.role = 'user';
-                console.warn('⚠️ Intento de acceso admin no autorizado:', email);
+                console.warn(' Intento de acceso admin no autorizado:', email);
             }
             
             // Guardar en localStorage
@@ -250,13 +250,13 @@ async function handleLogin(e) {
                     }
                 }, 300);
                 
-                showNotification(`👑 ¡Bienvenido Administrador ${window.currentUser.nombre}!`, 'success');
+                showNotification(` ¡Bienvenido Administrador ${window.currentUser.nombre}!`, 'success');
             } else {
                 // Asegurar que usuarios normales no estén en modo admin
                 if (typeof disableAdminMode === 'function') {
                     disableAdminMode();
                 }
-                showNotification(`✅ Bienvenido, ${window.currentUser.nombre}!`);
+                showNotification(` Bienvenido, ${window.currentUser.nombre}!`);
             }
             
             // Notificar si hay productos en carrito
@@ -265,12 +265,12 @@ async function handleLogin(e) {
             }
             
         } else {
-            showNotification(`❌ ${data.error || 'Error en el login'}`, 'error');
+            showNotification(` ${data.error || 'Error en el login'}`, 'error');
         }
         
     } catch (error) {
         console.error('Error en login:', error);
-        showNotification('❌ Error de conexión', 'error');
+        showNotification(' Error de conexión', 'error');
     } finally {
         // Restaurar botón
         submitBtn.disabled = false;
@@ -288,12 +288,12 @@ async function handleRegister(e) {
     const submitBtn = e.target.querySelector('button[type="submit"]');
     
     if (!nombre || !email || !password) {
-        showNotification('❌ Por favor completa todos los campos', 'error');
+        showNotification(' Por favor completa todos los campos', 'error');
         return;
     }
     
     if (password.length < 6) {
-        showNotification('❌ La contraseña debe tener al menos 6 caracteres', 'error');
+        showNotification(' La contraseña debe tener al menos 6 caracteres', 'error');
         return;
     }
     
@@ -345,22 +345,22 @@ async function handleRegister(e) {
                     }
                 }, 300);
                 
-                showNotification(`👑 ¡Cuenta de Administrador creada exitosamente! Bienvenido, ${window.currentUser.nombre}`, 'success');
+                showNotification(` ¡Cuenta de Administrador creada exitosamente! Bienvenido, ${window.currentUser.nombre}`, 'success');
             } else {
                 // Asegurar que usuarios normales no estén en modo admin
                 if (typeof disableAdminMode === 'function') {
                     disableAdminMode();
                 }
-                showNotification(`✅ Cuenta creada exitosamente! Bienvenido, ${window.currentUser.nombre}`);
+                showNotification(` Cuenta creada exitosamente! Bienvenido, ${window.currentUser.nombre}`);
             }
             
         } else {
-            showNotification(`❌ ${data.error || 'Error en el registro'}`, 'error');
+            showNotification(` ${data.error || 'Error en el registro'}`, 'error');
         }
         
     } catch (error) {
         console.error('Error en registro:', error);
-        showNotification('❌ Error de conexión', 'error');
+        showNotification(' Error de conexión', 'error');
     } finally {
         // Restaurar botón
         submitBtn.disabled = false;
@@ -390,7 +390,7 @@ function handleLogout() {
         showView('catalogo');
     }
     
-    showNotification('👋 Sesión cerrada correctamente');
+    showNotification(' Sesión cerrada correctamente');
 }
 
 // ===== ACTUALIZAR UI DE AUTENTICACIÓN =====
@@ -411,9 +411,9 @@ function updateAuthUI() {
         
         // Mostrar información del usuario
         if (window.currentUser.role === 'admin' && isValidAdmin(window.currentUser)) {
-            userName.textContent = '👑 Admin';
+            userName.textContent = ' Admin';
             if (dropdownUserName) {
-                dropdownUserName.innerHTML = `${window.currentUser.nombre} <span class="admin-badge">👑 Administrador</span>`;
+                dropdownUserName.innerHTML = `${window.currentUser.nombre} <span class="admin-badge"> Administrador</span>`;
             }
             if (adminMenuItem) {
                 adminMenuItem.style.display = 'block';
@@ -463,4 +463,4 @@ window.showAuthModal = showAuthModal;
 window.handleLogout = handleLogout;
 window.updateAuthUI = updateAuthUI;
 
-console.log('✅ app-auth.js cargado correctamente');
+console.log(' app-auth.js cargado correctamente');
