@@ -257,6 +257,7 @@ function showAdminView() {
 }
 
 // ===== GESTIÓN DE PRODUCTOS (ADMIN) =====
+// ===== GESTIÓN DE PRODUCTOS (ADMIN) =====
 async function loadAdminProducts() {
     const tableBody = document.getElementById('adminProductsTable');
     if (!tableBody) return;
@@ -280,6 +281,9 @@ async function loadAdminProducts() {
             const precioNumero = parseFloat(product.precio) || 0;
             const stockNumero = parseInt(product.stock) || 0;
             const categoria = product.categoria || 'Sin categoría';
+            
+            // ✅ CORREGIDO: Crear elemento 'row' antes de usarlo
+            const row = document.createElement('tr');
             
             row.innerHTML = `
                 <td>
@@ -311,10 +315,10 @@ async function loadAdminProducts() {
                 </td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn-edit" onclick="openEditProductModal('${product.id}')" title="Editar">
+                        <button class="btn-edit" onclick="openEditProductModal(${product.id})" title="Editar">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn-delete" onclick="openDeleteProductModal('${product.id}')" title="Eliminar">
+                        <button class="btn-delete" onclick="openDeleteProductModal(${product.id})" title="Eliminar">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
