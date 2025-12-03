@@ -788,7 +788,8 @@ function initializeAdminView() {
     if (typeof updateAdminStats === 'function') {
         updateAdminStats();
     }
-    
+
+    initializeAddProduct();
     console.log(' Vista admin inicializada correctamente');
 }
 
@@ -1059,6 +1060,227 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 100);
 });
 
+
+// ===== 🆕 FUNCIONALIDAD COMPLETA PARA AGREGAR PRODUCTOS =====
+
+// Inicializar funcionalidad de agregar producto
+function initializeAddProduct() {
+    console.log(' Inicializando funcionalidad para agregar productos...');
+    
+    // Agregar evento al formulario
+    const addProductForm = document.getElementById('addProductForm');
+    if (addProductForm) {
+        addProductForm.addEventListener('submit', handleAddProductSubmit);
+        console.log(' Formulario de agregar producto configurado');
+    }
+    
+    // Configurar tabs del admin
+    setupAdminTabs();
+}
+
+// Configurar pestañas del admin
+function setupAdminTabs() {
+    const tabs = document.querySelectorAll('.admin-tab');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            showAdminTab(tabName);
+        });
+    });
+}
+
+// Mostrar pestaña específica del admin
+function showAdminTab(tabName) {
+    // Actualizar tabs activos
+    document.querySelectorAll('.admin-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.remove('active');
+    });
+    
+    // Activar tab clickeado
+    const activeTab = document.querySelector(`.admin-tab[data-tab="${tabName}"]`);
+    const activePane = document.getElementById(tabName);
+    
+    if (activeTab) activeTab.classList.add('active');
+    if (activePane) activePane.classList.add('active');
+}
+
+// Manejar envío del formulario para agregar producto
+async function handleAddProductSubmit(e) {
+    e.preventDefault();
+    
+    console.log(' Enviando formulario para agregar producto...');
+    
+    // Obtener valores del formulario
+    const nombre = document.getElementById('productName').value.trim();
+    const categoria = document.getElementById('productCategory').value;
+    const precio = parseFloat(document.getElementById('productPrice').value);
+    const stock = parseInt(document.getElementById('productStock').value);
+    const descripcion = document.getElementById('productDescription').value.trim();
+    const imagen_url = document.getElementById('productImage').value.trim();
+    
+    // Validaciones básicas
+    if (!nombre || !categoria || isNaN(precio) || isNaN(stock)) {
+        showNotification(' Por favor completa todos los campos obligatorios', 'error');
+        return;
+    }
+    
+    if (precio < 0) {
+        showNotification(' El precio debe ser un número positivo', 'error');
+        return;
+    }
+    
+    if (stock < 0) {
+        showNotification(' El stock debe ser un número positivo', 'error');
+        return;
+    }
+    
+    // Crear objeto producto
+    const nuevoProducto = {
+        nombre: nombre,
+        categoria: categoria,
+        precio: precio,
+        stock: stock,
+        descripcion: descripcion || nombre,
+        imagen_url: imagen_url || obtenerImagenPorDefecto(categoria)
+    };
+    
+    console.log(' Producto a crear:', nuevoProducto);
+    
+    try {
+        // Mostrar loading
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        
+        // Enviar al backend
+        const response = await fetch('https://bodega-backend-nuevo.onrender.com/api/inventory', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${window.authToken}`
+            },
+            body: JSON.stringify(nuevoProducto)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showNotification(' Producto agregado exitosamente!', 'success');
+            
+            // Resetear formulario
+            e.target.reset();
+            
+            // Recargar lista de productos
+            if (typeof loadAdminProducts === 'function') {
+                await loadAdminProducts();
+            }
+            
+            // Actualizar productos globales
+            if (typeof loadProducts === 'function') {
+                await loadProducts();
+            }
+            
+            // Actualizar estadísticas
+            if (typeof updateAdminStats === 'function') {
+                updateAdminStats();
+            }
+            
+            // Mostrar mensaje de éxito
+            showSuccessMessage();
+            
+            // Volver a la pestaña de gestión de productos
+            setTimeout(() => {
+                showAdminTab('gestion-productos');
+            }, 1500);
+            
+        } else {
+            throw new Error(data.error || 'Error al crear producto');
+        }
+        
+    } catch (error) {
+        console.error('Error agregando producto:', error);
+        showNotification(` Error: ${error.message}`, 'error');
+    } finally {
+        // Restaurar botón
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Producto';
+        }
+    }
+}
+
+// Obtener imagen por defecto según categoría
+function obtenerImagenPorDefecto(categoria) {
+    const imagenesPorCategoria = {
+        'Abarrotes': 'https://res.cloudinary.com/dbptiljzk/image/upload/v1700000000/bodega/abarrotes_default.jpg',
+        'Lácteos': 'https://res.cloudinary.com/dbptiljzk/image/upload/v1700000000/bodega/lacteos_default.jpg',
+        'Bebidas': 'https://res.cloudinary.com/dbptiljzk/image/upload/v1700000000/bodega/bebidas_default.jpg',
+        'Limpieza': 'https://res.cloudinary.com/dbptiljzk/image/upload/v1700000000/bodega/limpieza_default.jpg',
+        'Pastas': 'https://res.cloudinary.com/dbptiljzk/image/upload/v1700000000/bodega/pastas_default.jpg',
+        'Aceites': 'https://res.cloudinary.com/dbptiljzk/image/upload/v1700000000/bodega/aceites_default.jpg',
+        'Conservas': 'https://res.cloudinary.com/dbptiljzk/image/upload/v1700000000/bodega/conservas_default.jpg'
+    };
+    
+    return imagenesPorCategoria[categoria] || 'https://res.cloudinary.com/dbptiljzk/image/upload/v1700000000/bodega/default_product.jpg';
+}
+
+// Mostrar mensaje de éxito
+function showSuccessMessage() {
+    const successHTML = `
+        <div class="success-message" id="addProductSuccess">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="success-content">
+                <h4>¡Producto creado exitosamente!</h4>
+                <p>El producto ha sido agregado a la base de datos y ya está disponible en el catálogo.</p>
+            </div>
+            <button class="btn-close-success" onclick="document.getElementById('addProductSuccess').remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    
+    const tabPane = document.getElementById('agregar-producto');
+    if (tabPane) {
+        // Insertar después del header
+        const header = tabPane.querySelector('.tab-header');
+        if (header) {
+            header.insertAdjacentHTML('afterend', successHTML);
+            
+            // Auto-remover después de 5 segundos
+            setTimeout(() => {
+                const successMsg = document.getElementById('addProductSuccess');
+                if (successMsg) successMsg.remove();
+            }, 5000);
+        }
+    }
+}
+
+// Función para editar producto (ya existe en el HTML)
+function openEditProductModal(productId) {
+    console.log(' Abriendo modal para editar producto ID:', productId);
+    // Tu código existente para editar...
+}
+
+function openDeleteProductModal(productId) {
+    console.log(' Abriendo modal para eliminar producto ID:', productId);
+    // Tu código existente para eliminar...
+}
+
+
+
+// ===== EXPONER FUNCIONES GLOBALES =====
+window.initializeAddProduct = initializeAddProduct;
+window.handleAddProductSubmit = handleAddProductSubmit;
+window.showAdminTab = showAdminTab;
 // ===== EXPONER FUNCIONES GLOBALES =====
 window.renderProductsByCategory = renderProductsByCategory;
 window.initializeAdminView = initializeAdminView;
