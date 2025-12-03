@@ -403,9 +403,9 @@ function mostrarDetalleCompleto(producto) {
                     
                     <!-- Información adicional -->
                     <div class="detalle-extra">
-                        <p><i class="fas fa-shipping-fast"></i> <strong>Envío:</strong> Disponible para todo Lurigancho-Chosica</p>
-                        <p><i class="fas fa-clock"></i> <strong>Entrega:</strong> 1-2 horas en horario de atención</p>
-                        <p><i class="fas fa-store"></i> <strong>Disponible en:</strong> Bodega Guadalupe - 24 de Setiembre</p>
+                        <p><i class="fas fa-shipping-fast"></i> <strong>Envío delivery:</strong> Todavia no disponible</p>
+                        <p><i class="fas fa-clock"></i> <strong>Entrega:</strong> Recogo en tienda</p>
+                        <p><i class="fas fa-store"></i> <strong>Disponible en:</strong> Bodega Guadalupe - Ate</p>
                     </div>
                 </div>
             </div>
