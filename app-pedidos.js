@@ -22,9 +22,9 @@ function initializePedidos() {
         // Inicializar filtros
         initializeFilters();
         
-        console.log('✅ Módulo de pedidos inicializado');
+        console.log('Módulo de pedidos inicializado');
     } catch (error) {
-        console.error('❌ Error inicializando módulo de pedidos:', error);
+        console.error('Error inicializando módulo de pedidos:', error);
     }
 }
 
@@ -59,20 +59,20 @@ function initializeSearch() {
 
 // ===== INICIALIZAR FILTROS =====
 function initializeFilters() {
-    console.log('🎯 Inicializando filtros...');
+    console.log('Inicializando filtros...');
 }
 
 // ===== RENDERIZAR PRODUCTOS POR CATEGORÍA =====
 function renderProductsByCategory() {
-    console.log('🔄 Renderizando productos por categoría...');
-    console.log('📊 Total de productos:', window.products ? window.products.length : 0);
+    console.log('Renderizando productos por categoría...');
+    console.log('Total de productos:', window.products ? window.products.length : 0);
     
     const activeCategory = window.currentCategory || 'todos';
-    console.log('🎯 Categoría activa:', activeCategory);
+    console.log('Categoría activa:', activeCategory);
     
     const container = document.querySelector('.catalog-main');
     if (!container) {
-        console.error('❌ No se encontró .catalog-main');
+        console.error('No se encontró .catalog-main');
         return;
     }
     
@@ -85,7 +85,7 @@ function renderProductsByCategory() {
             const productCategory = product.categoria || product.category;
             return productCategory === activeCategory;
         });
-        console.log(`✅ Filtrados ${filteredProducts.length} productos de categoría "${activeCategory}"`);
+        console.log(`Filtrados ${filteredProducts.length} productos de categoría "${activeCategory}"`);
     }
     
     if (filteredProducts.length === 0) {
@@ -128,7 +128,7 @@ function renderProductsByCategory() {
             }
         });
         
-        console.log('✅ Renderizado por categorías. Secciones:', Object.keys(groupedByCategory).length);
+        console.log('Renderizado por categorías. Secciones:', Object.keys(groupedByCategory).length);
     } else {
         // Mostrar solo productos de una categoría específica
         const categoryDisplayName = getCategoryDisplayName(activeCategory);
@@ -154,7 +154,7 @@ function renderProductsByCategory() {
     // Sincronizar sidebar con la categoría actual
     syncSidebarWithCategory();
     
-    console.log('✅ Renderizado completado');
+    console.log('Renderizado completado');
 }
 
 // ===== CREAR TARJETA DE PRODUCTO =====
@@ -253,14 +253,14 @@ async function cargarVistaDetalleProducto(productoId) {
     `;
     
     try {
-        console.log(`🌐 Solicitando detalles del producto ID: ${productoId}`);
+        console.log(`Solicitando detalles del producto ID: ${productoId}`);
         
         // Intentar primero el endpoint de detalles completos
         const response = await fetch(`https://bodega-backend-nuevo.onrender.com/api/productos/${productoId}/detalle-completo`);
         
         if (!response.ok) {
             // Si falla, usar el endpoint normal
-            console.log('⚠️ Endpoint detalle no disponible, usando endpoint normal...');
+            console.log('Endpoint detalle no disponible, usando endpoint normal...');
             await cargarDetalleDesdeLocal(productoId);
             return;
         }
@@ -275,7 +275,7 @@ async function cargarVistaDetalleProducto(productoId) {
         }
         
     } catch (error) {
-        console.error('❌ Error cargando detalles:', error);
+        console.error('Error cargando detalles:', error);
         // Intentar cargar desde datos locales
         await cargarDetalleDesdeLocal(productoId);
     }
@@ -329,8 +329,8 @@ function mostrarDetalleCompleto(producto) {
            </div>`;
     
     const stockHTML = producto.stock > 0 
-        ? `<span class="detalle-stock in-stock">✅ En stock: ${producto.stock} unidades</span>`
-        : `<span class="detalle-stock out-of-stock">❌ Sin stock disponible</span>`;
+        ? `<span class="detalle-stock in-stock"> En stock: ${producto.stock} unidades</span>`
+        : `<span class="detalle-stock out-of-stock"> Sin stock disponible</span>`;
     
     const detallesHTML = `
         <div class="producto-detalle">
@@ -426,7 +426,7 @@ function mostrarDetalleCompleto(producto) {
 function agregarAlCarritoDesdeDetalle(productoId) {
     if (typeof addToCart === 'function') {
         addToCart(productoId);
-        showNotification('✅ Producto agregado al carrito desde vista detalle');
+        showNotification(' Producto agregado al carrito desde vista detalle');
     }
 }
 
@@ -443,7 +443,7 @@ function comprarAhora(productoId) {
         }
     }, 500);
     
-    showNotification('🛒 Producto agregado, revisa tu carrito para completar la compra');
+    showNotification(' Producto agregado, revisa tu carrito para completar la compra');
 }
 
 // ===== SISTEMA DE BÚSQUEDA CON AUTOCOMPLETADO =====
@@ -611,7 +611,7 @@ function selectSuggestion(productId) {
         if (searchInput) searchInput.value = '';
         
         hideSuggestions();
-        showNotification(`✅ ${product.nombre || product.name} agregado al carrito`);
+        showNotification(` ${product.nombre || product.name} agregado al carrito`);
     }
 }
 
@@ -699,7 +699,7 @@ function renderSearchResults(filteredProducts) {
 // ===== SISTEMA DE FILTROS =====
 function handleFilterChange(e) {
     const filterText = e.target.nextElementSibling?.textContent.toLowerCase() || '';
-    console.log('🎯 Filtro seleccionado:', filterText);
+    console.log(' Filtro seleccionado:', filterText);
     
     // Mapear texto del filtro a categorías REALES
     const filterMap = {
@@ -718,7 +718,7 @@ function handleFilterChange(e) {
     const newCategory = filterMap[filterText] || 'todos';
     window.currentCategory = newCategory;
     
-    console.log('✅ Categoría cambiada a:', newCategory);
+    console.log(' Categoría cambiada a:', newCategory);
     
     // Actualizar UI de la sidebar
     syncSidebarWithCategory();
@@ -728,7 +728,7 @@ function handleFilterChange(e) {
 }
 
 function syncSidebarWithCategory() {
-    console.log('🔄 Sincronizando sidebar con categoría:', window.currentCategory);
+    console.log(' Sincronizando sidebar con categoría:', window.currentCategory);
     
     const categoryToFilterMap = {
         'todos': 'todos los productos',
@@ -757,7 +757,7 @@ function syncSidebarWithCategory() {
         }
     });
     
-    console.log('✅ Sidebar sincronizada');
+    console.log(' Sidebar sincronizada');
 }
 
 // ===== VISTA DE ADMINISTRADOR =====
@@ -768,12 +768,12 @@ function initializeAdminView() {
     if (!window.currentUser || window.currentUser.role !== 'admin') {
         console.warn('❌ Usuario no autorizado para panel admin');
         if (typeof showNotification === 'function') {
-            showNotification('🔐 No tienes permisos de administrador', 'error');
+            showNotification(' No tienes permisos de administrador', 'error');
         }
         return;
     }
     
-    console.log('✅ Usuario autorizado, cargando panel admin...');
+    console.log(' Usuario autorizado, cargando panel admin...');
     
     // Mostrar panel completo directamente
     showAdminPanelDirectly();
@@ -789,11 +789,11 @@ function initializeAdminView() {
         updateAdminStats();
     }
     
-    console.log('✅ Vista admin inicializada correctamente');
+    console.log(' Vista admin inicializada correctamente');
 }
 
 function showAdminPanelDirectly() {
-    console.log('🚀 Mostrando panel completo directamente...');
+    console.log(' Mostrando panel completo directamente...');
     
     const adminWelcome = document.getElementById('adminWelcome');
     const adminPanelFull = document.getElementById('adminPanelFull');
@@ -804,7 +804,7 @@ function showAdminPanelDirectly() {
         adminPanelFull.style.opacity = '1';
         adminPanelFull.style.visibility = 'visible';
         
-        console.log('✅ Panel completo mostrado');
+        console.log(' Panel completo mostrado');
     }
 }
 
@@ -827,7 +827,7 @@ async function loadHistorialPedidos() {
     console.log('- pedidosList:', pedidosList ? '✅' : '❌');
     
     if (!historialContent) {
-        console.error('❌ No se encontró historialContent');
+        console.error(' No se encontró historialContent');
         return;
     }
     
@@ -871,7 +871,7 @@ async function loadHistorialPedidos() {
     }
     
     try {
-        console.log('🌐 Solicitando historial al backend...');
+        console.log(' Solicitando historial al backend...');
         
         const response = await fetch('https://bodega-backend-nuevo.onrender.com/api/pedidos/usuario', {
             headers: {
@@ -880,23 +880,23 @@ async function loadHistorialPedidos() {
             }
         });
         
-        console.log('📊 Response status:', response.status);
+        console.log(' Response status:', response.status);
         
         if (!response.ok) {
             throw new Error(`Error ${response.status}: No se pudieron cargar los pedidos`);
         }
         
         const data = await response.json();
-        console.log('📊 Datos recibidos:', data);
+        console.log(' Datos recibidos:', data);
         
         const pedidos = data.pedidos || [];
-        console.log('📦 Pedidos encontrados:', pedidos.length);
+        console.log(' Pedidos encontrados:', pedidos.length);
         
         // ✅ Ocultar loading
         if (historialLoading) historialLoading.style.display = 'none';
         
         if (pedidos.length === 0) {
-            console.log('📭 No hay pedidos, mostrando mensaje...');
+            console.log(' No hay pedidos, mostrando mensaje...');
             if (historialEmpty) {
                 historialEmpty.style.display = 'block';
             } else {
@@ -917,7 +917,7 @@ async function loadHistorialPedidos() {
         // Ordenar por fecha (más reciente primero)
         pedidos.sort((a, b) => new Date(b.fecha_creacion) - new Date(a.fecha_creacion));
         
-        console.log('🎨 Generando HTML para', pedidos.length, 'pedidos...');
+        console.log(' Generando HTML para', pedidos.length, 'pedidos...');
         
         // ✅ Usar pedidosList si existe, sino crear uno
         const containerParaPedidos = pedidosList || historialContent;
@@ -955,9 +955,9 @@ async function loadHistorialPedidos() {
                         </div>
                         <div class="pedido-estado">
                             <span class="status-badge estado-${pedido.estado || 'completado'}">
-                                ${pedido.estado === 'completado' ? '✅ Completado' : 
-                                  pedido.estado === 'pendiente' ? '⏳ Pendiente' : 
-                                  pedido.estado === 'cancelado' ? '❌ Cancelado' : 
+                                ${pedido.estado === 'completado' ? ' Completado' : 
+                                  pedido.estado === 'pendiente' ? ' Pendiente' : 
+                                  pedido.estado === 'cancelado' ? ' Cancelado' : 
                                   '📦 ' + (pedido.estado || 'Completado')}
                             </span>
                         </div>
@@ -982,12 +982,12 @@ async function loadHistorialPedidos() {
                         </div>
                         ${pedido.direccion_entrega ? `
                             <div class="pedido-direccion">
-                                <strong>📦 Dirección:</strong> ${pedido.direccion_entrega}
+                                <strong> Dirección:</strong> ${pedido.direccion_entrega}
                             </div>
                         ` : ''}
                         ${pedido.metodo_pago ? `
                             <div class="pedido-metodo-pago">
-                                <strong>💳 Método de pago:</strong> ${pedido.metodo_pago}
+                                <strong> Método de pago:</strong> ${pedido.metodo_pago}
                             </div>
                         ` : ''}
                     </div>
@@ -1003,12 +1003,12 @@ async function loadHistorialPedidos() {
             historialContent.innerHTML = historialHTML;
         }
         
-        console.log('✅ Historial cargado correctamente');
+        console.log(' Historial cargado correctamente');
         
     } catch (error) {
         console.error('Error cargando historial:', error);
         
-        // ✅ Ocultar loading
+        //  Ocultar loading
         if (historialLoading) historialLoading.style.display = 'none';
         
         // Mostrar error
@@ -1069,4 +1069,4 @@ window.cargarVistaDetalleProducto = cargarVistaDetalleProducto;
 window.agregarAlCarritoDesdeDetalle = agregarAlCarritoDesdeDetalle;
 window.comprarAhora = comprarAhora;
 
-console.log('✅ app-pedidos.js cargado correctamente');
+console.log(' app-pedidos.js cargado correctamente');
