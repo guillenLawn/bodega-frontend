@@ -1,11 +1,17 @@
 /* ===== CATÁLOGO PRINCIPAL ===== */
 .catalog-main {
     min-height: 100vh;
+    background: transparent;
 }
 
 .category-section {
     margin-bottom: var(--space-xl);
     position: relative;
+    background: linear-gradient(135deg, #FFFFFF 0%, #FAF7F2 100%);
+    padding: var(--space-lg);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(230, 57, 70, 0.05);
 }
 
 .category-header {
@@ -60,6 +66,8 @@
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: var(--space-lg);
     margin-bottom: var(--space-xl);
+    background: transparent;
+    padding: 1rem;
 }
 
 .product-card-modern {
