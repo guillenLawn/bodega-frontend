@@ -1846,10 +1846,35 @@
 /* Modal Yape específico */
 .modal-lg {
     max-width: 800px;
+    max-height: 90vh; /* 🆕 Limitar altura máxima */
+    display: flex;
+    flex-direction: column;
 }
 
 .yape-content {
     padding: 2rem;
+    overflow-y: auto; /* 🆕 Hacer scrollable */
+    flex: 1; /* 🆕 Para que ocupe espacio disponible */
+    max-height: calc(90vh - 120px); /* 🆕 Altura máxima para scroll */
+}
+
+/* 🆕 Personalizar scrollbar */
+.yape-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.yape-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.yape-content::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.yape-content::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
 }
 
 /* Instrucciones */
@@ -2392,4 +2417,30 @@
 
 .backup-steps strong {
     color: #1e40af;
+}
+
+/* 🆕 Estilos para mejor visualización en scroll */
+.modal-content {
+    max-height: inherit; /* Heredar altura máxima */
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    flex-shrink: 0; /* 🆕 Evitar que el header se encoja */
+    position: sticky;
+    top: 0;
+    background: var(--bg-white);
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.yape-actions {
+    flex-shrink: 0; /* 🆕 Evitar que los botones se encojan */
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-white);
+    z-index: 10;
+    box-shadow: 0 -2px 4px rgba(0,0,0,0.05);
+    margin-top: auto; /* 🆕 Empujar al fondo */
 }
