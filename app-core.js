@@ -717,7 +717,7 @@ function hideYapeModal() {
 function generateYapeQR(total) {
     const qrImage = document.getElementById('yapeQrImage');
     const qrLoading = document.getElementById('qrLoading');
-    const qrCaption = document.querySelector('.qr-caption');
+    const qrContainer = document.querySelector('.qr-container');
     
     if (!qrImage || !qrLoading) return;
     
@@ -725,39 +725,66 @@ function generateYapeQR(total) {
     qrLoading.style.display = 'flex';
     qrImage.style.display = 'none';
     
-    // 🎯 QR SOLO CON EL NÚMERO DE TELÉFONO
-    // El usuario escaneará este QR y verá tu número en Yape
-    // Luego deberá ingresar el monto MANUALMENTE
-    const qrData = YAPE_NUMBER; // Solo el número, ej: "999888777"
+    // 🎯 USAR GOOGLE CHARTS API (MÁS CONFIABLE)
+    // Formato: https://chart.googleapis.com/chart?cht=qr&chs=250x250&chl=DATOS
     
-    // API gratuita de QR Code
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${qrData}&margin=10&color=2d3748&bgcolor=f8fafc`;
+    const qrData = YAPE_NUMBER; // Solo tu número
     
-    // Actualizar el texto de instrucciones
-    if (qrCaption) {
-        qrCaption.innerHTML = `
-            <i class="fas fa-qrcode"></i> 
-            Escanéame para ver el número<br>
-            <small>Luego ingresa <strong>S/ ${total.toFixed(2)}</strong> manualmente en Yape</small>
-        `;
-    }
+    // URL de Google Charts
+    const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=250x250&chl=${qrData}&choe=UTF-8&chld=L|0`;
+    
+    console.log('🔗 Generando QR con URL:', qrUrl);
     
     qrImage.src = qrUrl;
+    
+    // Configurar timeout por si falla
+    const timeout = setTimeout(() => {
+        if (qrLoading.style.display !== 'none') {
+            mostrarQRAlternativo(qrData, total);
+        }
+    }, 5000);
+    
     qrImage.onload = function() {
+        clearTimeout(timeout);
         qrLoading.style.display = 'none';
         qrImage.style.display = 'block';
+        console.log('✅ QR cargado correctamente');
     };
     
     qrImage.onerror = function() {
-        qrLoading.innerHTML = `
-            <div class="qr-error">
-                <i class="fas fa-exclamation-triangle"></i>
-                <p>Error cargando QR</p>
-                <p class="small">Usa el número: ${YAPE_NUMBER}</p>
-            </div>
-        `;
-        console.error('Error cargando QR');
+        clearTimeout(timeout);
+        console.error('❌ Error cargando QR, usando método alternativo');
+        mostrarQRAlternativo(qrData, total);
     };
+}
+
+function mostrarQRAlternativo(numero, total) {
+    const qrLoading = document.getElementById('qrLoading');
+    const qrImage = document.getElementById('yapeQrImage');
+    
+    if (!qrLoading) return;
+    
+    qrLoading.innerHTML = `
+        <div class="qr-alternative">
+            <div class="alternative-number">
+                <i class="fas fa-phone"></i>
+                <h4>Número Yape</h4>
+                <div class="big-number">${numero}</div>
+                <p class="amount-info">Monto a pagar: <strong>S/ ${total.toFixed(2)}</strong></p>
+            </div>
+            <div class="alternative-instructions">
+                <p><i class="fas fa-mobile-alt"></i> <strong>Instrucción rápida:</strong></p>
+                <p>1. Abre Yape</p>
+                <p>2. Ingresa este número</p>
+                <p>3. Pon el monto: <strong>S/ ${total.toFixed(2)}</strong></p>
+                <p>4. Envía el pago</p>
+            </div>
+        </div>
+    `;
+    
+    if (qrImage) {
+        qrImage.style.display = 'none';
+    }
 }
 
 function copyYapeNumber() {
