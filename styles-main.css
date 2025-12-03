@@ -1,37 +1,44 @@
 /* ===== VARIABLES Y RESET ===== */
 :root {
-    --primary: #2563eb;
-    --primary-dark: #1d4ed8;
-    --primary-light: #3b82f6;
-    --accent: #60a5fa;
-    --accent-dark: #4b7fd6;
+    /* COLORES PRINCIPALES - BODEGA PERUANA */
+    --primary: #E63946;         /* Rojo vibrante de bodega */
+    --primary-dark: #C1121F;    /* Rojo oscuro */
+    --primary-light: #FF6B6B;   /* Rojo claro */
+    
+    --secondary: #F4A261;       /* Naranja cálido */
+    --secondary-dark: #E76F51;  /* Naranja oscuro */
+    
+    --accent: #2A9D8F;          /* Verde fresco */
+    --accent-dark: #1D7873;     /* Verde oscuro */
+    
+    --accent-yellow: #F4A261;   /* Amarillo/Naranja */
     
     /* Colores para administrador */
-    --admin-primary: #dc2626;
-    --admin-dark: #b91c1c;
-    --admin-light: #ef4444;
-    --admin-accent: #f87171;
-    --admin-bg: #fef2f2;
-    --admin-border: #fecaca;
+    --admin-primary: #D62828;   /* Rojo admin más vibrante */
+    --admin-dark: #A51C1C;
+    --admin-light: #F28482;
+    --admin-accent: #F25C54;
+    --admin-bg: #FFF5F5;
+    --admin-border: #FECACA;
     
     --text-dark: #1A1A1A;
     --text-light: #666666;
     --text-lighter: #999999;
-    --bg-light: #F8F8F8;
+    --bg-light: #FFF8F0;        /* Fondo crema claro */
     --bg-white: #FFFFFF;
-    --border-light: #E8E8E8;
-    --border-medium: #D1D1D1;
+    --border-light: #EDE9E4;    /* Borde más cálido */
+    --border-medium: #D6CCC2;
     
     /* Estados */
-    --success: #10b981;
-    --warning: #f59e0b;
-    --error: #ef4444;
-    --info: #3b82f6;
+    --success: #2A9D8F;         /* Verde fresco */
+    --warning: #F4A261;         /* Naranja */
+    --error: #E63946;           /* Rojo */
+    --info: #457B9D;            /* Azul suave */
     
     /* Sombras suaves */
-    --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-    --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
     
     /* Espaciados */
     --space-xs: 0.5rem;
@@ -167,15 +174,29 @@ h4 { font-size: 1.25rem; }
 /* ===== HERO SECTION ===== */
 .hero {
     margin-top: 80px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
     color: white;
     padding: var(--space-xl) 0;
     text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Agregar patrón de fondo sutil */
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.1"><path fill="white" d="M50,0 C77.614,0 100,22.386 100,50 C100,77.614 77.614,100 50,100 C22.386,100 0,77.614 0,50 C0,22.386 22.386,0 50,0 Z M50,20 C33.431,20 20,33.431 20,50 C20,66.569 33.431,80 50,80 C66.569,80 80,66.569 80,50 C80,33.431 66.569,20 50,20 Z"/></svg>') repeat;
+    background-size: 60px;
 }
 
 /* Hero para modo administrador */
 .admin-mode .hero {
-    background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-dark) 100%);
+    background: linear-gradient(135deg, var(--admin-primary) 0%, #A51C1C 100%);
 }
 
 .hero-content {
