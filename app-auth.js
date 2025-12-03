@@ -114,7 +114,7 @@ async function checkExistingAuth() {
                 if (typeof enableAdminMode === 'function') {
                     enableAdminMode();
                 }
-                console.log('🔧 Usuario admin verificado correctamente');
+                console.log(' Usuario admin verificado correctamente');
             }
             
         } else {
@@ -261,7 +261,7 @@ async function handleLogin(e) {
             
             // Notificar si hay productos en carrito
             if (window.cart && window.cart.length > 0) {
-                showNotification('🛒 Tus productos del carrito están listos para pedir');
+                showNotification(' Viendo el catalogo de productos');
             }
             
         } else {
