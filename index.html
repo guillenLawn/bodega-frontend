@@ -150,44 +150,10 @@
             <section class="view-content active" id="viewCatalogo">
                 <!-- Catálogo de Productos -->
                 <section class="catalog-main">
-                    <!-- Sección: Abarrotes -->
-                    <div class="category-section">
-                        <div class="category-header">
-                            <h2 class="category-title">Abarrotes Esenciales</h2>
-                        </div>
-                        <div class="products-grid" id="abarrotesGrid">
-                            <!-- Los productos se cargarán aquí -->
-                        </div>
-                    </div>
-
-                    <!-- Sección: Lácteos y Carnes -->
-                    <div class="category-section">
-                        <div class="category-header">
-                            <h2 class="category-title">Lácteos y Carnes Frescas</h2>
-                        </div>
-                        <div class="products-grid" id="lacteosGrid">
-                            <!-- Los productos se cargarán aquí -->
-                        </div>
-                    </div>
-
-                    <!-- Sección: Bebidas -->
-                    <div class="category-section">
-                        <div class="category-header">
-                            <h2 class="category-title">Bebidas y Refrescos</h2>
-                        </div>
-                        <div class="products-grid" id="bebidasGrid">
-                            <!-- Los productos se cargarán aquí -->
-                        </div>
-                    </div>
-
-                    <!-- Sección: Limpieza -->
-                    <div class="category-section">
-                        <div class="category-header">
-                            <h2 class="category-title">Limpieza y Hogar</h2>
-                        </div>
-                        <div class="products-grid" id="limpiezaGrid">
-                            <!-- Los productos se cargarán aquí -->
-                        </div>
+                    <!-- Los productos se cargarán aquí dinámicamente por categorías -->
+                    <div class="catalog-loading" id="catalogLoading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando productos...</p>
                     </div>
                 </section>
             </section>
@@ -487,6 +453,17 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== 🆕 VISTA DETALLE DE PRODUCTO ===== -->
+            <section class="view-content" id="viewProductoDetalle">
+                <div class="producto-detalle-container" id="productoDetalleContainer">
+                    <!-- Se cargará dinámicamente -->
+                    <div class="detalle-loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando detalles del producto...</p>
                     </div>
                 </div>
             </section>
