@@ -2183,3 +2183,34 @@
 .copied-animation {
     animation: copied 0.3s ease;
 }
+
+/* 🆕 Estilos para QR error */
+.qr-error {
+    text-align: center;
+    padding: 1rem;
+}
+
+.qr-error i {
+    font-size: 2rem;
+    color: #f59e0b;
+    margin-bottom: 0.5rem;
+}
+
+.qr-error p {
+    margin: 0.25rem 0;
+    color: var(--text-dark);
+}
+
+.qr-error .small {
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+/* Mejorar el caption del QR */
+.qr-caption small {
+    display: block;
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 0.25rem;
+    line-height: 1.3;
+}
