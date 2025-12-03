@@ -672,7 +672,136 @@
             </div>
         </div>
     </div>
-
+    <!-- ===== 🆕 MODAL DE PAGO YAPE ===== -->
+    <div class="modal-overlay" id="yapeOverlay"></div>
+    <div class="modal modal-lg" id="yapeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-mobile-alt"></i>
+                    Pago con Yape
+                </h3>
+                <button class="modal-close" id="closeYapeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="yape-content">
+                <!-- Instrucciones -->
+                <div class="yape-instructions">
+                    <div class="instruction-header">
+                        <i class="fas fa-info-circle"></i>
+                        <h4>Instrucciones de pago</h4>
+                    </div>
+                    <div class="instruction-steps">
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <p>Abre la app <strong>Yape</strong> en tu celular</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">2</span>
+                            <p>Escanéa el código QR <strong>o</strong> ingresa el número manualmente</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">3</span>
+                            <p>Envía el monto exacto que se muestra abajo</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">4</span>
+                            <p>Guarda el comprobante de pago (screenshot)</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">5</span>
+                            <p>Haz clic en <strong class="text-success">"Confirmar Pago"</strong> cuando termines</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- QR y información -->
+                <div class="yape-payment-info">
+                    <div class="qr-section">
+                        <div class="qr-container">
+                            <!-- QR DINÁMICO con el monto -->
+                            <img id="yapeQrImage" src="" alt="QR Code Yape" class="qr-image">
+                            <div class="qr-loading" id="qrLoading">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p>Generando QR...</p>
+                            </div>
+                        </div>
+                        <p class="qr-caption"><i class="fas fa-qrcode"></i> Escanéame con Yape</p>
+                    </div>
+                    
+                    <div class="payment-details">
+                        <div class="detail-card">
+                            <div class="detail-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="detail-content">
+                                <span class="detail-label">Total a pagar</span>
+                                <strong class="detail-value" id="yapeAmount">S/ 0.00</strong>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-card">
+                            <div class="detail-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div class="detail-content">
+                                <span class="detail-label">Número Yape</span>
+                                <div class="detail-with-copy">
+                                    <strong class="detail-value" id="yapePhone">999 888 777</strong>
+                                    <button class="btn-copy" onclick="copyYapeNumber()" title="Copiar número">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-card">
+                            <div class="detail-icon">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            <div class="detail-content">
+                                <span class="detail-label">Nombre del negocio</span>
+                                <strong class="detail-value">BODEGA GUADALUPE</strong>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-card">
+                            <div class="detail-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="detail-content">
+                                <span class="detail-label">Tiempo para pagar</span>
+                                <strong class="detail-value text-warning">15 minutos</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Advertencia -->
+                <div class="yape-warning">
+                    <div class="warning-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="warning-content">
+                        <p><strong>Importante:</strong> Tu pedido se procesará SOLO después de confirmar el pago.</p>
+                        <p class="warning-small">Guarda tu comprobante por cualquier consulta.</p>
+                    </div>
+                </div>
+                
+                <!-- Acciones -->
+                <div class="yape-actions">
+                    <button class="btn-secondary" onclick="hideYapeModal()">
+                        <i class="fas fa-times"></i> Cancelar Pedido
+                    </button>
+                    <button class="btn-success" onclick="confirmarPagoYape()" id="confirmYapeBtn">
+                        <i class="fas fa-check-circle"></i> Confirmar Pago
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- JavaScript Dividido -->
     <script src="app-core.js"></script>
     <script src="app-auth.js"></script>
