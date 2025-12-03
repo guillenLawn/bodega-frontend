@@ -4,6 +4,10 @@ const API_URL = `${API_BASE_URL}/api/inventory`;
 const AUTH_API = `${API_BASE_URL}/api/auth`;
 const PEDIDOS_API = `${API_BASE_URL}/api/pedidos`;
 
+// ===== CONFIGURACIÓN YAPE =====
+const YAPE_NUMBER = '937331592'; // 🆕 Cambia este número por tu Yape real
+const YAPE_NAME = 'BODEGA GUADALUPE';
+
 // ===== ESTADO GLOBAL =====
 window.cart = [];
 window.products = [];
@@ -11,7 +15,7 @@ window.currentUser = null;
 window.authToken = localStorage.getItem('bodega_token');
 window.currentView = 'catalogo';
 window.isAdminMode = false;
-window.currentCategory = 'todos'; // ← AGREGADO para sincronizar con app-pedidos
+window.currentCategory = 'todos';
 
 // ===== INICIALIZACIÓN PRINCIPAL =====
 document.addEventListener('DOMContentLoaded', function() {
@@ -118,8 +122,6 @@ function showView(viewName) {
     if (targetView) {
         targetView.classList.add('active');
         
-        // ... dentro de la función showView() ...
-
         // Acciones específicas por vista
         switch(viewName) {
             case 'historial':
@@ -133,11 +135,10 @@ function showView(viewName) {
                 break;
             case 'admin':
                 if (typeof initializeAdminView === 'function') {
-                initializeAdminView();
+                    initializeAdminView();
                 }
                 break;
-            case 'productoDetalle':  // 🆕 NUEVA VISTA
-                // Limpiar contenedor y preparar para carga
+            case 'productoDetalle':
                 const detalleContainer = document.getElementById('productoDetalleContainer');
                 if (detalleContainer) {
                     detalleContainer.innerHTML = '<div class="detalle-loading"><i class="fas fa-spinner fa-spin"></i><p>Cargando detalles...</p></div>';
@@ -170,7 +171,6 @@ function adjustLayoutForView(viewName) {
         if (searchBar) searchBar.style.display = 'none';
         if (cartToggle) cartToggle.style.display = 'none';
     } else {
-        // 🆕 Para productoDetalle y otras vistas
         mainContainer.style.gridTemplateColumns = '1fr';
         if (filtersSidebar) filtersSidebar.style.display = 'none';
         if (searchBar) searchBar.style.display = 'flex';
@@ -276,11 +276,7 @@ async function loadAdminProducts() {
         
         tableBody.innerHTML = '';
         
-        // ✅ CORREGIDO: Usar las propiedades CORRECTAS del backend
         products.forEach(product => {
-            const row = document.createElement('tr');
-            
-            // Convertir precio de string a number para formatear
             const precioNumero = parseFloat(product.precio) || 0;
             const stockNumero = parseInt(product.stock) || 0;
             const categoria = product.categoria || 'Sin categoría';
@@ -327,7 +323,6 @@ async function loadAdminProducts() {
             tableBody.appendChild(row);
         });
         
-        // ✅ Actualizar estadísticas con datos REALES
         updateAdminStats();
         
     } catch (error) {
@@ -408,7 +403,6 @@ async function loadAdminOrders() {
 async function updateAdminStats() {
     console.log('📊 Actualizando estadísticas del admin...');
     
-    // Valores por defecto (por si falla el backend)
     let stats = {
         totalProductos: window.products?.length || 0,
         totalPedidos: 0,
@@ -417,7 +411,6 @@ async function updateAdminStats() {
     };
     
     try {
-        // ✅ Obtener estadísticas REALES del backend (solo admin)
         if (window.currentUser && window.currentUser.role === 'admin' && window.authToken) {
             console.log('🌐 Solicitando estadísticas al backend...');
             
@@ -434,7 +427,6 @@ async function updateAdminStats() {
                 const data = await response.json();
                 console.log('✅ Estadísticas recibidas del backend:', data);
                 
-                // Extraer estadísticas (dependiendo del formato)
                 if (data.estadisticas) {
                     stats = {
                         totalProductos: data.estadisticas.totalProductos || window.products?.length || 0,
@@ -443,7 +435,6 @@ async function updateAdminStats() {
                         ingresosTotales: parseFloat(data.estadisticas.ingresosTotales) || 0
                     };
                 } else if (data.totalProductos) {
-                    // Si el backend devuelve las estadísticas directamente
                     stats = {
                         totalProductos: data.totalProductos || window.products?.length || 0,
                         totalPedidos: data.totalPedidos || 0,
@@ -459,7 +450,6 @@ async function updateAdminStats() {
         console.warn('⚠️ Error obteniendo estadísticas:', error.message);
     }
     
-    // ✅ Actualizar la UI con los datos REALES
     console.log('🎯 Estadísticas a mostrar:', stats);
     
     const totalProductsEl = document.getElementById('totalProducts');
@@ -528,14 +518,12 @@ function updateCartUI() {
     const totalAmount = document.getElementById('totalAmount');
     const btnPedir = document.getElementById('btnPedir');
 
-    // Actualizar contador
     const totalItems = window.cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
     if (cartCount) {
         cartCount.textContent = totalItems;
         cartCount.style.display = totalItems > 0 ? 'flex' : 'none';
     }
 
-    // Actualizar lista de productos
     if (cartItems) {
         if (window.cart.length === 0) {
             cartItems.innerHTML = `
@@ -580,7 +568,6 @@ function updateCartUI() {
         }
     }
 
-    // Actualizar total
     const total = window.cart.reduce((sum, item) => sum + (item.precio * item.quantity), 0);
     if (totalAmount) {
         totalAmount.textContent = `S/ ${total.toFixed(2)}`;
@@ -591,7 +578,6 @@ function addToCart(productId) {
     const product = window.products.find(p => p.id == productId);
     if (!product) return;
     
-    // Verificar stock
     if (product.quantity <= 0) {
         showNotification('❌ Producto sin stock disponible', 'error');
         return;
@@ -650,7 +636,7 @@ function updateQuantity(productId, change) {
     }
 }
 
-// ===== REALIZAR PEDIDO (CORREGIDO CON ACTUALIZACIÓN DE STOCK) =====
+// ===== 🆕 REALIZAR PEDIDO CON YAPE =====
 async function realizarPedido() {
     if (window.cart.length === 0) return;
     
@@ -660,8 +646,144 @@ async function realizarPedido() {
         return;
     }
     
+    // Calcular total
+    const total = window.cart.reduce((sum, item) => sum + (item.precio * item.quantity), 0);
+    
+    // Mostrar modal de pago Yape
+    showYapeModal(total);
+}
+
+// ===== 🆕 FUNCIONES DE PAGO YAPE =====
+function showYapeModal(total) {
+    console.log('💰 Mostrando modal Yape para total:', total);
+    
+    const yapeModal = document.getElementById('yapeModal');
+    const yapeOverlay = document.getElementById('yapeOverlay');
+    const closeBtn = document.getElementById('closeYapeModal');
+    
+    if (!yapeModal || !yapeOverlay) {
+        console.error('❌ No se encontró el modal Yape');
+        return;
+    }
+    
+    // Actualizar información en el modal
+    document.getElementById('yapeAmount').textContent = `S/ ${total.toFixed(2)}`;
+    document.getElementById('yapePhone').textContent = YAPE_NUMBER;
+    
+    // Generar QR con el monto
+    generateYapeQR(total);
+    
+    // Mostrar modal
+    yapeOverlay.style.display = 'block';
+    yapeModal.style.display = 'block';
+    
+    setTimeout(() => {
+        yapeOverlay.classList.add('active');
+        yapeModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }, 10);
+    
+    // Event listeners para cerrar
+    if (closeBtn) {
+        closeBtn.addEventListener('click', hideYapeModal);
+    }
+    yapeOverlay.addEventListener('click', hideYapeModal);
+    
+    // También cerrar con ESC
+    document.addEventListener('keydown', function handleEsc(e) {
+        if (e.key === 'Escape') {
+            hideYapeModal();
+            document.removeEventListener('keydown', handleEsc);
+        }
+    });
+}
+
+function hideYapeModal() {
+    const yapeModal = document.getElementById('yapeModal');
+    const yapeOverlay = document.getElementById('yapeOverlay');
+    
+    if (!yapeModal || !yapeOverlay) return;
+    
+    yapeOverlay.classList.remove('active');
+    yapeModal.classList.remove('active');
+    
+    setTimeout(() => {
+        yapeOverlay.style.display = 'none';
+        yapeModal.style.display = 'none';
+        document.body.style.overflow = '';
+    }, 300);
+}
+
+function generateYapeQR(total) {
+    const qrImage = document.getElementById('yapeQrImage');
+    const qrLoading = document.getElementById('qrLoading');
+    
+    if (!qrImage || !qrLoading) return;
+    
+    // Mostrar loading
+    qrLoading.style.display = 'flex';
+    qrImage.style.display = 'none';
+    
+    // Usar servicio gratuito para generar QR
+    // Formato: yape://payment?phone=NUMERO&amount=MONTO
+    const yapeUrl = `yape://payment?phone=${YAPE_NUMBER}&amount=${total.toFixed(2)}`;
+    
+    // API gratuita de QR Code
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(yapeUrl)}&margin=10&color=2d3748&bgcolor=f8fafc`;
+    
+    qrImage.src = qrUrl;
+    qrImage.onload = function() {
+        qrLoading.style.display = 'none';
+        qrImage.style.display = 'block';
+    };
+    
+    qrImage.onerror = function() {
+        qrLoading.innerHTML = '<p>❌ Error generando QR</p>';
+        console.error('Error cargando QR');
+    };
+}
+
+function copyYapeNumber() {
+    const yapeNumber = YAPE_NUMBER;
+    
+    // Usar Clipboard API
+    navigator.clipboard.writeText(yapeNumber).then(function() {
+        showNotification('✅ Número copiado al portapapeles', 'success');
+        
+        // Animación en el botón
+        const copyBtn = document.querySelector('.btn-copy');
+        if (copyBtn) {
+            copyBtn.classList.add('copied-animation');
+            copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+            
+            setTimeout(() => {
+                copyBtn.classList.remove('copied-animation');
+                copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+            }, 2000);
+        }
+    }).catch(function(err) {
+        console.error('Error copiando:', err);
+        showNotification('❌ Error al copiar', 'error');
+    });
+}
+
+async function confirmarPagoYape() {
+    const total = window.cart.reduce((sum, item) => sum + (item.precio * item.quantity), 0);
+    
+    // Mostrar confirmación
+    if (!confirm(`¿Confirmas que ya realizaste el pago de S/ ${total.toFixed(2)} por Yape?\n\nRecuerda guardar el comprobante de pago.`)) {
+        return;
+    }
+    
+    // Deshabilitar botón
+    const confirmBtn = document.getElementById('confirmYapeBtn');
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+    }
+    
     try {
-        // Preparar datos del pedido (igual que antes)
+        // Crear pedido en el backend
         const pedidoData = {
             items: window.cart.map(item => ({
                 id: item.id,
@@ -669,17 +791,16 @@ async function realizarPedido() {
                 precio: item.precio,
                 cantidad: item.quantity
             })),
-            total: window.cart.reduce((sum, item) => sum + (item.precio * item.quantity), 0),
+            total: total,
             userId: window.currentUser.id,
             userName: window.currentUser.nombre,
             userEmail: window.currentUser.email,
-            direccion: 'Delivery a domicilio', // Puedes cambiar esto
-            metodoPago: 'efectivo'
+            direccion: 'Delivery a domicilio',
+            metodoPago: 'yape'
         };
         
-        console.log('📤 Enviando pedido al backend:', pedidoData);
+        console.log('📤 Enviando pedido con pago Yape:', pedidoData);
         
-        // Enviar pedido al backend
         const response = await fetch('https://bodega-backend-nuevo.onrender.com/api/pedidos', {
             method: 'POST',
             headers: {
@@ -690,23 +811,17 @@ async function realizarPedido() {
         });
         
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Error del backend:', response.status, errorText);
-            throw new Error(`Error ${response.status}: ${errorText}`);
+            throw new Error('Error creando pedido');
         }
         
         const result = await response.json();
-        console.log('✅ Pedido creado en backend:', result);
+        console.log('✅ Pedido creado:', result);
         
-        // El backend YA actualizó el stock automáticamente
-        // Solo necesitamos actualizar localmente para reflejar los cambios
-        
-        // Actualizar stock localmente basado en el carrito
+        // Actualizar stock localmente
         window.cart.forEach(item => {
             const product = window.products.find(p => p.id == item.id);
             if (product) {
                 product.stock = Math.max(0, product.stock - item.quantity);
-                console.log(`📉 Stock actualizado localmente: ${product.nombre} - Nuevo: ${product.stock}`);
             }
         });
         
@@ -715,6 +830,7 @@ async function realizarPedido() {
         saveCartToStorage();
         updateCartUI();
         hideCartPanel();
+        hideYapeModal();
         
         // Actualizar vistas
         if (window.currentView === 'catalogo') {
@@ -729,11 +845,22 @@ async function realizarPedido() {
             setTimeout(loadAdminProducts, 500);
         }
         
-        showNotification('✅ Pedido realizado exitosamente - Stock actualizado');
+        showNotification('✅ ¡Pago confirmado! Tu pedido está siendo procesado.', 'success');
+        
+        // Mostrar mensaje final
+        setTimeout(() => {
+            alert('🎉 ¡Pedido realizado con éxito!\n\nTu pedido ha sido registrado y será procesado pronto.\nPuedes ver el estado en tu historial de compras.\n\n¡Gracias por tu compra en Bodega Guadalupe!');
+        }, 1000);
         
     } catch (error) {
-        console.error('❌ Error completo realizando pedido:', error);
+        console.error('❌ Error confirmando pago:', error);
         showNotification(`❌ Error: ${error.message}`, 'error');
+        
+        // Rehabilitar botón
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar Pago';
+        }
     }
 }
 
@@ -804,7 +931,7 @@ function setupEventListeners() {
         overlay.addEventListener('click', hideCartPanel);
     }
     
-    // Botón realizar pedido
+    // Botón realizar pedido (AHORA abre Yape)
     const btnPedir = document.getElementById('btnPedir');
     if (btnPedir) {
         btnPedir.addEventListener('click', realizarPedido);
@@ -834,7 +961,6 @@ async function loadProducts() {
         window.products = await response.json();
         console.log('Productos cargados:', window.products.length);
         
-        // Si hay una función de renderizado, llamarla
         if (typeof window.renderProductsByCategory === 'function') {
             window.renderProductsByCategory();
         }
@@ -867,23 +993,19 @@ function initializeNavigation() {
 
 function loadHistorialPedidos() {
     console.log('📋 Cargando historial de pedidos...');
-    // Esta función se implementará completamente en app-pedidos.js
 }
 
 function initializeAdminView() {
     console.log('🔧 Inicializando vista admin...');
-    // Esta función se implementará completamente en app-pedidos.js
 }
 
 // ===== INICIALIZAR AUTENTICACIÓN (placeholder) =====
 async function initializeAuth() {
     console.log('🔐 Inicializando autenticación...');
-    // Esta función está en app-auth.js
 }
 
 function showAuthModal(type) {
     console.log('🔐 Mostrando modal de autenticación:', type);
-    // Esta función está en app-auth.js
 }
 
 // ===== CSS DINÁMICO =====
@@ -931,6 +1053,17 @@ style.textContent = `
     .admin-mode .navbar {
         border-bottom: 3px solid #dc2626;
     }
+    
+    /* 🆕 Animación copiado */
+    @keyframes copied {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .copied-animation {
+        animation: copied 0.3s ease;
+    }
 `;
 document.head.appendChild(style);
 
@@ -939,7 +1072,7 @@ window.showView = showView;
 window.addToCart = addToCart;
 window.removeFromCart = removeFromCart;
 window.updateQuantity = updateQuantity;
-window.realizarPedido = realizarPedido;
+window.realizarPedido = realizarPedido; // ✅ Ahora abre modal Yape
 window.toggleCart = toggleCart;
 window.showCartPanel = showCartPanel;
 window.hideCartPanel = hideCartPanel;
@@ -950,4 +1083,10 @@ window.escapeHtml = escapeHtml;
 window.showNotification = showNotification;
 window.getStatusText = getStatusText;
 
-console.log('✅ app-core.js cargado correctamente');
+// 🆕 Funciones de Yape
+window.showYapeModal = showYapeModal;
+window.hideYapeModal = hideYapeModal;
+window.confirmarPagoYape = confirmarPagoYape;
+window.copyYapeNumber = copyYapeNumber;
+
+console.log('✅ app-core.js cargado correctamente con Yape');
