@@ -722,7 +722,7 @@ function generateYapeQR(total) {
     if (!qrImage || !qrLoading) return;
     
     // 🎯 TU QR ESTÁTICO DE CLOUDINARY
-    const QR_ESTATICO_URL = 'https://res.cloudinary.com/dbptiljzk/image/upload/v1764741550/codigo_numero_mntpwx.png';
+    const QR_ESTATICO_URL = 'https://res.cloudinary.com/dbptiljzk/image/upload/v1764742067/codigo_numero_np7uds.png';
     
     console.log('🔗 Cargando QR estático:', QR_ESTATICO_URL);
     
