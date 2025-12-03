@@ -164,9 +164,10 @@
     text-align: center;
     margin-bottom: var(--space-xl);
     padding: var(--space-lg);
-    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
     color: white;
     border-radius: var(--radius-lg);
+    border: 1px solid rgba(230, 57, 70, 0.2);
 }
 
 .historial-title {
@@ -186,6 +187,10 @@
 .historial-content {
     max-width: 800px;
     margin: 0 auto;
+    background: #FFFFFF;
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
 }
 
 /* Estados del historial */
@@ -230,13 +235,12 @@
 }
 
 .pedido-card {
-    background: var(--bg-white);
-    border: 1px solid var(--border-light);
+    background: linear-gradient(135deg, #FFFFFF 0%, #FAF7F2 100%);
+    border: 1px solid rgba(230, 57, 70, 0.1);
     border-radius: var(--radius-lg);
     padding: var(--space-lg);
     box-shadow: var(--shadow-sm);
     transition: all 0.3s ease;
-    animation: fadeInUp 0.5s ease forwards;
 }
 
 .pedido-card:hover {
@@ -506,6 +510,7 @@
     max-width: 1400px;
     margin: 0 auto;
     padding: 20px;
+    background: transparent;
 }
 
 .admin-header {
@@ -537,15 +542,12 @@
 }
 
 .stat-card {
-    background: white;
+    background: linear-gradient(135deg, #FFFFFF 0%, #FFF8F0 100%);
     padding: 25px;
     border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     border-left: 4px solid var(--primary);
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(230, 57, 70, 0.1);
 }
 
 .stat-card:hover {
@@ -612,11 +614,11 @@
 
 /* 🔧 CONTENIDO DE LAS PESTAÑAS */
 .admin-tab-content {
-    background: white;
+    background: linear-gradient(135deg, #FFFFFF 0%, #FAF7F2 100%);
     border-radius: 12px;
     padding: 30px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    min-height: 400px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border: 1px solid rgba(230, 57, 70, 0.1);
 }
 
 .tab-pane {
@@ -784,7 +786,12 @@
     }
     
     .welcome-card {
-        padding: 30px 20px;
+        background: linear-gradient(135deg, #FFFFFF 0%, #FAF7F2 100%);
+        border-radius: 20px;
+        padding: 50px 40px;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        border: 1px solid rgba(230, 57, 70, 0.1);
     }
     
     .welcome-icon {
