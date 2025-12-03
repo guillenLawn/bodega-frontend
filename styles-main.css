@@ -65,7 +65,7 @@ body {
     font-weight: 400;
     line-height: 1.6;
     color: var(--text-dark);
-    background: var(--bg-white);
+    background: #FAF7F2; /* Cambiado: Fondo crema muy claro */
     -webkit-font-smoothing: antialiased;
 }
 
@@ -90,6 +90,7 @@ h4 { font-size: 1.25rem; }
     grid-template-columns: 280px 1fr;
     gap: var(--space-xl);
     align-items: start;
+    background: transparent; /* Hacer transparente el contenedor */
 }
 
 .main-content {
@@ -341,7 +342,7 @@ html {
 
 /* Modo administrador en body */
 body.admin-mode {
-    background: var(--admin-bg);
+    background: #FFF5F5; /* Fondo rojo muy claro para admin */
 }
 
 /* Mejoras de accesibilidad */
