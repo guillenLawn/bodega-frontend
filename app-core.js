@@ -717,45 +717,101 @@ function hideYapeModal() {
 function generateYapeQR(total) {
     const qrImage = document.getElementById('yapeQrImage');
     const qrLoading = document.getElementById('qrLoading');
-    const qrContainer = document.querySelector('.qr-container');
+    const qrCaption = document.querySelector('.qr-caption');
     
     if (!qrImage || !qrLoading) return;
+    
+    // 🎯 TU QR ESTÁTICO DE CLOUDINARY
+    const QR_ESTATICO_URL = 'https://res.cloudinary.com/dbptiljzk/image/upload/v1764741550/codigo_numero_mntpwx.png';
+    
+    console.log('🔗 Cargando QR estático:', QR_ESTATICO_URL);
     
     // Mostrar loading
     qrLoading.style.display = 'flex';
     qrImage.style.display = 'none';
     
-    // 🎯 USAR GOOGLE CHARTS API (MÁS CONFIABLE)
-    // Formato: https://chart.googleapis.com/chart?cht=qr&chs=250x250&chl=DATOS
+    // Actualizar instrucciones
+    if (qrCaption) {
+        qrCaption.innerHTML = `
+            <i class="fas fa-qrcode"></i> 
+            Escanéame con Yape<br>
+            <small>Luego ingresa <strong>S/ ${total.toFixed(2)}</strong></small>
+        `;
+    }
     
-    const qrData = YAPE_NUMBER; // Solo tu número
+    // Cargar tu QR estático
+    qrImage.src = QR_ESTATICO_URL;
     
-    // URL de Google Charts
-    const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=250x250&chl=${qrData}&choe=UTF-8&chld=L|0`;
-    
-    console.log('🔗 Generando QR con URL:', qrUrl);
-    
-    qrImage.src = qrUrl;
-    
-    // Configurar timeout por si falla
+    // Configurar timeout por si tarda
     const timeout = setTimeout(() => {
         if (qrLoading.style.display !== 'none') {
-            mostrarQRAlternativo(qrData, total);
+            mostrarBackupQR(total);
         }
-    }, 5000);
+    }, 3000);
     
     qrImage.onload = function() {
         clearTimeout(timeout);
         qrLoading.style.display = 'none';
         qrImage.style.display = 'block';
-        console.log('✅ QR cargado correctamente');
+        console.log('✅ QR estático cargado correctamente');
+        
+        // Agregar efecto de carga suave
+        qrImage.style.opacity = '0';
+        setTimeout(() => {
+            qrImage.style.transition = 'opacity 0.5s ease';
+            qrImage.style.opacity = '1';
+        }, 100);
     };
     
     qrImage.onerror = function() {
         clearTimeout(timeout);
-        console.error('❌ Error cargando QR, usando método alternativo');
-        mostrarQRAlternativo(qrData, total);
+        console.error('❌ Error cargando QR estático');
+        mostrarBackupQR(total);
     };
+}
+
+function mostrarBackupQR(total) {
+    const qrLoading = document.getElementById('qrLoading');
+    const qrImage = document.getElementById('yapeQrImage');
+    
+    if (!qrLoading) return;
+    
+    qrLoading.innerHTML = `
+        <div class="backup-qr">
+            <div class="backup-header">
+                <i class="fas fa-mobile-alt"></i>
+                <h4>Pago con Yape</h4>
+            </div>
+            
+            <div class="backup-number-display">
+                <div class="number-label">Número Yape:</div>
+                <div class="number-value">${YAPE_NUMBER}</div>
+                <button class="btn-copy-small" onclick="copyYapeNumber()">
+                    <i class="fas fa-copy"></i> Copiar
+                </button>
+            </div>
+            
+            <div class="backup-amount">
+                <div class="amount-label">Monto a enviar:</div>
+                <div class="amount-value">S/ ${total.toFixed(2)}</div>
+            </div>
+            
+            <div class="backup-steps">
+                <p><strong>Instrucciones:</strong></p>
+                <ol>
+                    <li>Abre la app <strong>Yape</strong></li>
+                    <li>Ingresa el número: <strong>${YAPE_NUMBER}</strong></li>
+                    <li>Pon el monto: <strong>S/ ${total.toFixed(2)}</strong></li>
+                    <li>Envía el pago</li>
+                    <li>Guarda el comprobante</li>
+                </ol>
+            </div>
+        </div>
+    `;
+    
+    if (qrImage) {
+        qrImage.style.display = 'none';
+    }
 }
 
 function mostrarQRAlternativo(numero, total) {
