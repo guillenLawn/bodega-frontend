@@ -100,7 +100,7 @@ async function checkExistingAuth() {
                     const userData = JSON.parse(savedUser);
                     if (userData.role && userData.email === window.currentUser.email) {
                         window.currentUser.role = userData.role;
-                        console.log('🔧 Rol cargado desde localStorage:', userData.role);
+                        console.log(' Rol cargado desde localStorage:', userData.role);
                     }
                 } catch (error) {
                     console.error('Error parsing saved user:', error);
@@ -261,7 +261,7 @@ async function handleLogin(e) {
             
             // Notificar si hay productos en carrito
             if (window.cart && window.cart.length > 0) {
-                showNotification(' Viendo el catalogo de productos');
+                showNotification(' Sesion iniciada');
             }
             
         } else {
@@ -322,7 +322,7 @@ async function handleRegister(e) {
             let userRole = 'user';
             if (email === 'admin@bodega.com') {
                 userRole = 'admin';
-                console.log('🔧 Creando cuenta de administrador');
+                console.log(' Creando cuenta de administrador');
             }
             
             window.currentUser.role = userRole;
