@@ -118,6 +118,8 @@ function showView(viewName) {
     if (targetView) {
         targetView.classList.add('active');
         
+        // ... dentro de la función showView() ...
+
         // Acciones específicas por vista
         switch(viewName) {
             case 'historial':
@@ -131,7 +133,14 @@ function showView(viewName) {
                 break;
             case 'admin':
                 if (typeof initializeAdminView === 'function') {
-                    initializeAdminView();
+                initializeAdminView();
+                }
+                break;
+            case 'productoDetalle':  // 🆕 NUEVA VISTA
+                // Limpiar contenedor y preparar para carga
+                const detalleContainer = document.getElementById('productoDetalleContainer');
+                if (detalleContainer) {
+                    detalleContainer.innerHTML = '<div class="detalle-loading"><i class="fas fa-spinner fa-spin"></i><p>Cargando detalles...</p></div>';
                 }
                 break;
         }
@@ -161,6 +170,7 @@ function adjustLayoutForView(viewName) {
         if (searchBar) searchBar.style.display = 'none';
         if (cartToggle) cartToggle.style.display = 'none';
     } else {
+        // 🆕 Para productoDetalle y otras vistas
         mainContainer.style.gridTemplateColumns = '1fr';
         if (filtersSidebar) filtersSidebar.style.display = 'none';
         if (searchBar) searchBar.style.display = 'flex';
