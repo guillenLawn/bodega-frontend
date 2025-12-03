@@ -717,6 +717,7 @@ function hideYapeModal() {
 function generateYapeQR(total) {
     const qrImage = document.getElementById('yapeQrImage');
     const qrLoading = document.getElementById('qrLoading');
+    const qrCaption = document.querySelector('.qr-caption');
     
     if (!qrImage || !qrLoading) return;
     
@@ -724,12 +725,22 @@ function generateYapeQR(total) {
     qrLoading.style.display = 'flex';
     qrImage.style.display = 'none';
     
-    // Usar servicio gratuito para generar QR
-    // Formato: yape://payment?phone=NUMERO&amount=MONTO
-    const yapeUrl = `yape://payment?phone=${YAPE_NUMBER}&amount=${total.toFixed(2)}`;
+    // 🎯 QR SOLO CON EL NÚMERO DE TELÉFONO
+    // El usuario escaneará este QR y verá tu número en Yape
+    // Luego deberá ingresar el monto MANUALMENTE
+    const qrData = YAPE_NUMBER; // Solo el número, ej: "999888777"
     
     // API gratuita de QR Code
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(yapeUrl)}&margin=10&color=2d3748&bgcolor=f8fafc`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${qrData}&margin=10&color=2d3748&bgcolor=f8fafc`;
+    
+    // Actualizar el texto de instrucciones
+    if (qrCaption) {
+        qrCaption.innerHTML = `
+            <i class="fas fa-qrcode"></i> 
+            Escanéame para ver el número<br>
+            <small>Luego ingresa <strong>S/ ${total.toFixed(2)}</strong> manualmente en Yape</small>
+        `;
+    }
     
     qrImage.src = qrUrl;
     qrImage.onload = function() {
@@ -738,7 +749,13 @@ function generateYapeQR(total) {
     };
     
     qrImage.onerror = function() {
-        qrLoading.innerHTML = '<p>❌ Error generando QR</p>';
+        qrLoading.innerHTML = `
+            <div class="qr-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Error cargando QR</p>
+                <p class="small">Usa el número: ${YAPE_NUMBER}</p>
+            </div>
+        `;
         console.error('Error cargando QR');
     };
 }
