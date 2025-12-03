@@ -123,10 +123,10 @@ h4 { font-size: 1.25rem; }
     top: 0;
     left: 0;
     right: 0;
-    background: var(--bg-white);
-    box-shadow: var(--shadow-sm);
+    background: rgba(255, 255, 255, 0.95); /* Blanco semi-transparente */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     z-index: 1000;
-    padding: var(--space-sm) 0;
+    border-bottom: 3px solid var(--primary);
     backdrop-filter: blur(10px);
 }
 
@@ -175,12 +175,15 @@ h4 { font-size: 1.25rem; }
 /* ===== HERO SECTION ===== */
 .hero {
     margin-top: 80px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    background: linear-gradient(135deg, 
+        rgba(230, 57, 70, 0.9) 0%, 
+        rgba(244, 162, 97, 0.9) 100%);
     color: white;
     padding: var(--space-xl) 0;
     text-align: center;
     position: relative;
     overflow: hidden;
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
 }
 
 /* Agregar patrón de fondo sutil */
@@ -221,9 +224,11 @@ h4 { font-size: 1.25rem; }
 
 /* ===== FOOTER ===== */
 .footer {
-    background: var(--text-dark);
+    background: linear-gradient(135deg, var(--text-dark) 0%, #2D3748 100%);
     color: white;
     padding: var(--space-xl) 0 0;
+    margin-top: var(--space-xl);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
 
 .footer-content {
@@ -252,6 +257,7 @@ h4 { font-size: 1.25rem; }
     padding: var(--space-md);
     text-align: center;
     color: rgba(255,255,255,0.5);
+    background: rgba(0, 0, 0, 0.1);
 }
 
 /* ===== CLASES UTILITARIAS PARA ADMIN ===== */
