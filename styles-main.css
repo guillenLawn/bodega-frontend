@@ -1,50 +1,64 @@
 /* ===== VARIABLES Y RESET ===== */
 :root {
-    --primary: #2563eb;
-    --primary-dark: #1d4ed8;
-    --primary-light: #3b82f6;
-    --accent: #60a5fa;
-    --accent-dark: #4b7fd6;
+    /* COLOR PRINCIPAL - ROJO VIBRANTE DE INCA KOLA */
+    --primary: #E63946;         /* Rojo vibrante */
+    --primary-dark: #C1121F;    /* Rojo oscuro */
+    --primary-light: #FF6B6B;   /* Rojo claro */
     
-    /* Colores para administrador */
-    --admin-primary: #dc2626;
-    --admin-dark: #b91c1c;
-    --admin-light: #ef4444;
-    --admin-accent: #f87171;
-    --admin-bg: #fef2f2;
-    --admin-border: #fecaca;
+    /* COLOR SECUNDARIO - NARANJA CÁLIDO */
+    --secondary: #F4A261;       /* Naranja cálido */
+    --secondary-dark: #E76F51;  /* Naranja oscuro */
     
-    --text-dark: #1A1A1A;
-    --text-light: #666666;
-    --text-lighter: #999999;
-    --bg-light: #F8F8F8;
+    /* COLOR DE ÉNFASIS - VERDE FRESCO */
+    --accent: #2A9D8F;          /* Verde fresco */
+    --accent-dark: #1D7873;     /* Verde oscuro */
+    
+    /* COLORES DE ADMINISTRADOR (ROJOS) */
+    --admin-primary: #DC2626;
+    --admin-dark: #B91C1C;
+    --admin-bg: #FEE2E2;
+    
+    /* FONDOS Y SUPERFICIES */
     --bg-white: #FFFFFF;
-    --border-light: #E8E8E8;
-    --border-medium: #D1D1D1;
+    --bg-light: #F8F9FA;
+    --bg-dark: #1A202C;
     
-    /* Estados */
-    --success: #10b981;
-    --warning: #f59e0b;
-    --error: #ef4444;
-    --info: #3b82f6;
+    /* COLORES DE TEXTO */
+    --text-dark: #2D3748;
+    --text-light: #718096;
+    --text-lighter: #A0AEC0;
+    --text-muted: #CBD5E0;
     
-    /* Sombras suaves */
-    --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-    --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+    /* COLORES DE ESTADO */
+    --success: #10B981;
+    --error: #EF4444;
+    --warning: #F59E0B;
+    --info: #3B82F6;
     
-    /* Espaciados */
+    /* BORDES Y SEPARADORES */
+    --border-light: #E2E8F0;
+    --border-medium: #CBD5E0;
+    --border-dark: #A0AEC0;
+    
+    /* SOMBRAS Y ELEVACION */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+    --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.2);
+    
+    /* ESPACIADO CONSISTENTE */
     --space-xs: 0.5rem;
     --space-sm: 1rem;
     --space-md: 1.5rem;
     --space-lg: 2rem;
     --space-xl: 3rem;
     
-    /* Bordes redondeados */
-    --radius-sm: 4px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --radius-xl: 16px;
+    /* BORDES REDONDEADOS */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+    --radius-full: 9999px;
 }
 
 * {
