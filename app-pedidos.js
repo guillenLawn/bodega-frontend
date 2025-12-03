@@ -148,6 +148,9 @@ function renderProductsByCategory() {
     
     container.innerHTML = catalogHTML;
     
+    // Agregar event listeners a las imágenes para vista detalle
+    addProductDetailListeners();
+    
     // Sincronizar sidebar con la categoría actual
     syncSidebarWithCategory();
     
@@ -165,14 +168,18 @@ function createProductCardHTML(product) {
     
     // Usar imagen real si existe, sino ícono
     const imageHTML = productImage 
-        ? `<img src="${productImage}" alt="${escapeHtml(productName)}" class="product-real-image">`
-        : `<i class="fas fa-${getProductIcon(productCategory)}"></i>`;
+        ? `<img src="${productImage}" alt="${escapeHtml(productName)}" class="product-real-image" data-product-id="${product.id}">`
+        : `<i class="fas fa-${getProductIcon(productCategory)}" data-product-id="${product.id}"></i>`;
     
     return `
         <div class="product-card-modern" data-id="${product.id}">
-            <div class="product-image">
+            <div class="product-image clickable-image" data-product-id="${product.id}">
                 <div class="category-badge">${productCategory}</div>
                 ${imageHTML}
+                <div class="image-overlay" data-product-id="${product.id}">
+                    <i class="fas fa-search-plus"></i>
+                    <span>Ver detalles</span>
+                </div>
             </div>
             <div class="product-card-body">
                 <h3 class="product-card-title">${escapeHtml(productName)}</h3>
@@ -189,6 +196,254 @@ function createProductCardHTML(product) {
             </div>
         </div>
     `;
+}
+
+// ===== AGREGAR EVENT LISTENERS PARA VISTA DETALLE =====
+function addProductDetailListeners() {
+    // Agregar eventos a las imágenes y overlays
+    document.querySelectorAll('.product-image, .image-overlay, .product-real-image').forEach(element => {
+        element.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const productId = this.getAttribute('data-product-id');
+            if (productId) {
+                mostrarDetalleProducto(productId);
+            }
+        });
+    });
+    
+    // También hacer clickeable el título
+    document.querySelectorAll('.product-card-title').forEach(title => {
+        title.addEventListener('click', function() {
+            const productCard = this.closest('.product-card-modern');
+            const productId = productCard?.getAttribute('data-id');
+            if (productId) {
+                mostrarDetalleProducto(productId);
+            }
+        });
+    });
+}
+
+// ===== 🆕 FUNCIÓN PARA MOSTRAR DETALLE DE PRODUCTO =====
+async function mostrarDetalleProducto(productoId) {
+    console.log(`🔍 Mostrando detalles del producto ID: ${productoId}`);
+    
+    // Guardar producto actual
+    localStorage.setItem('bodega_current_product_id', productoId);
+    
+    // Cambiar a vista detalle
+    if (typeof showView === 'function') {
+        showView('productoDetalle');
+    }
+    
+    // Cargar detalles
+    cargarVistaDetalleProducto(productoId);
+}
+
+// ===== 🆕 CARGAR VISTA DETALLE DE PRODUCTO =====
+async function cargarVistaDetalleProducto(productoId) {
+    const container = document.getElementById('productoDetalleContainer');
+    if (!container) return;
+    
+    // Mostrar loading
+    container.innerHTML = `
+        <div class="detalle-loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Cargando detalles del producto...</p>
+        </div>
+    `;
+    
+    try {
+        console.log(`🌐 Solicitando detalles del producto ID: ${productoId}`);
+        
+        // Intentar primero el endpoint de detalles completos
+        const response = await fetch(`https://bodega-backend-nuevo.onrender.com/api/productos/${productoId}/detalle-completo`);
+        
+        if (!response.ok) {
+            // Si falla, usar el endpoint normal
+            console.log('⚠️ Endpoint detalle no disponible, usando endpoint normal...');
+            await cargarDetalleDesdeLocal(productoId);
+            return;
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.producto) {
+            const producto = data.producto;
+            mostrarDetalleCompleto(producto);
+        } else {
+            throw new Error('No se pudo cargar el producto');
+        }
+        
+    } catch (error) {
+        console.error('❌ Error cargando detalles:', error);
+        // Intentar cargar desde datos locales
+        await cargarDetalleDesdeLocal(productoId);
+    }
+}
+
+// ===== 🆕 CARGAR DETALLE DESDE DATOS LOCALES =====
+async function cargarDetalleDesdeLocal(productoId) {
+    const producto = window.products?.find(p => p.id == productoId);
+    
+    if (!producto) {
+        document.getElementById('productoDetalleContainer').innerHTML = `
+            <div class="detalle-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Producto no encontrado</h3>
+                <p>El producto que buscas no está disponible</p>
+                <button class="btn-volver" onclick="showView('catalogo')">
+                    <i class="fas fa-arrow-left"></i> Volver al Catálogo
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    // Crear objeto con datos básicos
+    const productoBasico = {
+        id: producto.id,
+        nombre: producto.nombre || producto.name || '',
+        descripcion: producto.descripcion || producto.description || '',
+        descripcion_larga: producto.descripcion || producto.description || 'Descripción no disponible',
+        precio: producto.precio || producto.price || 0,
+        stock: producto.stock || producto.quantity || 0,
+        categoria: producto.categoria || producto.category || 'Sin categoría',
+        imagen_url: producto.imagen_url || producto.image_url || '',
+        marca: producto.marca || 'Varios',
+        peso: producto.peso || '1',
+        unidad_medida: producto.unidad_medida || 'unidad'
+    };
+    
+    mostrarDetalleCompleto(productoBasico);
+}
+
+// ===== 🆕 MOSTRAR DETALLE COMPLETO EN LA VISTA =====
+function mostrarDetalleCompleto(producto) {
+    const container = document.getElementById('productoDetalleContainer');
+    if (!container) return;
+    
+    const imagenHTML = producto.imagen_url 
+        ? `<img src="${producto.imagen_url}" alt="${escapeHtml(producto.nombre)}" class="detalle-imagen-principal">`
+        : `<div class="detalle-imagen-placeholder">
+                <i class="fas fa-${getProductIcon(producto.categoria)}"></i>
+           </div>`;
+    
+    const stockHTML = producto.stock > 0 
+        ? `<span class="detalle-stock in-stock">✅ En stock: ${producto.stock} unidades</span>`
+        : `<span class="detalle-stock out-of-stock">❌ Sin stock disponible</span>`;
+    
+    const detallesHTML = `
+        <div class="producto-detalle">
+            <!-- Header con botón volver -->
+            <div class="detalle-header">
+                <button class="btn-volver" onclick="showView('catalogo')">
+                    <i class="fas fa-arrow-left"></i> Volver al Catálogo
+                </button>
+                <h1 class="detalle-titulo">${escapeHtml(producto.nombre)}</h1>
+            </div>
+            
+            <div class="detalle-content">
+                <!-- Imagen principal -->
+                <div class="detalle-imagen-container">
+                    ${imagenHTML}
+                </div>
+                
+                <!-- Información del producto -->
+                <div class="detalle-info">
+                    <div class="detalle-precio-estado">
+                        <div class="detalle-precio">
+                            <span class="precio-label">Precio:</span>
+                            <span class="precio-valor">S/ ${parseFloat(producto.precio).toFixed(2)}</span>
+                        </div>
+                        <div class="detalle-estado">
+                            ${stockHTML}
+                        </div>
+                    </div>
+                    
+                    <!-- Descripción -->
+                    <div class="detalle-seccion">
+                        <h3><i class="fas fa-align-left"></i> Descripción</h3>
+                        <p class="detalle-descripcion">${escapeHtml(producto.descripcion_larga)}</p>
+                    </div>
+                    
+                    <!-- Características -->
+                    <div class="detalle-seccion">
+                        <h3><i class="fas fa-info-circle"></i> Características</h3>
+                        <div class="detalle-caracteristicas">
+                            <div class="caracteristica">
+                                <span class="caracteristica-label">Marca:</span>
+                                <span class="caracteristica-valor">${producto.marca}</span>
+                            </div>
+                            <div class="caracteristica">
+                                <span class="caracteristica-label">Categoría:</span>
+                                <span class="caracteristica-valor">${producto.categoria}</span>
+                            </div>
+                            <div class="caracteristica">
+                                <span class="caracteristica-label">Peso/Unidad:</span>
+                                <span class="caracteristica-valor">${producto.peso} ${producto.unidad_medida}</span>
+                            </div>
+                            <div class="caracteristica">
+                                <span class="caracteristica-label">ID Producto:</span>
+                                <span class="caracteristica-valor">#${producto.id}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Acciones -->
+                    <div class="detalle-acciones">
+                        <button class="btn-agregar-detalle" onclick="agregarAlCarritoDesdeDetalle(${producto.id})" ${producto.stock === 0 ? 'disabled' : ''}>
+                            <i class="fas fa-cart-plus"></i>
+                            ${producto.stock === 0 ? 'Sin Stock' : 'Agregar al Carrito'}
+                        </button>
+                        <button class="btn-comprar-ahora" onclick="comprarAhora(${producto.id})" ${producto.stock === 0 ? 'disabled' : ''}>
+                            <i class="fas fa-bolt"></i>
+                            Comprar Ahora
+                        </button>
+                    </div>
+                    
+                    <!-- Información adicional -->
+                    <div class="detalle-extra">
+                        <p><i class="fas fa-shipping-fast"></i> <strong>Envío:</strong> Disponible para todo Lurigancho-Chosica</p>
+                        <p><i class="fas fa-clock"></i> <strong>Entrega:</strong> 1-2 horas en horario de atención</p>
+                        <p><i class="fas fa-store"></i> <strong>Disponible en:</strong> Bodega Guadalupe - 24 de Setiembre</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = detallesHTML;
+    
+    // Agregar event listener para cerrar con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            showView('catalogo');
+        }
+    });
+}
+
+// ===== 🆕 FUNCIONES PARA ACCIONES EN DETALLE =====
+function agregarAlCarritoDesdeDetalle(productoId) {
+    if (typeof addToCart === 'function') {
+        addToCart(productoId);
+        showNotification('✅ Producto agregado al carrito desde vista detalle');
+    }
+}
+
+function comprarAhora(productoId) {
+    // Agregar al carrito
+    if (typeof addToCart === 'function') {
+        addToCart(productoId);
+    }
+    
+    // Mostrar carrito
+    setTimeout(() => {
+        if (typeof showCartPanel === 'function') {
+            showCartPanel();
+        }
+    }, 500);
+    
+    showNotification('🛒 Producto agregado, revisa tu carrito para completar la compra');
 }
 
 // ===== SISTEMA DE BÚSQUEDA CON AUTOCOMPLETADO =====
@@ -436,6 +691,9 @@ function renderSearchResults(filteredProducts) {
     });
     
     catalogMain.innerHTML = catalogHTML;
+    
+    // Agregar event listeners a las imágenes
+    addProductDetailListeners();
 }
 
 // ===== SISTEMA DE FILTROS =====
@@ -806,5 +1064,9 @@ window.renderProductsByCategory = renderProductsByCategory;
 window.initializeAdminView = initializeAdminView;
 window.loadHistorialPedidos = loadHistorialPedidos;
 window.syncSidebarWithCategory = syncSidebarWithCategory;
+window.mostrarDetalleProducto = mostrarDetalleProducto;
+window.cargarVistaDetalleProducto = cargarVistaDetalleProducto;
+window.agregarAlCarritoDesdeDetalle = agregarAlCarritoDesdeDetalle;
+window.comprarAhora = comprarAhora;
 
 console.log('✅ app-pedidos.js cargado correctamente');
