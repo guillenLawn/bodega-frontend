@@ -308,12 +308,13 @@
 .filters-sidebar {
     position: sticky;
     top: 120px;
-    background: var(--bg-white);
+    background: linear-gradient(135deg, #FFFFFF 0%, #FFF8F0 100%);
     border-radius: var(--radius-lg);
     padding: 1.5rem;
     box-shadow: var(--shadow-md);
-    border: 1px solid var(--border-light);
+    border: 1px solid rgba(230, 57, 70, 0.1);
     height: fit-content;
+    backdrop-filter: blur(10px);
 }
 
 .filter-section {
@@ -346,8 +347,9 @@
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: all 0.3s ease;
-    background: var(--bg-light);
+    background: rgba(255, 255, 255, 0.8);
     border: 1px solid transparent;
+    backdrop-filter: blur(5px);
 }
 
 .filter-option:hover {
