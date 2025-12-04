@@ -352,6 +352,8 @@ async function loadAdminOrders() {
     try {
         tableBody.innerHTML = '<tr><td colspan="7" class="text-center"><div class="loading-spinner"></div></td></tr>';
         
+        console.log('📋 Cargando pedidos del sistema...');
+        
         const response = await fetch(`${PEDIDOS_API}/all`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`,
@@ -368,7 +370,12 @@ async function loadAdminOrders() {
         }
         
         const data = await response.json();
-        const orders = data.orders || data || [];
+        console.log('📊 Datos recibidos del backend:', data);
+        
+        // 🔥 CAMBIO CLAVE: El backend devuelve data.pedidos, NO data.orders
+        const orders = data.pedidos || data.orders || [];
+        
+        console.log('📦 Pedidos encontrados:', orders.length);
         
         if (!Array.isArray(orders) || orders.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No hay pedidos en el sistema</td></tr>';
@@ -376,31 +383,65 @@ async function loadAdminOrders() {
         }
         
         tableBody.innerHTML = '';
+        
         orders.forEach(order => {
-            const total = order.items?.reduce((sum, item) => sum + ((item.precio || item.price || 0) * (item.cantidad || item.quantity || 0)), 0) || 0;
+            console.log('📝 Procesando pedido:', order);
+            
+            // Calcular total (ya viene en order.total del backend)
+            const total = parseFloat(order.total) || 0;
+            
+            // Contar productos
             const productCount = order.items?.length || 0;
+            
+            // Obtener nombre de usuario (viene como usuario_nombre del backend)
+            const userName = order.usuario_nombre || order.userName || 'Cliente';
+            const userEmail = order.usuario_email || order.userEmail || '';
+            
+            // Formatear fecha
+            const fecha = new Date(order.fecha_creacion || order.createdAt).toLocaleDateString('es-PE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+            
+            // Estado
+            const estado = order.estado || 'completado';
             
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td><strong>#${order.id || order._id || 'N/A'}</strong></td>
+                <td><strong>#${order.id || 'N/A'}</strong></td>
                 <td>
                     <div class="user-info-cell">
-                        <strong>${escapeHtml(order.userName || 'Cliente')}</strong>
-                        <small>${escapeHtml(order.userEmail || '')}</small>
+                        <strong>${escapeHtml(userName)}</strong>
+                        <small>${escapeHtml(userEmail)}</small>
                     </div>
                 </td>
                 <td><span class="product-count">${productCount} producto(s)</span></td>
                 <td><strong class="price">S/ ${total.toFixed(2)}</strong></td>
-                <td>${new Date(order.fecha || order.createdAt).toLocaleDateString()}</td>
-                <td><span class="status-badge estado-${order.estado || 'pendiente'}">${getStatusText(order.estado)}</span></td>
-                <td><button class="btn-view" onclick="viewOrderDetails('${order.id || order._id || ''}')"><i class="fas fa-eye"></i></button></td>
+                <td>${fecha}</td>
+                <td><span class="status-badge estado-${estado}">${getStatusText(estado)}</span></td>
+                <td>
+                    <button class="btn-view" onclick="viewOrderDetails(${order.id})" title="Ver detalles">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
             `;
             tableBody.appendChild(row);
         });
         
+        console.log('✅ Tabla de pedidos actualizada correctamente');
+        
     } catch (error) {
         console.error('Error cargando pedidos admin:', error);
-        tableBody.innerHTML = '<tr><td colspan="7" class="text-center error">Error al cargar pedidos</td></tr>';
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error al cargar pedidos</p>
+                    <small>${error.message}</small>
+                </td>
+            </tr>
+        `;
     }
 }
 
