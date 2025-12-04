@@ -1369,7 +1369,7 @@ async function handleEditProductSubmit(e) {
     const stock = parseInt(document.getElementById('editProductStock').value);
     const descripcion = document.getElementById('editProductDescription').value.trim();
     
-    // Validaciones
+    // Validaciones básicas
     if (!nombre || !categoria || isNaN(precio) || isNaN(stock)) {
         showNotification(' Por favor completa todos los campos obligatorios', 'error');
         return;
@@ -1385,23 +1385,35 @@ async function handleEditProductSubmit(e) {
         return;
     }
     
-    // 🔥 CAMBIO CLAVE: Enviar TODOS los campos requeridos con valores por defecto
-    const productoActualizado = {
-        nombre: nombre,
-        categoria: categoria,
-        precio: precio,
-        stock: stock,
-        descripcion: descripcion || nombre,
-        descripcion_larga: descripcion || nombre, // Valor por defecto
-        marca: 'Varios', // Valor por defecto
-        peso: '1', // Valor por defecto
-        unidad_medida: 'unidad', // Valor por defecto
-        imagen_url: '' // Valor por defecto
-    };
-    
-    console.log('📦 Producto a actualizar (con campos completos):', productoActualizado);
-    
     try {
+        // 🔥 NUEVO: Obtener el producto actual ANTES de editar
+        const responseProductos = await fetch('https://bodega-backend-nuevo.onrender.com/api/inventory');
+        const productos = await responseProductos.json();
+        const productoActual = productos.find(p => p.id == productId);
+        
+        if (!productoActual) {
+            showNotification('❌ Producto no encontrado', 'error');
+            return;
+        }
+        
+        console.log('📸 Imagen URL actual del producto:', productoActual.imagen_url);
+        
+        // 🔥 CORREGIDO: Usar la imagen_url EXISTENTE del producto
+        // NO usar string vacío '' que elimina la imagen
+        const imagen_url = productoActual.imagen_url || '';
+        
+        // Solo enviar los 6 campos que realmente existen
+        const productoActualizado = {
+            nombre: nombre,
+            categoria: categoria,
+            precio: precio,
+            stock: stock,
+            descripcion: descripcion || nombre,
+            imagen_url: imagen_url // ← ¡PRESERVAR LA IMAGEN ORIGINAL!
+        };
+        
+        console.log('📦 Producto a actualizar (con imagen preservada):', productoActualizado);
+        
         // Mostrar loading
         const submitBtn = e.target.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
