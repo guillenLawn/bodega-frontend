@@ -1076,6 +1076,25 @@ function initializeAddProduct() {
     
     // Configurar tabs del admin
     setupAdminTabs();
+
+    // 🔥 AGREGAR ESTO TAMBIÉN:
+    // Configurar botones de refresh
+    const refreshProductsBtn = document.getElementById('refreshProducts');
+    const refreshOrdersBtn = document.getElementById('refreshOrders');
+    
+    if (refreshProductsBtn) {
+        refreshProductsBtn.addEventListener('click', () => {
+            if (typeof loadAdminProducts === 'function') loadAdminProducts();
+            showNotification(' Productos actualizados');
+        });
+    }
+    
+    if (refreshOrdersBtn) {
+        refreshOrdersBtn.addEventListener('click', () => {
+            if (typeof loadAdminOrders === 'function') loadAdminOrders();
+            showNotification(' Pedidos actualizados');
+        });
+    }
 }
 
 // Configurar pestañas del admin
