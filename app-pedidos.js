@@ -1326,7 +1326,7 @@ async function openEditProductModal(productId) {
             return;
         }
         
-        console.log('📦 Producto cargado:', producto);
+        console.log(' Producto cargado:', producto);
         
         // Llenar formulario con datos actuales
         document.getElementById('editProductId').value = producto.id;
@@ -1385,15 +1385,21 @@ async function handleEditProductSubmit(e) {
         return;
     }
     
+    // 🔥 CAMBIO CLAVE: Enviar TODOS los campos requeridos con valores por defecto
     const productoActualizado = {
         nombre: nombre,
         categoria: categoria,
         precio: precio,
         stock: stock,
-        descripcion: descripcion || nombre
+        descripcion: descripcion || nombre,
+        descripcion_larga: descripcion || nombre, // Valor por defecto
+        marca: 'Varios', // Valor por defecto
+        peso: '1', // Valor por defecto
+        unidad_medida: 'unidad', // Valor por defecto
+        imagen_url: '' // Valor por defecto
     };
     
-    console.log('📦 Producto a actualizar:', productoActualizado);
+    console.log('📦 Producto a actualizar (con campos completos):', productoActualizado);
     
     try {
         // Mostrar loading
@@ -1415,7 +1421,7 @@ async function handleEditProductSubmit(e) {
         const data = await response.json();
         
         if (response.ok) {
-            showNotification(' Producto actualizado exitosamente!', 'success');
+            showNotification('✅ Producto actualizado exitosamente!', 'success');
             
             // Cerrar modal
             closeEditModal();
@@ -1446,7 +1452,7 @@ async function handleEditProductSubmit(e) {
         
     } catch (error) {
         console.error('Error actualizando producto:', error);
-        showNotification(` Error: ${error.message}`, 'error');
+        showNotification(`❌ Error: ${error.message}`, 'error');
     } finally {
         // Restaurar botón
         const submitBtn = e.target.querySelector('button[type="submit"]');
