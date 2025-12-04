@@ -790,6 +790,8 @@ function initializeAdminView() {
     }
 
     initializeAddProduct();
+    initializeEditDeleteFunctions();
+    
     console.log(' Vista admin inicializada correctamente');
 }
 
@@ -1283,18 +1285,310 @@ function showSuccessMessage() {
     }
 }
 
-// Función para editar producto (ya existe en el HTML)
-function openEditProductModal(productId) {
-    console.log(' Abriendo modal para editar producto ID:', productId);
-    // Tu código existente para editar...
+// ===== 🆕 FUNCIONALIDADES COMPLETAS PARA EDITAR Y ELIMINAR PRODUCTOS =====
+
+// Inicializar funcionalidades de editar/eliminar
+function initializeEditDeleteFunctions() {
+    console.log('🔧 Inicializando funciones de editar/eliminar...');
+    
+    // Event listeners para cerrar modales
+    document.getElementById('closeEditProductModal')?.addEventListener('click', closeEditModal);
+    document.getElementById('cancelEditProduct')?.addEventListener('click', closeEditModal);
+    document.getElementById('editProductOverlay')?.addEventListener('click', closeEditModal);
+    
+    document.getElementById('closeDeleteProductModal')?.addEventListener('click', closeDeleteModal);
+    document.getElementById('cancelDeleteProduct')?.addEventListener('click', closeDeleteModal);
+    document.getElementById('deleteProductOverlay')?.addEventListener('click', closeDeleteModal);
+    
+    // Formulario de editar
+    document.getElementById('editProductForm')?.addEventListener('submit', handleEditProductSubmit);
+    
+    // Botón confirmar eliminación
+    document.getElementById('confirmDeleteProduct')?.addEventListener('click', handleDeleteProduct);
+    
+    console.log('✅ Funciones de editar/eliminar inicializadas');
 }
 
+// Función para abrir modal de editar producto
+async function openEditProductModal(productId) {
+    console.log('📝 Abriendo modal para editar producto ID:', productId);
+    
+    try {
+        // Cargar datos del producto
+        const response = await fetch(`https://bodega-backend-nuevo.onrender.com/api/inventory`);
+        if (!response.ok) throw new Error('Error al cargar productos');
+        
+        const productos = await response.json();
+        const producto = productos.find(p => p.id == productId);
+        
+        if (!producto) {
+            showNotification(' Producto no encontrado', 'error');
+            return;
+        }
+        
+        console.log('📦 Producto cargado:', producto);
+        
+        // Llenar formulario con datos actuales
+        document.getElementById('editProductId').value = producto.id;
+        document.getElementById('editProductName').value = producto.nombre || '';
+        document.getElementById('editProductCategory').value = producto.categoria || 'Abarrotes';
+        document.getElementById('editProductPrice').value = producto.precio || 0;
+        document.getElementById('editProductStock').value = producto.stock || 0;
+        document.getElementById('editProductDescription').value = producto.descripcion || '';
+        
+        // Mostrar modal
+        showModal('editProductModal', 'editProductOverlay');
+        
+    } catch (error) {
+        console.error('Error cargando producto:', error);
+        showNotification(' Error al cargar producto', 'error');
+    }
+}
+
+// Función para abrir modal de eliminar producto
 function openDeleteProductModal(productId) {
-    console.log(' Abriendo modal para eliminar producto ID:', productId);
-    // Tu código existente para eliminar...
+    console.log('🗑️ Abriendo modal para eliminar producto ID:', productId);
+    
+    // Guardar ID en el modal
+    document.getElementById('deleteProductId').value = productId;
+    
+    // Mostrar modal
+    showModal('deleteProductModal', 'deleteProductOverlay');
 }
 
+// Manejar envío del formulario de edición
+async function handleEditProductSubmit(e) {
+    e.preventDefault();
+    
+    console.log('📝 Enviando formulario de edición...');
+    
+    const productId = document.getElementById('editProductId').value;
+    const nombre = document.getElementById('editProductName').value.trim();
+    const categoria = document.getElementById('editProductCategory').value;
+    const precio = parseFloat(document.getElementById('editProductPrice').value);
+    const stock = parseInt(document.getElementById('editProductStock').value);
+    const descripcion = document.getElementById('editProductDescription').value.trim();
+    
+    // Validaciones
+    if (!nombre || !categoria || isNaN(precio) || isNaN(stock)) {
+        showNotification(' Por favor completa todos los campos obligatorios', 'error');
+        return;
+    }
+    
+    if (precio < 0) {
+        showNotification(' El precio debe ser un número positivo', 'error');
+        return;
+    }
+    
+    if (stock < 0) {
+        showNotification(' El stock debe ser un número positivo', 'error');
+        return;
+    }
+    
+    const productoActualizado = {
+        nombre: nombre,
+        categoria: categoria,
+        precio: precio,
+        stock: stock,
+        descripcion: descripcion || nombre
+    };
+    
+    console.log('📦 Producto a actualizar:', productoActualizado);
+    
+    try {
+        // Mostrar loading
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        
+        // Enviar actualización al backend
+        const response = await fetch(`https://bodega-backend-nuevo.onrender.com/api/inventory/${productId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${window.authToken}`
+            },
+            body: JSON.stringify(productoActualizado)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showNotification(' Producto actualizado exitosamente!', 'success');
+            
+            // Cerrar modal
+            closeEditModal();
+            
+            // Recargar productos en todas las vistas
+            if (typeof loadAdminProducts === 'function') {
+                await loadAdminProducts();
+            }
+            
+            // Actualizar productos globales
+            if (typeof loadProducts === 'function') {
+                await loadProducts();
+            }
+            
+            // Actualizar catálogo si está visible
+            if (window.currentView === 'catalogo' && typeof window.renderProductsByCategory === 'function') {
+                window.renderProductsByCategory();
+            }
+            
+            // Actualizar estadísticas
+            if (typeof updateAdminStats === 'function') {
+                updateAdminStats();
+            }
+            
+        } else {
+            throw new Error(data.message || 'Error al actualizar producto');
+        }
+        
+    } catch (error) {
+        console.error('Error actualizando producto:', error);
+        showNotification(` Error: ${error.message}`, 'error');
+    } finally {
+        // Restaurar botón
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Cambios';
+        }
+    }
+}
 
+// Manejar eliminación de producto
+async function handleDeleteProduct() {
+    const productId = document.getElementById('deleteProductId').value;
+    
+    if (!productId) {
+        showNotification(' ID de producto no válido', 'error');
+        return;
+    }
+    
+    console.log('🗑️ Eliminando producto ID:', productId);
+    
+    try {
+        // Mostrar loading
+        const deleteBtn = document.getElementById('confirmDeleteProduct');
+        const originalText = deleteBtn.innerHTML;
+        deleteBtn.disabled = true;
+        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
+        
+        // Enviar eliminación al backend
+        const response = await fetch(`https://bodega-backend-nuevo.onrender.com/api/inventory/${productId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${window.authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showNotification(' Producto eliminado exitosamente!', 'success');
+            
+            // Cerrar modal
+            closeDeleteModal();
+            
+            // Recargar productos en todas las vistas
+            if (typeof loadAdminProducts === 'function') {
+                await loadAdminProducts();
+            }
+            
+            // Actualizar productos globales
+            if (typeof loadProducts === 'function') {
+                await loadProducts();
+            }
+            
+            // Actualizar catálogo si está visible
+            if (window.currentView === 'catalogo' && typeof window.renderProductsByCategory === 'function') {
+                window.renderProductsByCategory();
+            }
+            
+            // Actualizar estadísticas
+            if (typeof updateAdminStats === 'function') {
+                updateAdminStats();
+            }
+            
+        } else {
+            throw new Error(data.message || 'Error al eliminar producto');
+        }
+        
+    } catch (error) {
+        console.error('Error eliminando producto:', error);
+        showNotification(` Error: ${error.message}`, 'error');
+    } finally {
+        // Restaurar botón
+        const deleteBtn = document.getElementById('confirmDeleteProduct');
+        if (deleteBtn) {
+            deleteBtn.disabled = false;
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Eliminar Producto';
+        }
+    }
+}
+
+// Funciones auxiliares para mostrar/cerrar modales
+function showModal(modalId, overlayId) {
+    const modal = document.getElementById(modalId);
+    const overlay = document.getElementById(overlayId);
+    
+    if (!modal || !overlay) return;
+    
+    overlay.style.display = 'block';
+    modal.style.display = 'block';
+    
+    setTimeout(() => {
+        overlay.classList.add('active');
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }, 10);
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editProductModal');
+    const overlay = document.getElementById('editProductOverlay');
+    
+    if (!modal || !overlay) return;
+    
+    overlay.classList.remove('active');
+    modal.classList.remove('active');
+    
+    setTimeout(() => {
+        overlay.style.display = 'none';
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        
+        // Resetear formulario
+        document.getElementById('editProductForm')?.reset();
+    }, 300);
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteProductModal');
+    const overlay = document.getElementById('deleteProductOverlay');
+    
+    if (!modal || !overlay) return;
+    
+    overlay.classList.remove('active');
+    modal.classList.remove('active');
+    
+    setTimeout(() => {
+        overlay.style.display = 'none';
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        
+        // Limpiar ID
+        document.getElementById('deleteProductId').value = '';
+    }, 300);
+}
+
+// ===== EXPONER FUNCIONES GLOBALES =====
+window.openEditProductModal = openEditProductModal;
+window.openDeleteProductModal = openDeleteProductModal;
+window.handleEditProductSubmit = handleEditProductSubmit;
+window.handleDeleteProduct = handleDeleteProduct;
 
 // ===== EXPONER FUNCIONES GLOBALES =====
 window.initializeAddProduct = initializeAddProduct;
